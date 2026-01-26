@@ -1,26 +1,39 @@
 package com.zayenha.qatra.user.infrastructure.persistence.adapter;
 
 import com.zayenha.qatra.shared.domain.PageResult;
+import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
+import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserSearchCriteria;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
+import com.zayenha.qatra.user.infrastructure.persistence.adapter.utils.TimedCount;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
+import com.zayenha.qatra.user.infrastructure.persistence.entity.UserRoleEntity;
 import com.zayenha.qatra.user.infrastructure.persistence.repository.UserJpaRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class UserRepositoryAdapter implements UserRepositoryPort {
     private final UserJpaRepository jpaRepository;
+    private final Map<String, TimedCount> countCache = new ConcurrentHashMap<>();
 
     @Override
     public Optional<User> findById(Long id) {
@@ -52,19 +65,35 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         return jpaRepository.findAll().stream().map(this::toDomain).toList();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public PageResult<User> findAll(UserSearchCriteria criteria) {
         var spec = buildSpecification(criteria.search());
         var sort = buildSort(criteria.sortBy(), criteria.sortDirection());
         var pageable = PageRequest.of(criteria.page(), criteria.size(), sort);
         var page = jpaRepository.findAll(spec, pageable);
+        var count = getTotalCount();
         return new PageResult<>(
             page.getContent().stream().map(this::toDomain).toList(),
             page.getNumber(),
             page.getSize(),
-            page.getTotalElements(),
+            count,
             page.getTotalPages()
         );
+    }
+
+    private long getTotalCount() {
+        var countTime = Instant.now();
+        var total = countCache.get("total");
+        log.info("Cached value: {}", total);
+        log.info("Current time: {}", countTime);
+        if (total == null || total.ttl().isBefore(countTime)) {
+            var count = jpaRepository.count();
+            var ttl = countTime.plusSeconds(60);
+            countCache.put("total", new TimedCount(count, ttl));
+            return count;
+        }
+        return total.count();
     }
 
     @Override
@@ -99,11 +128,15 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     private User toDomain(UserEntity e) {
+        var roles = e.getRoles().stream()
+                .map(UserRoleEntity::getRole)
+                .toList();
         return User.reconstruct(
             e.getId(), e.getEmail(), e.getPhone(),
             e.getHashedPassword(), e.getDisplayName(),
             e.getStatus(), e.isEmailVerified(),
-            e.getDeletedAt(), e.getCreatedAt(), e.getLastActiveAt()
+            e.getDeletedAt(), e.getCreatedAt(), e.getLastActiveAt(),
+            roles
         );
     }
 

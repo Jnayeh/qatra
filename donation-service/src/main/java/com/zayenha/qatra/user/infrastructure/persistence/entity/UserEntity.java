@@ -2,10 +2,21 @@ package com.zayenha.qatra.user.infrastructure.persistence.entity;
 
 import com.zayenha.qatra.user.domain.model.UserStatus;
 import jakarta.persistence.*;
-import java.time.Instant;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
 @Entity
 @Table(name = "users")
+@NamedEntityGraph(
+        name = "UserEntity.withRoles",
+        attributeNodes = {@NamedAttributeNode("roles")}
+)
 public class UserEntity {
 
     @Id
@@ -19,6 +30,7 @@ public class UserEntity {
     private String phone;
 
     @Column(name = "hashed_password", nullable = false)
+    @Basic(fetch = FetchType.LAZY)
     private String hashedPassword;
 
     @Column(name = "display_name", nullable = false)
@@ -40,26 +52,9 @@ public class UserEntity {
     @Column(name = "last_active_at")
     private Instant lastActiveAt;
 
-    public UserEntity() {}
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    private List<UserRoleEntity> roles = new ArrayList<>();
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-    public String getHashedPassword() { return hashedPassword; }
-    public void setHashedPassword(String hashedPassword) { this.hashedPassword = hashedPassword; }
-    public String getDisplayName() { return displayName; }
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
-    public UserStatus getStatus() { return status; }
-    public void setStatus(UserStatus status) { this.status = status; }
-    public boolean isEmailVerified() { return emailVerified; }
-    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
-    public Instant getDeletedAt() { return deletedAt; }
-    public void setDeletedAt(Instant deletedAt) { this.deletedAt = deletedAt; }
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-    public Instant getLastActiveAt() { return lastActiveAt; }
-    public void setLastActiveAt(Instant lastActiveAt) { this.lastActiveAt = lastActiveAt; }
+    public UserEntity() {}
 }

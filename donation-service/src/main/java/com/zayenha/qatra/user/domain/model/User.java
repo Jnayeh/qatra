@@ -3,6 +3,7 @@ package com.zayenha.qatra.user.domain.model;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 public class User {
@@ -16,6 +17,7 @@ public class User {
     private Instant deletedAt;
     private Instant createdAt;
     private Instant lastActiveAt;
+    private List<Role> roles;
 
     public User(String email, String phone, String hashedPassword, String displayName) {
         this.email = email;
@@ -25,6 +27,7 @@ public class User {
         this.status = UserStatus.ACTIVE;
         this.emailVerified = false;
         this.createdAt = Instant.now();
+        this.roles = List.of();
     }
 
     private User() {}
@@ -33,7 +36,7 @@ public class User {
                                    String hashedPassword, String displayName,
                                    UserStatus status, boolean emailVerified,
                                    Instant deletedAt, Instant createdAt,
-                                   Instant lastActiveAt) {
+                                   Instant lastActiveAt, List<Role> roles) {
         var u = new User();
         u.id = id;
         u.email = email;
@@ -45,6 +48,7 @@ public class User {
         u.deletedAt = deletedAt;
         u.createdAt = createdAt;
         u.lastActiveAt = lastActiveAt;
+        u.roles = roles;
         return u;
     }
 
