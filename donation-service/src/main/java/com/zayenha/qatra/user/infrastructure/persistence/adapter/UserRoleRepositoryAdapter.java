@@ -3,13 +3,14 @@ package com.zayenha.qatra.user.infrastructure.persistence.adapter;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.UserRole;
 import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
+import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserRoleEntity;
 import com.zayenha.qatra.user.infrastructure.persistence.repository.UserRoleJpaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -18,19 +19,19 @@ public class UserRoleRepositoryAdapter implements UserRoleRepositoryPort {
 
     @Override
     public List<UserRole> findByUserId(Long userId) {
-        return jpaRepository.findByUserId(userId).stream().map(this::toDomain).toList();
+        return jpaRepository.findByUserId(userId).stream().map(e -> toDomain(e, userId)).toList();
     }
 
     @Override
-    public Optional<UserRole> findByUserIdAndRole(Long userId, Role role) {
-        return jpaRepository.findByUserIdAndRole(userId, role).map(this::toDomain);
+    public boolean existsByUserIdAndRole(Long userId, Role role) {
+        return jpaRepository.existsByUserIdAndRole(userId, role);
     }
 
     @Override
     public UserRole save(UserRole userRole) {
         var entity = toJpa(userRole);
         var saved = jpaRepository.save(entity);
-        return toDomain(saved);
+        return toDomain(saved, userRole.getUserId());
     }
 
     @Override
@@ -43,14 +44,14 @@ public class UserRoleRepositoryAdapter implements UserRoleRepositoryPort {
         jpaRepository.deleteByUserIdAndRole(userId, role);
     }
 
-    private UserRole toDomain(UserRoleEntity e) {
-        return UserRole.reconstruct(e.getId(), e.getUserId(), e.getRole(), e.getAssignedAt());
+    private UserRole toDomain(UserRoleEntity e, Long userId) {
+        return UserRole.reconstruct(e.getId(), userId, e.getRole(), e.getAssignedAt());
     }
 
     private UserRoleEntity toJpa(UserRole r) {
         var e = new UserRoleEntity();
         if (r.getId() != null) e.setId(r.getId());
-        e.setUserId(r.getUserId());
+        e.setUser(new UserEntity(r.getUserId()));
         e.setRole(r.getRole());
         e.setAssignedAt(r.getAssignedAt());
         return e;
