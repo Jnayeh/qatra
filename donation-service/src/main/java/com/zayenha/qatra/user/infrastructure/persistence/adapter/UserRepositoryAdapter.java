@@ -1,7 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.persistence.adapter;
 
 import com.zayenha.qatra.shared.domain.PageResult;
-import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserSearchCriteria;
@@ -17,11 +16,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,22 +33,31 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public Optional<User> findById(Long id) {
-        return jpaRepository.findById(id).map(this::toDomain);
+        return jpaRepository.findById(id).map(e -> toDomain(e, true));
     }
+    @Override
+    public boolean existsById(Long id) {
+        return jpaRepository.existsById(id);
+    }
+
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return jpaRepository.findByEmail(email).map(this::toDomain);
+        return jpaRepository.findByEmail(email).map(e -> toDomain(e, true));
     }
 
     @Override
     public Optional<User> findByPhone(String phone) {
-        return jpaRepository.findByPhone(phone).map(this::toDomain);
+        return jpaRepository.findByPhone(phone).map(e -> toDomain(e, true));
     }
 
     @Override
     public boolean existsByEmail(String email) {
         return jpaRepository.existsByEmail(email);
+    }
+    @Override
+    public boolean existsOtherByEmailOrPhone(Long id, String email, String phone) {
+        return jpaRepository.existsByIdNotAndEmailOrPhone(id, email, phone);
     }
 
     @Override
@@ -62,10 +67,9 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<User> findAll() {
-        return jpaRepository.findAll().stream().map(this::toDomain).toList();
+        return jpaRepository.findAll().stream().map(e -> toDomain(e, true)).toList();
     }
 
-    @Transactional(readOnly = true)
     @Override
     public PageResult<User> findAll(UserSearchCriteria criteria) {
         var spec = buildSpecification(criteria.search());
@@ -74,7 +78,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         var page = jpaRepository.findAll(spec, pageable);
         var count = getTotalCount();
         return new PageResult<>(
-            page.getContent().stream().map(this::toDomain).toList(),
+            page.getContent().stream().map(e -> toDomain(e, true)).toList(),
             page.getNumber(),
             page.getSize(),
             count,
@@ -100,7 +104,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     public User save(User user) {
         var entity = toJpa(user);
         var saved = jpaRepository.save(entity);
-        return toDomain(saved);
+        return toDomain(saved, false);
     }
 
     @Override
@@ -127,10 +131,13 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         return Sort.by(dir, field);
     }
 
-    private User toDomain(UserEntity e) {
-        var roles = e.getRoles().stream()
-                .map(UserRoleEntity::getRole)
-                .toList();
+    private User toDomain(UserEntity e, boolean withRoles) {
+        List<Role> roles = new ArrayList<>();
+        if (withRoles){
+            roles.addAll(e.getRoles().stream()
+                    .map(UserRoleEntity::getRole).toList());
+        }
+
         return User.reconstruct(
             e.getId(), e.getEmail(), e.getPhone(),
             e.getHashedPassword(), e.getDisplayName(),
