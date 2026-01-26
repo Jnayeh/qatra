@@ -1,5 +1,6 @@
 package com.zayenha.qatra.user.domain.service;
 
+import com.zayenha.qatra.user.domain.exception.AlreadyExistsException;
 import com.zayenha.qatra.user.domain.exception.EmailAlreadyExistsException;
 import com.zayenha.qatra.user.domain.exception.PhoneAlreadyExistsException;
 import com.zayenha.qatra.user.domain.model.UserStatus;
@@ -22,15 +23,8 @@ public class UserDomainValidator {
     }
 
     public void validateUpdate(Long userId, String email, String phone) {
-        userRepository.findByEmail(email).ifPresent(existing -> {
-            if (!existing.getId().equals(userId)) {
-                throw new EmailAlreadyExistsException(email);
-            }
-        });
-        userRepository.findByPhone(phone).ifPresent(existing -> {
-            if (!existing.getId().equals(userId)) {
-                throw new PhoneAlreadyExistsException(phone);
-            }
-        });
+        if (userRepository.existsOtherByEmailOrPhone(userId,email, phone)) {
+                throw new AlreadyExistsException("The email or the phone number belong to another user");
+        }
     }
 }
