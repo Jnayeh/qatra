@@ -2,7 +2,6 @@ package com.zayenha.qatra.user.application;
 
 import com.zayenha.qatra.shared.domain.PageResult;
 import com.zayenha.qatra.user.api.dto.UserCreatedEvent;
-import com.zayenha.qatra.user.application.mapper.UserDomainMapper;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
 import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
@@ -28,7 +27,6 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
@@ -42,29 +40,33 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
     }
 
     @Override
+    @Transactional
     public User create(String email, String phone, String password, String displayName) {
         validator().validateCreate(email, phone);
         var user = new User(email, phone, passwordEncoder.encode(password), displayName);
         user = userRepository.save(user);
         eventPublisher.publishEvent(
-            new UserCreatedEvent(this, user.getId(), user.getEmail())
+                new UserCreatedEvent(this, user.getId(), user.getEmail())
         );
         log.info("AUDIT [actor={}] action={} details={}", user.getId(), "USER_CREATED", "email=" + email);
         return user;
     }
 
     @Override
+    @Transactional
     public User update(Long id, String email, String phone, String displayName) {
+        validator().validateUpdate(id, email, phone);
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
-        validator().validateUpdate(id, email, phone);
+        log.info("validated");
         user.update(email, phone, displayName);
-        user = userRepository.save(user);
+        user = userRepository.save(user); //UP
         log.info("AUDIT [actor={}] action={} details={}", id, "USER_UPDATED", "email=" + email);
         return user;
     }
 
     @Override
+    @Transactional
     public void updateStatus(Long id, UserStatus status) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -74,12 +76,13 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
     }
 
     @Override
+    @Transactional
     public void assignRole(Long userId, Role role) {
         var user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         if (!user.isActive()) {
             throw new InvalidRoleAssignmentException("Cannot assign roles to inactive user");
         }
-        if (userRoleRepository.findByUserIdAndRole(userId, role).isPresent()) {
+        if (userRoleRepository.existsByUserIdAndRole(userId, role)) {
             throw new InvalidRoleAssignmentException("User already has role: " + role);
         }
 
@@ -88,13 +91,20 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
     }
 
     @Override
+    @Transactional
     public void revokeRole(Long userId, Role role) {
-        var user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException(userId);
+        }
+        if (!userRoleRepository.existsByUserIdAndRole(userId, role)) {
+            throw new InvalidRoleAssignmentException("User does not have role: " + role);
+        }
         userRoleRepository.deleteByUserIdAndRole(userId, role);
         log.info("AUDIT [actor={}] action={} details={}", userId, "ROLE_REVOKED", "role=" + role);
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -108,12 +118,13 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
     }
 
     @Override
+    @Transactional
     public void seedSuperAdminIfAbsent() {
         var email = System.getenv("SUPER_ADMIN_EMAIL");
         var phone = System.getenv("SUPER_ADMIN_PHONE");
         var password = System.getenv("SUPER_ADMIN_PASSWORD");
         if (email == null || phone == null || password == null) return;
-        if (userRepository.findByEmail(email).isPresent()) {
+        if (userRepository.existsByEmail(email)) {
             return;
         }
         var user = create(email, phone, password, "Super Admin");
@@ -153,7 +164,6 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public PageResult<User> findAll(UserSearchCriteria criteria) {
         return userRepository.findAll(criteria);
     }
