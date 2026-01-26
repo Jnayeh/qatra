@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface UserRoleJpaRepository extends JpaRepository<UserRoleEntity, Long> {
     List<UserRoleEntity> findByUserId(Long userId);
-    Optional<UserRoleEntity> findByUserIdAndRole(Long userId, Role role);
+    boolean existsByUserIdAndRole(Long userId, Role role);
     void deleteByUserId(Long userId);
     void deleteByUserIdAndRole(Long userId, Role role);
 }
