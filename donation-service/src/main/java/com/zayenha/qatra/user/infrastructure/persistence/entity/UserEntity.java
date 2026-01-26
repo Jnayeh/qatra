@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -52,9 +51,11 @@ public class UserEntity {
     @Column(name = "last_active_at")
     private Instant lastActiveAt;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
-    private List<UserRoleEntity> roles = new ArrayList<>();
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<UserRoleEntity> roles;
 
     public UserEntity() {}
+    public UserEntity(Long id) {
+        this.id = id;
+    }
 }

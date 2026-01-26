@@ -2,8 +2,13 @@ package com.zayenha.qatra.user.infrastructure.persistence.entity;
 
 import com.zayenha.qatra.user.domain.model.Role;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.Instant;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "user_roles", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"user_id", "role"})
@@ -14,8 +19,9 @@ public class UserRoleEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -26,12 +32,4 @@ public class UserRoleEntity {
 
     public UserRoleEntity() {}
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
-    public Instant getAssignedAt() { return assignedAt; }
-    public void setAssignedAt(Instant assignedAt) { this.assignedAt = assignedAt; }
 }
