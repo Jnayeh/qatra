@@ -18,15 +18,15 @@ public class UserExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler({EmailAlreadyExistsException.class, PhoneAlreadyExistsException.class})
-    public ResponseEntity<ApiResponse<Void>> handleAlreadyExists(UserAlreadyExistsException ex) {
+    @ExceptionHandler(AlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAlreadyExists(AlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler({InvalidRoleAssignmentException.class, CannotDeleteActiveUserException.class})
+    @ExceptionHandler({CannotDeleteActiveUserException.class})
     public ResponseEntity<ApiResponse<Void>> handleDomainRuleViolation(RulesViolationException ex) {
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)
+        return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
                 .body(ApiResponse.error(ex.getMessage()));
     }
 }
