@@ -1,7 +1,7 @@
 package com.zayenha.qatra.shared.web;
 
 
-public record Page(
+public record Paginated(
     int number,
     int size,
     long totalElements,
