@@ -5,7 +5,7 @@ import com.zayenha.qatra.user.infrastructure.web.dto.response.UserDetailResponse
 import com.zayenha.qatra.user.infrastructure.web.dto.response.UserSummaryResponse;
 import java.util.List;
 
-public class UserResponseMapper {
+public class UserMapper {
 
     public static UserDetailResponse toDetail(User user, List<com.zayenha.qatra.user.domain.model.Role> roles) {
         return new UserDetailResponse(
