@@ -83,15 +83,15 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}/roles")
-    public ResponseEntity<ApiResponse<Void>> revokeRole(
+    public ResponseEntity<ApiResponse<String>> revokeRole(
             @PathVariable Long id, @Valid @RequestBody RevokeRoleRequest request) {
         commandUseCases.revokeRole(id, request.role());
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success("Role revoked"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) {
         commandUseCases.delete(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success("User deleted"));
     }
 }
