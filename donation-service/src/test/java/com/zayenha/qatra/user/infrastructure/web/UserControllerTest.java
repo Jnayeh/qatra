@@ -1,5 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
+import com.zayenha.qatra.shared.exception.GlobalExceptionHandler;
 import com.zayenha.qatra.shared.exception.NotFoundException;
 import com.zayenha.qatra.user.domain.exception.*;
 import com.zayenha.qatra.user.domain.model.Role;
@@ -9,7 +10,6 @@ import com.zayenha.qatra.user.domain.model.UserStatus;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import com.zayenha.qatra.user.infrastructure.web.dto.request.*;
-import com.zayenha.qatra.user.infrastructure.web.exception.UserExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,12 +36,12 @@ class UserControllerTest {
     private UserQueryUseCases queryUseCases;
 
     private UserController controller;
-    private UserExceptionHandler exceptionHandler;
+    private GlobalExceptionHandler exceptionHandler;
 
     @BeforeEach
     void setUp() {
         controller = new UserController(commandUseCases, queryUseCases);
-        exceptionHandler = new UserExceptionHandler();
+        exceptionHandler = new GlobalExceptionHandler();
     }
 
     private User aUser() {
@@ -162,7 +162,7 @@ class UserControllerTest {
     @Test
     void userNotFoundReturns404() {
         var ex = new UserNotFoundException(99L);
-        var response = exceptionHandler.handleUserNotFound(ex);
+        var response = exceptionHandler.handleBase(ex);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isNotNull();
@@ -173,7 +173,7 @@ class UserControllerTest {
     @Test
     void alreadyExistsReturns409() {
         var ex = new EmailAlreadyExistsException("dup@example.com");
-        var response = exceptionHandler.handleAlreadyExists(ex);
+        var response = exceptionHandler.handleBase(ex);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(response.getBody()).isNotNull();
@@ -182,11 +182,11 @@ class UserControllerTest {
     }
 
     @Test
-    void cannotDeleteActiveUserReturns412() {
+    void cannotDeleteActiveUserReturns422() {
         var ex = new CannotDeleteActiveUserException(1L);
-        var response = exceptionHandler.handleDomainRuleViolation(ex);
+        var response = exceptionHandler.handleBase(ex);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().success()).isFalse();
         assertThat(response.getBody().message()).contains("Cannot delete active user");
