@@ -44,7 +44,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserDetailResponse>> getDetails(@PathVariable Long id) {
         var user = queryUseCases.findById(id)
-                .orElseThrow(() -> new NotFoundException("User", id));
+                .orElseThrow(() -> new NotFoundException("User not found: " + id, "USER_NOT_FOUND"));
         return ResponseEntity.ok(ApiResponse.success(
             UserMapper.toDetail(user, user.getRoles())));
     }
