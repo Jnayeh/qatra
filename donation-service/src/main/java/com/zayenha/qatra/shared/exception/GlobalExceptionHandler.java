@@ -18,16 +18,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotFound(NotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(ex.getMessage()));
-    }
-
-    @ExceptionHandler(DomainException.class)
-    public ResponseEntity<ApiResponse<Void>> handleDomain(DomainException ex) {
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)
-                .body(ApiResponse.error(ex.getMessage()));
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleBase(BaseException ex) {
+        HttpStatus status = HttpStatus.resolve(ex.getHttpStatus());
+        if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
+        return ResponseEntity.status(status)
+                .body(ApiResponse.error(ex.getData(), ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
