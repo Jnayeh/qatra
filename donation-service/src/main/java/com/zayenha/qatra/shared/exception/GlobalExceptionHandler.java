@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.resolve(ex.getHttpStatus());
         if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
         return ResponseEntity.status(status)
-                .body(ApiResponse.error(ex.getData(), ex.getMessage()));
+                .body(ApiResponse.error(ex.getData(), ex.getErrorCode(), ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

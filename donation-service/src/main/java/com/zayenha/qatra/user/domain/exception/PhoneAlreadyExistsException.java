@@ -4,7 +4,7 @@ import com.zayenha.qatra.shared.exception.ConflictException;
 
 public class PhoneAlreadyExistsException extends ConflictException {
     public PhoneAlreadyExistsException(String phone) {
-        super("Phone already in use: " + phone, "PHONE_ALREADY_EXISTS");
+        super("Phone already in use: " + phone, UserErrorCode.PHONE_ALREADY_EXISTS.name());
         addData("phone", phone);
     }
 }

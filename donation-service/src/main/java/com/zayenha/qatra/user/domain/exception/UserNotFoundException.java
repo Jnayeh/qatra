@@ -4,7 +4,7 @@ import com.zayenha.qatra.shared.exception.NotFoundException;
 
 public class UserNotFoundException extends NotFoundException {
     public UserNotFoundException(Object id) {
-        super("User not found: " + id, "USER_NOT_FOUND");
+        super("User not found: " + id, UserErrorCode.USER_NOT_FOUND.name());
         addData("userId", id);
     }
 }

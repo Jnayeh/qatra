@@ -4,7 +4,7 @@ import com.zayenha.qatra.shared.exception.ConflictException;
 
 public class EmailAlreadyExistsException extends ConflictException {
     public EmailAlreadyExistsException(String email) {
-        super("Email already in use: " + email, "EMAIL_ALREADY_EXISTS");
+        super("Email already in use: " + email, UserErrorCode.EMAIL_ALREADY_EXISTS.name());
         addData("email", email);
     }
 }
