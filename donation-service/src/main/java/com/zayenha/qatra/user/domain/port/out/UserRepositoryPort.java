@@ -16,7 +16,6 @@ public interface UserRepositoryPort {
     boolean existsByEmail(String email);
 
     boolean existsByPhone(String phone);
-    List<User> findAll();
     PageResult<User> findAll(UserSearchCriteria criteria);
     User save(User user);
     void deleteById(Long id);

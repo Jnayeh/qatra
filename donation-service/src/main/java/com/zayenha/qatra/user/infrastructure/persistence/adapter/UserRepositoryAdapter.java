@@ -66,11 +66,6 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public List<User> findAll() {
-        return jpaRepository.findAll().stream().map(e -> toDomain(e, true)).toList();
-    }
-
-    @Override
     public PageResult<User> findAll(UserSearchCriteria criteria) {
         var spec = buildSpecification(criteria.search());
         var sort = buildSort(criteria.sortBy(), criteria.sortDirection());
