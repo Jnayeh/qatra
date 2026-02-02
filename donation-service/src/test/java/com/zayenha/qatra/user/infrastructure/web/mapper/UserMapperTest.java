@@ -44,15 +44,4 @@ class UserMapperTest {
         assertThat(detail.lastActiveAt()).isNull();
     }
 
-    @Test
-    void toSummaryMapsFields() {
-        var user = aUser();
-        var summary = UserMapper.toSummary(user);
-
-        assertThat(summary.id()).isEqualTo(1L);
-        assertThat(summary.email()).isEqualTo("test@example.com");
-        assertThat(summary.phone()).isEqualTo("1234567890");
-        assertThat(summary.displayName()).isEqualTo("Test User");
-        assertThat(summary.status()).isEqualTo(UserStatus.ACTIVE);
-    }
 }

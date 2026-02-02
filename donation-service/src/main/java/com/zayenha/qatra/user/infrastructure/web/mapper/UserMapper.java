@@ -2,7 +2,6 @@ package com.zayenha.qatra.user.infrastructure.web.mapper;
 
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.infrastructure.web.dto.response.UserDetailResponse;
-import com.zayenha.qatra.user.infrastructure.web.dto.response.UserSummaryResponse;
 import java.util.List;
 
 public class UserMapper {
@@ -18,16 +17,6 @@ public class UserMapper {
             roles,
             user.getCreatedAt(),
             user.getLastActiveAt()
-        );
-    }
-
-    public static UserSummaryResponse toSummary(User user) {
-        return new UserSummaryResponse(
-            user.getId(),
-            user.getEmail(),
-            user.getPhone(),
-            user.getDisplayName(),
-            user.getStatus()
         );
     }
 }
