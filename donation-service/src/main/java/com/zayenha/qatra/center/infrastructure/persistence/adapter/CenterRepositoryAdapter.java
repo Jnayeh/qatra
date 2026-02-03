@@ -1,8 +1,6 @@
 package com.zayenha.qatra.center.infrastructure.persistence.adapter;
 
-import tools.jackson.databind.ObjectMapper;
 import com.zayenha.qatra.center.domain.model.DonationCenter;
-import com.zayenha.qatra.center.domain.model.OperatingHours;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaRepository;
@@ -15,7 +13,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CenterRepositoryAdapter implements CenterRepositoryPort {
 
-    private final ObjectMapper objectMapper;
     private final CenterJpaRepository jpaRepository;
 
     @Override
@@ -71,14 +68,7 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
         center.setLatitude(entity.getLatitude());
         center.setLongitude(entity.getLongitude());
         center.setFacilityType(entity.getFacilityType());
-        if (entity.getOperatingHours() != null) {
-            try {
-                center.setOperatingHours(
-                    objectMapper.readValue(entity.getOperatingHours(), OperatingHours.class));
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to deserialize operating hours", e);
-            }
-        }
+        center.setOperatingHours(entity.getOperatingHours());
         center.setStatus(entity.getStatus());
         center.setTotalCapacity(entity.getTotalCapacity());
         center.setMaxRegular(entity.getMaxRegular());
