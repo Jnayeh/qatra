@@ -4,7 +4,7 @@ import com.zayenha.qatra.shared.domain.PageResult;
 
 public class PageHelper {
 
-    public static int toZeroIndexed(int clientPage) {
+    public static int toPageIndex(int clientPage) {
         return clientPage > 0 ? clientPage - 1 : 0;
     }
 
