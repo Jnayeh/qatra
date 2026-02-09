@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
                         (a, b) -> b
                 ));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(errors, "Validation failed"));
+                .body(ApiResponse.error(errors, "REQUEST_VALIDATION_FAILED", "Validation failed"));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -67,6 +67,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleUncaught(RuntimeException ex) {
         log.error("Unhandled error: ExceptionType {}", ex.getClass(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("An unexpected error occurred"));
+                .body(ApiResponse.error("INTERNAL_SERVER_ERROR", "An unexpected error occurred"));
     }
 }
