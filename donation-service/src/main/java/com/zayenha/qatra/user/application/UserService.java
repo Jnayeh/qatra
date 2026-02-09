@@ -1,6 +1,7 @@
 package com.zayenha.qatra.user.application;
 
 import com.zayenha.qatra.shared.domain.PageResult;
+import com.zayenha.qatra.shared.domain.SearchCriteria;
 import com.zayenha.qatra.user.api.dto.UserCreatedEvent;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
@@ -8,7 +9,6 @@ import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserRole;
-import com.zayenha.qatra.user.domain.model.UserSearchCriteria;
 import com.zayenha.qatra.user.domain.model.UserStatus;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
@@ -164,7 +164,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
     }
 
     @Override
-    public PageResult<User> findAll(UserSearchCriteria criteria) {
+    public PageResult<User> findAll(SearchCriteria criteria) {
         return userRepository.findAll(criteria);
     }
 }

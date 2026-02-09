@@ -1,9 +1,9 @@
 package com.zayenha.qatra.user.infrastructure.persistence.adapter;
 
 import com.zayenha.qatra.shared.domain.PageResult;
+import com.zayenha.qatra.shared.domain.SearchCriteria;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
-import com.zayenha.qatra.user.domain.model.UserSearchCriteria;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
 import com.zayenha.qatra.user.infrastructure.persistence.adapter.utils.TimedCount;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
@@ -66,7 +66,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public PageResult<User> findAll(UserSearchCriteria criteria) {
+    public PageResult<User> findAll(SearchCriteria criteria) {
         var spec = buildSpecification(criteria.search());
         var sort = buildSort(criteria.sortBy(), criteria.sortDirection());
         var pageable = PageRequest.of(criteria.page(), criteria.size(), sort);

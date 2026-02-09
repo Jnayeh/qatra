@@ -1,10 +1,10 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
 import com.zayenha.qatra.shared.exception.NotFoundException;
+import com.zayenha.qatra.shared.domain.SearchCriteria;
 import com.zayenha.qatra.shared.web.ApiResponse;
-import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.shared.web.PageHelper;
-import com.zayenha.qatra.user.domain.model.UserSearchCriteria;
+import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import com.zayenha.qatra.user.infrastructure.web.dto.request.*;
@@ -33,8 +33,8 @@ public class UserController {
             @RequestParam(defaultValue = "asc") String sortDirection,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        var criteria = new UserSearchCriteria(search, sortBy, sortDirection,
-            PageHelper.toZeroIndexed(page), size);
+        var criteria = new SearchCriteria(search, sortBy, sortDirection,
+            PageHelper.toPageIndex(page), size);
         var result = queryUseCases.findAll(criteria);
         var users = result.content().stream()
                 .map(u -> UserMapper.toDetail(u, u.getRoles()))
