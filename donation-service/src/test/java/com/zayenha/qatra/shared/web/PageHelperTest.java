@@ -10,16 +10,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PageHelperTest {
 
     @Test
-    void toZeroIndexedConvertsClientPageToZeroIndexed() {
-        assertThat(PageHelper.toZeroIndexed(1)).isZero();
-        assertThat(PageHelper.toZeroIndexed(2)).isEqualTo(1);
-        assertThat(PageHelper.toZeroIndexed(0)).isEqualTo(4);
+    void toZeroIndexedConvertsClientPageToPageIndex() {
+        assertThat(PageHelper.toPageIndex(1)).isZero();
+        assertThat(PageHelper.toPageIndex(2)).isEqualTo(1);
+        assertThat(PageHelper.toPageIndex(5)).isEqualTo(4);
     }
 
     @Test
     void toZeroIndexedTreatsNonPositiveAsZero() {
-        assertThat(PageHelper.toZeroIndexed(0)).isZero();
-        assertThat(PageHelper.toZeroIndexed(-1)).isZero();
+        assertThat(PageHelper.toPageIndex(0)).isZero();
+        assertThat(PageHelper.toPageIndex(-1)).isZero();
     }
 
     @Test

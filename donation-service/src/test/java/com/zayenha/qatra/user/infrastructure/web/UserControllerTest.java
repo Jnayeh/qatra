@@ -1,11 +1,11 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
+import com.zayenha.qatra.shared.domain.SearchCriteria;
 import com.zayenha.qatra.shared.exception.GlobalExceptionHandler;
 import com.zayenha.qatra.shared.exception.NotFoundException;
 import com.zayenha.qatra.user.domain.exception.*;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
-import com.zayenha.qatra.user.domain.model.UserSearchCriteria;
 import com.zayenha.qatra.user.domain.model.UserStatus;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
@@ -55,7 +55,7 @@ class UserControllerTest {
         var user = aUser();
         var result = new com.zayenha.qatra.shared.domain.PageResult<User>(
                 List.of(user), 0, 20, 1, 1);
-        when(queryUseCases.findAll(any(UserSearchCriteria.class))).thenReturn(result);
+        when(queryUseCases.findAll(any(SearchCriteria.class))).thenReturn(result);
 
         var response = controller.listAll(null, "id", "asc", 1, 20);
 

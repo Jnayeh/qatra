@@ -1,6 +1,7 @@
 package com.zayenha.qatra.user.application;
 
 import com.zayenha.qatra.shared.domain.PageResult;
+import com.zayenha.qatra.shared.domain.SearchCriteria;
 import com.zayenha.qatra.user.api.dto.UserCreatedEvent;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
 import com.zayenha.qatra.user.domain.exception.EmailAlreadyExistsException;
@@ -9,7 +10,6 @@ import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserRole;
-import com.zayenha.qatra.user.domain.model.UserSearchCriteria;
 import com.zayenha.qatra.user.domain.model.UserStatus;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
 import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
@@ -312,7 +312,7 @@ class UserServiceTest {
 
     @Test
     void findAllDelegatesToRepository() {
-        var criteria = new UserSearchCriteria(null, "id", "asc", 0, 20);
+        var criteria = new SearchCriteria(null, "id", "asc", 0, 20);
         var pageResult = new PageResult<User>(List.of(aUser()), 0, 20, 1, 1);
         when(userRepository.findAll(criteria)).thenReturn(pageResult);
 
