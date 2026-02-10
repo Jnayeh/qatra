@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface CenterJpaRepository extends JpaRepository<CenterEntity, Long>, JpaSpecificationExecutor<CenterEntity> {
     boolean existsByName(String name);
+    boolean existsByNameAndIdNot(String name, Long id);
 }

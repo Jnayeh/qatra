@@ -36,8 +36,23 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
     }
 
     @Override
+    public boolean existsById(Long id) {
+        return jpaRepository.existsById(id);
+    }
+
+    @Override
+    public boolean otherCenterHasName(Long id, String name) {
+        return jpaRepository.existsByNameAndIdNot(name, id);
+    }
+
+    @Override
     public Optional<DonationCenter> findById(Long id) {
         return jpaRepository.findById(id).map(this::toDomain);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        jpaRepository.deleteById(id);
     }
 
     @Override

@@ -9,6 +9,9 @@ import java.util.Optional;
 public interface CenterRepositoryPort {
     DonationCenter save(DonationCenter center);
     boolean existsByName(String name);
+    boolean existsById(Long id);
+    boolean otherCenterHasName(Long id, String name);
     Optional<DonationCenter> findById(Long id);
     PageResult<DonationCenter> findAll(SearchCriteria criteria);
+    void deleteById(Long id);
 }
