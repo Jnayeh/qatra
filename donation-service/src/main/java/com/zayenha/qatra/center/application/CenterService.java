@@ -3,7 +3,9 @@ package com.zayenha.qatra.center.application;
 import com.zayenha.qatra.center.domain.exception.CenterErrorCode;
 import com.zayenha.qatra.center.domain.model.DonationCenter;
 import com.zayenha.qatra.shared.domain.SearchCriteria;
-import com.zayenha.qatra.center.domain.port.in.CenterUseCases;
+import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases;
+import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases.CreateCenterCommand;
+import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.domain.service.CenterDomainValidator;
 import com.zayenha.qatra.shared.domain.PageResult;
@@ -14,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class CenterService implements CenterUseCases {
+public class CenterService implements CenterCommandUseCases, CenterQueryUseCases {
 
     private final CenterRepositoryPort centerRepository;
 

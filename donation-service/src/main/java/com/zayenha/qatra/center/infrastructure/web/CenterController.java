@@ -1,6 +1,7 @@
 package com.zayenha.qatra.center.infrastructure.web;
 
-import com.zayenha.qatra.center.domain.port.in.CenterUseCases;
+import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases;
+import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
 import com.zayenha.qatra.shared.domain.SearchCriteria;
 import com.zayenha.qatra.center.infrastructure.web.dto.request.CreateCenterRequest;
 import com.zayenha.qatra.center.infrastructure.web.dto.response.CenterResponse;
@@ -20,26 +21,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CenterController {
 
-    private final CenterUseCases centerUseCases;
+    private final CenterCommandUseCases commandUseCases;
+    private final CenterQueryUseCases queryUseCases;
 
     @PostMapping
     public ResponseEntity<ApiResponse<CenterResponse>> create(
             @Valid @RequestBody CreateCenterRequest request) {
-        var command = new CenterUseCases.CreateCenterCommand(
+        var command = new CenterCommandUseCases.CreateCenterCommand(
             request.name(), request.address(), request.city(),
             request.country(), request.postalCode(), request.phone(),
             request.email(), request.latitude(), request.longitude(),
             request.facilityType(), request.operatingHours(),
             request.totalCapacity(), request.maxRegular(), request.slotPeriod()
         );
-        var center = centerUseCases.create(command);
+        var center = commandUseCases.create(command);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(CenterMapper.toResponse(center)));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<CenterResponse>> getById(@PathVariable Long id) {
-        var center = centerUseCases.getById(id);
+        var center = queryUseCases.getById(id);
         return ResponseEntity.ok(ApiResponse.success(CenterMapper.toResponse(center)));
     }
 
@@ -51,7 +53,7 @@ public class CenterController {
             @RequestParam(required = false) String search) {
         var criteria = new SearchCriteria(search, sortBy, sortDirection,
             PageHelper.toPageIndex(page), size);
-        var result = centerUseCases.getAll(criteria);
+        var result = queryUseCases.getAll(criteria);
         var centers = result.content().stream()
                 .map(CenterMapper::toResponse)
                 .toList();
