@@ -29,9 +29,18 @@ class DonorControllerIntegrationTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
     }
 
+    private void createProfile(long userId) throws Exception {
+        mockMvc.perform(put("/api/v1/donors/me")
+                .header("X-User-Id", userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isOk());
+    }
+
     @Test
-    void getMyProfileCreatesAndReturnsProfile() throws Exception {
+    void getMyProfileReturnsExistingProfile() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         mockMvc.perform(get("/api/v1/donors/me")
                 .header("X-User-Id", userId))
@@ -46,6 +55,7 @@ class DonorControllerIntegrationTest {
     @Test
     void updateBloodTypeSetsBloodType() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/blood-type")
                 .header("X-User-Id", userId)
@@ -56,12 +66,13 @@ class DonorControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.bloodType").value("A_POSITIVE"))
-                .andExpect(jsonPath("$.data.bloodTypeVerified").value(true));
+                .andExpect(jsonPath("$.data.bloodTypeVerified").value(false));
     }
 
     @Test
-    void updateBloodTypeThrowsWhenAlreadyVerified() throws Exception {
+    void updateBloodTypeCanChangeAgainWhenNotVerified() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/blood-type")
                 .header("X-User-Id", userId)
@@ -77,14 +88,14 @@ class DonorControllerIntegrationTest {
                 .content("""
                     {"bloodType": "B_POSITIVE"}
                     """))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("already verified")));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.bloodType").value("B_POSITIVE"));
     }
 
     @Test
     void updateLocationSetsLocation() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/location")
                 .header("X-User-Id", userId)
@@ -103,6 +114,7 @@ class DonorControllerIntegrationTest {
     @Test
     void updateAvailabilityChangesStatus() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/availability")
                 .header("X-User-Id", userId)
@@ -118,6 +130,7 @@ class DonorControllerIntegrationTest {
     @Test
     void healthQuestionnaireFullFlow() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/health-questionnaire")
                 .header("X-User-Id", userId)
@@ -141,6 +154,7 @@ class DonorControllerIntegrationTest {
     @Test
     void healthQuestionnaireChronicIllnessSetsRestrictionReason() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/health-questionnaire")
                 .header("X-User-Id", userId)
@@ -161,6 +175,7 @@ class DonorControllerIntegrationTest {
     @Test
     void getEligibilityReturnsEligibleForNewProfile() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         mockMvc.perform(get("/api/v1/donors/me/eligibility")
                 .header("X-User-Id", userId))
@@ -172,6 +187,7 @@ class DonorControllerIntegrationTest {
     @Test
     void requestDeletionSetsInactive() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         mockMvc.perform(delete("/api/v1/donors/me")
                 .header("X-User-Id", userId))
@@ -183,6 +199,7 @@ class DonorControllerIntegrationTest {
     @Test
     void updateRestrictionModifiesDonor() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         var getProfile = mockMvc.perform(get("/api/v1/donors/me")
                 .header("X-User-Id", userId))
@@ -205,6 +222,7 @@ class DonorControllerIntegrationTest {
     @Test
     void updateFlagModifiesDonor() throws Exception {
         var userId = ++counter;
+        createProfile(userId);
 
         var getProfile = mockMvc.perform(get("/api/v1/donors/me")
                 .header("X-User-Id", userId))
