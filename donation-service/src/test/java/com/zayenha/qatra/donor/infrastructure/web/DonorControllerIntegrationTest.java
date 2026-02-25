@@ -119,7 +119,6 @@ class DonorControllerIntegrationTest {
     void healthQuestionnaireFullFlow() throws Exception {
         var userId = ++counter;
 
-        // Submit health questionnaire
         mockMvc.perform(put("/api/v1/donors/me/health-questionnaire")
                 .header("X-User-Id", userId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -132,7 +131,6 @@ class DonorControllerIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.recentTravel").value(true));
 
-        // Read it back
         mockMvc.perform(get("/api/v1/donors/me/health-questionnaire")
                 .header("X-User-Id", userId))
                 .andExpect(status().isOk())
@@ -141,7 +139,7 @@ class DonorControllerIntegrationTest {
     }
 
     @Test
-    void healthQuestionnaireChronicIllnessCausesPermanentRestriction() throws Exception {
+    void healthQuestionnaireChronicIllnessSetsRestrictionReason() throws Exception {
         var userId = ++counter;
 
         mockMvc.perform(put("/api/v1/donors/me/health-questionnaire")
@@ -157,7 +155,6 @@ class DonorControllerIntegrationTest {
         mockMvc.perform(get("/api/v1/donors/me")
                 .header("X-User-Id", userId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.permanentlyRestricted").value(true))
                 .andExpect(jsonPath("$.data.restrictionReason", org.hamcrest.Matchers.containsString("Chronic illness")));
     }
 

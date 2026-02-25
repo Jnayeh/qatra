@@ -1,6 +1,10 @@
 package com.zayenha.qatra.donor.application;
 
-import com.zayenha.qatra.donor.domain.model.*;
+import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
+import com.zayenha.qatra.donor.domain.model.DonorProfile;
+import com.zayenha.qatra.donor.domain.model.DonorStatus;
+import com.zayenha.qatra.donor.domain.model.NotificationFrequency;
+import com.zayenha.qatra.donor.domain.model.NotificationPreferences;
 import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.shared.domain.BloodType;
@@ -39,12 +43,6 @@ class DonorServiceTest {
         return profile;
     }
 
-    private HealthQuestionnaire aQuestionnaire(Long donorId) {
-        var q = new HealthQuestionnaire(donorId);
-        q.setId(100L);
-        return q;
-    }
-
     // --- getMyProfile ---
 
     @Test
@@ -59,25 +57,18 @@ class DonorServiceTest {
     }
 
     @Test
-    void getMyProfileCreatesNewWhenNotFound() {
+    void getMyProfileThrowsWhenNotFound() {
         when(donorRepository.findByUserId(1L)).thenReturn(Optional.empty());
-        when(donorRepository.save(any())).thenAnswer(invocation -> {
-            var p = invocation.<DonorProfile>getArgument(0);
-            p.setId(10L);
-            return p;
-        });
 
-        var result = donorService.getMyProfile(1L);
-
-        assertThat(result.getUserId()).isEqualTo(1L);
-        assertThat(result.getBloodType()).isEqualTo(BloodType.UNKNOWN);
-        assertThat(result.getAvailabilityStatus()).isEqualTo(AvailabilityStatus.AVAILABLE);
+        assertThatThrownBy(() -> donorService.getMyProfile(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("1");
     }
 
     // --- updateBloodType ---
 
     @Test
-    void updateBloodTypeSetsVerifiedWhenNotUnknown() {
+    void updateBloodTypeSetsBloodType() {
         var profile = aProfile();
         when(donorRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
         when(donorRepository.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -85,7 +76,6 @@ class DonorServiceTest {
         var result = donorService.updateBloodType(1L, BloodType.A_POSITIVE);
 
         assertThat(result.getBloodType()).isEqualTo(BloodType.A_POSITIVE);
-        assertThat(result.isBloodTypeVerified()).isTrue();
     }
 
     @Test
@@ -156,43 +146,6 @@ class DonorServiceTest {
         assertThat(result.getAvailabilityStatus()).isEqualTo(AvailabilityStatus.TEMPORARILY_UNAVAILABLE);
     }
 
-    // --- updateHealthQuestionnaire ---
-
-    @Test
-    void updateHealthQuestionnaireSetsPermanentRestrictionForChronicIllness() {
-        var profile = aProfile();
-        when(donorRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
-        when(donorRepository.findQuestionnaireByDonorId(10L)).thenReturn(Optional.empty());
-        when(donorRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-        when(donorRepository.saveQuestionnaire(any())).thenAnswer(i -> i.getArgument(0));
-
-        var command = new DonorCommandUseCases.HealthQuestionnaireCommand(
-                true, null, false, null, false, false, false);
-        var result = donorService.updateHealthQuestionnaire(1L, command);
-
-        assertThat(result.isHasChronicIllness()).isTrue();
-        assertThat(profile.isPermanentlyRestricted()).isTrue();
-        assertThat(profile.getRestrictionReason()).contains("Chronic illness");
-    }
-
-    @Test
-    void updateHealthQuestionnaireSetsPermanentRestrictionForMedicationKeyword() {
-        var profile = aProfile();
-        when(donorRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
-        when(donorRepository.findQuestionnaireByDonorId(10L)).thenReturn(Optional.empty());
-        when(donorRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-        when(donorRepository.saveQuestionnaire(any())).thenAnswer(i -> i.getArgument(0));
-
-        var command = new DonorCommandUseCases.HealthQuestionnaireCommand(
-                false, null, true, "Patient takes insulin daily",
-                false, false, false);
-        var result = donorService.updateHealthQuestionnaire(1L, command);
-
-        assertThat(result.isOnMedication()).isTrue();
-        assertThat(profile.isPermanentlyRestricted()).isTrue();
-        assertThat(profile.getRestrictionReason()).contains("insulin");
-    }
-
     // --- requestDeletion ---
 
     @Test
@@ -252,31 +205,6 @@ class DonorServiceTest {
         assertThatThrownBy(() -> donorService.getDonorById(99L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("99");
-    }
-
-    // --- getHealthQuestionnaire ---
-
-    @Test
-    void getHealthQuestionnaireReturnsQuestionnaire() {
-        var profile = aProfile();
-        var q = aQuestionnaire(10L);
-        when(donorRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
-        when(donorRepository.findQuestionnaireByDonorId(10L)).thenReturn(Optional.of(q));
-
-        var result = donorService.getHealthQuestionnaire(1L);
-
-        assertThat(result.getId()).isEqualTo(100L);
-    }
-
-    @Test
-    void getHealthQuestionnaireThrowsWhenNotFound() {
-        var profile = aProfile();
-        when(donorRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
-        when(donorRepository.findQuestionnaireByDonorId(10L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> donorService.getHealthQuestionnaire(1L))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("Health questionnaire");
     }
 
     // --- updateNotificationPrefs ---

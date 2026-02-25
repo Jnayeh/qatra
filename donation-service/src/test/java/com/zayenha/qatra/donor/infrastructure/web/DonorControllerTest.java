@@ -3,6 +3,8 @@ package com.zayenha.qatra.donor.infrastructure.web;
 import com.zayenha.qatra.donor.domain.model.*;
 import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
+import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
+import com.zayenha.qatra.donor.domain.port.in.QuestionnaireQueryUseCases;
 import com.zayenha.qatra.donor.infrastructure.web.dto.request.*;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorHealthResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityResponse;
@@ -26,17 +28,17 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DonorControllerTest {
 
-    @Mock
-    private DonorCommandUseCases commandUseCases;
-    @Mock
-    private DonorQueryUseCases queryUseCases;
+    @Mock private DonorCommandUseCases commandUseCases;
+    @Mock private DonorQueryUseCases queryUseCases;
+    @Mock private QuestionnaireCommandUseCases healthCommandUseCases;
+    @Mock private QuestionnaireQueryUseCases healthQueryUseCases;
 
     private DonorController controller;
     private GlobalExceptionHandler exceptionHandler;
 
     @BeforeEach
     void setUp() {
-        controller = new DonorController(commandUseCases, queryUseCases);
+        controller = new DonorController(commandUseCases, queryUseCases, healthCommandUseCases, healthQueryUseCases);
         exceptionHandler = new GlobalExceptionHandler();
     }
 
@@ -51,16 +53,6 @@ class DonorControllerTest {
         profile.setCreatedAt(Instant.now());
         profile.setUpdatedAt(Instant.now());
         return profile;
-    }
-
-    private HealthQuestionnaire aQuestionnaire() {
-        var q = new HealthQuestionnaire(10L);
-        q.setId(100L);
-        q.setHasChronicIllness(false);
-        q.setOnMedication(false);
-        q.setCreatedAt(Instant.now());
-        q.setUpdatedAt(Instant.now());
-        return q;
     }
 
     @Test
@@ -135,8 +127,13 @@ class DonorControllerTest {
 
     @Test
     void getHealthQuestionnaireReturnsQuestionnaire() {
-        var q = aQuestionnaire();
-        when(queryUseCases.getHealthQuestionnaire(1L)).thenReturn(q);
+        var q = new HealthQuestionnaire(10L);
+        q.setId(100L);
+        q.setHasChronicIllness(false);
+        q.setOnMedication(false);
+        q.setCreatedAt(Instant.now());
+        q.setUpdatedAt(Instant.now());
+        when(healthQueryUseCases.getHealthQuestionnaire(1L)).thenReturn(q);
 
         var response = controller.getHealthQuestionnaire(1L);
 
@@ -148,8 +145,13 @@ class DonorControllerTest {
 
     @Test
     void updateHealthQuestionnaireReturnsQuestionnaire() {
-        var q = aQuestionnaire();
-        when(commandUseCases.updateHealthQuestionnaire(eq(1L), any())).thenReturn(q);
+        var q = new HealthQuestionnaire(10L);
+        q.setId(100L);
+        q.setHasChronicIllness(false);
+        q.setOnMedication(false);
+        q.setCreatedAt(Instant.now());
+        q.setUpdatedAt(Instant.now());
+        when(healthCommandUseCases.updateHealthQuestionnaire(eq(1L), any())).thenReturn(q);
 
         var request = new HealthQuestionnaireRequest(
                 false, null, false, null, false, false, false);

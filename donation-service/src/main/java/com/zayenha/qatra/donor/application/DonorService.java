@@ -4,7 +4,6 @@ import com.zayenha.qatra.donor.domain.exception.DonorErrorCode;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.DonorStatus;
-import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.model.NotificationPreferences;
 import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -78,7 +76,8 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setCity(command.city());
         profile.setCountry(command.country());
         profile.setUpdatedAt(Instant.now());
-        checkProfileComplete(profile, null);
+        var hasQuestionnaire = donorRepository.donorHasQuestionnaire(profile.getId());
+        profile.setProfileComplete(command.latitude() != null && command.longitude() != null && hasQuestionnaire);
         return donorRepository.save(profile);
     }
 
@@ -106,36 +105,11 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
 
     @Override
     @Transactional
-    public HealthQuestionnaire updateHealthQuestionnaire(Long userId, HealthQuestionnaireCommand command) {
-        var profile = donorRepository.findByUserId(userId)
-                .orElseThrow(()-> new NotFoundException("Donor not found: " + userId,
-                DonorErrorCode.DONOR_NOT_FOUND.name()));
-
-        var questionnaire = donorRepository.findQuestionnaireByDonorId(profile.getId())
-                .orElseGet(() -> new HealthQuestionnaire(profile.getId()));
-
-        questionnaire.setHasChronicIllness(command.hasChronicIllness());
-        questionnaire.setMedicalConditionsDetails(command.medicalConditionsDetails());
-        questionnaire.setOnMedication(command.onMedication());
-        questionnaire.setMedicationDetails(command.medicationDetails());
-        questionnaire.setRecentSurgery(command.recentSurgery());
-        questionnaire.setRecentTravel(command.recentTravel());
-        questionnaire.setRecentTattooOrPiercing(command.recentTattooOrPiercing());
-        questionnaire.setUpdatedAt(Instant.now());
-
-        evaluatePermanentRestriction(profile, command);
-        profile.setUpdatedAt(Instant.now());
-        checkProfileComplete(profile, questionnaire);
-
-        donorRepository.save(profile);
-        return donorRepository.saveQuestionnaire(questionnaire);
-    }
-
-    @Override
-    @Transactional
     public void requestDeletion(Long userId) {
-        var profile = donorRepository.findByUserId(userId).orElseGet(() ->
-                donorRepository.save(new DonorProfile(userId)));
+        var profile = donorRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(
+                "Donor not found by userID: " + userId,
+                DonorErrorCode.DONOR_NOT_FOUND.name()));
         profile.setStatus(DonorStatus.INACTIVE);
         profile.setUpdatedAt(Instant.now());
         donorRepository.save(profile);
@@ -183,40 +157,4 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
                         DonorErrorCode.DONOR_NOT_FOUND.name()));
     }
 
-    @Override
-    @Transactional
-    public HealthQuestionnaire getHealthQuestionnaire(Long userId) {
-        var profile = donorRepository.findByUserId(userId).orElseThrow(()-> new NotFoundException(
-                "Donor not found: " + userId,
-                DonorErrorCode.DONOR_NOT_FOUND.name()));
-        return donorRepository.findQuestionnaireByDonorId(profile.getId())
-                .orElseThrow(() -> new NotFoundException(
-                        "Health questionnaire not found",
-                        DonorErrorCode.HEALTH_QUESTIONNAIRE_NOT_FOUND.name()));
-    }
-
-    private void evaluatePermanentRestriction(DonorProfile profile, HealthQuestionnaireCommand command) {
-        if (command.hasChronicIllness()) {
-            profile.setRestrictionReason("Chronic illness indicated in health questionnaire");
-        } else if (command.onMedication() && command.medicationDetails() != null
-                && containsPermanentMedicationKeyword(command.medicationDetails())) {
-            profile.setRestrictionReason("Permanent medication: " + command.medicationDetails());
-        }
-    }
-
-    private boolean containsPermanentMedicationKeyword(String details) {
-        var keywords = List.of("insulin", "chemo", "immunosuppressant");
-        var lower = details.toLowerCase();
-        return keywords.stream().anyMatch(lower::contains);
-    }
-
-    private void checkProfileComplete(DonorProfile profile, HealthQuestionnaire questionnaire) {
-        boolean hasLocation = profile.getLatitude() != null && profile.getLongitude() != null;
-        boolean hasQuestionnaire = hasQuestionnaire(profile.getId(), questionnaire);
-        profile.setProfileComplete(hasLocation && hasQuestionnaire);
-    }
-    private boolean hasQuestionnaire(Long id, HealthQuestionnaire questionnaire) {
-        if (questionnaire!=null) return true;
-        return donorRepository.donorHasQuestionnaire(id);
-    }
 }
