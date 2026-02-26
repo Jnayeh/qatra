@@ -1,10 +1,10 @@
 package com.zayenha.qatra.donor.domain.service;
 
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
-import com.zayenha.qatra.shared.domain.BloodType;
-import com.zayenha.qatra.shared.exception.ConflictException;
-import com.zayenha.qatra.shared.exception.NotFoundException;
-import com.zayenha.qatra.shared.exception.ValidationException;
+import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.exception.ConflictException;
+import com.zayenha.qatra._shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.exception.ValidationException;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatCode;

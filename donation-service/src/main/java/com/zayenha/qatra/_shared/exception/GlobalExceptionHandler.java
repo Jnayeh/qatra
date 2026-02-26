@@ -1,6 +1,6 @@
-package com.zayenha.qatra.shared.exception;
+package com.zayenha.qatra._shared.exception;
 
-import com.zayenha.qatra.shared.web.ApiResponse;
+import com.zayenha.qatra._shared.web.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

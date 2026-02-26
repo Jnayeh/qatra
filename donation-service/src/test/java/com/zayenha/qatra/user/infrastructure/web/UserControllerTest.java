@@ -1,8 +1,8 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
-import com.zayenha.qatra.shared.domain.SearchCriteria;
-import com.zayenha.qatra.shared.exception.GlobalExceptionHandler;
-import com.zayenha.qatra.shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.exception.GlobalExceptionHandler;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.user.domain.exception.*;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
@@ -53,7 +53,7 @@ class UserControllerTest {
     @Test
     void listAllReturnsPaginatedUsers() {
         var user = aUser();
-        var result = new com.zayenha.qatra.shared.domain.PageResult<User>(
+        var result = new com.zayenha.qatra._shared.domain.PageResult<User>(
                 List.of(user), 0, 20, 1, 1);
         when(queryUseCases.findAll(any(SearchCriteria.class))).thenReturn(result);
 

@@ -1,7 +1,7 @@
 package com.zayenha.qatra.donor.infrastructure.web.mapper;
 
 import com.zayenha.qatra.donor.domain.model.*;
-import com.zayenha.qatra.shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.BloodType;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

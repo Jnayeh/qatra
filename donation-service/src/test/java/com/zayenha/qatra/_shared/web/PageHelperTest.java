@@ -1,6 +1,6 @@
-package com.zayenha.qatra.shared.web;
+package com.zayenha.qatra._shared.web;
 
-import com.zayenha.qatra.shared.domain.PageResult;
+import com.zayenha.qatra._shared.domain.PageResult;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

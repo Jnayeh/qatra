@@ -6,11 +6,9 @@ import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireQueryUseCases;
 import com.zayenha.qatra.donor.infrastructure.web.dto.request.*;
-import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorHealthResponse;
-import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityResponse;
-import com.zayenha.qatra.shared.domain.BloodType;
-import com.zayenha.qatra.shared.exception.GlobalExceptionHandler;
-import com.zayenha.qatra.shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.exception.GlobalExceptionHandler;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -241,7 +239,7 @@ class DonorControllerTest {
 
     @Test
     void conflictReturns409() {
-        var ex = new com.zayenha.qatra.shared.exception.ConflictException(
+        var ex = new com.zayenha.qatra._shared.exception.ConflictException(
                 "Blood type already verified", "BLOOD_TYPE_ALREADY_VERIFIED");
         var response = exceptionHandler.handleBase(ex);
 

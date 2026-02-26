@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.domain.exception;
 
-import com.zayenha.qatra.shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 
 public class UserNotFoundException extends NotFoundException {
     public UserNotFoundException(Object id) {

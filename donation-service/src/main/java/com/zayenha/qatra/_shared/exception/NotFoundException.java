@@ -1,4 +1,4 @@
-package com.zayenha.qatra.shared.exception;
+package com.zayenha.qatra._shared.exception;
 
 public class NotFoundException extends BaseException {
     public NotFoundException(String message, String errorCode) {

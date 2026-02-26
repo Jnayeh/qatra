@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
-import com.zayenha.qatra.shared.web.ApiResponse;
+import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra.user.api.UserApi;
 import com.zayenha.qatra.user.api.dto.UserSummary;
 import com.zayenha.qatra.user.domain.model.Role;

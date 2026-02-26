@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.domain.exception;
 
-import com.zayenha.qatra.shared.exception.ValidationException;
+import com.zayenha.qatra._shared.exception.ValidationException;
 
 public class CannotDeleteActiveUserException extends ValidationException {
     public CannotDeleteActiveUserException(Long userId) {

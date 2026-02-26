@@ -4,7 +4,7 @@ import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
-import com.zayenha.qatra.shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

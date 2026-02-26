@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.domain.exception;
 
-import com.zayenha.qatra.shared.exception.ConflictException;
+import com.zayenha.qatra._shared.exception.ConflictException;
 
 public class PhoneAlreadyExistsException extends ConflictException {
     public PhoneAlreadyExistsException(String phone) {

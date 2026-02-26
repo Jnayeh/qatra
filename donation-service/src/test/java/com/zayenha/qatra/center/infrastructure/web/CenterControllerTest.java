@@ -9,10 +9,10 @@ import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
 import com.zayenha.qatra.center.infrastructure.web.dto.request.CreateCenterRequest;
 import com.zayenha.qatra.center.infrastructure.web.dto.request.UpdateCenterRequest;
 import com.zayenha.qatra.center.infrastructure.web.dto.request.UpdateCenterStatusRequest;
-import com.zayenha.qatra.shared.domain.PageResult;
-import com.zayenha.qatra.shared.domain.SearchCriteria;
-import com.zayenha.qatra.shared.exception.GlobalExceptionHandler;
-import com.zayenha.qatra.shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.domain.PageResult;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.exception.GlobalExceptionHandler;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -175,7 +175,7 @@ class CenterControllerTest {
 
     @Test
     void conflictReturns409() {
-        var ex = new com.zayenha.qatra.shared.exception.ConflictException(
+        var ex = new com.zayenha.qatra._shared.exception.ConflictException(
                 "Center name already exists: Dup", "CENTER_NAME_ALREADY_EXISTS");
         var response = exceptionHandler.handleBase(ex);
 

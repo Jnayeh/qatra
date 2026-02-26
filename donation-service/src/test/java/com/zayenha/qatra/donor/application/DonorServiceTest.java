@@ -7,16 +7,15 @@ import com.zayenha.qatra.donor.domain.model.NotificationFrequency;
 import com.zayenha.qatra.donor.domain.model.NotificationPreferences;
 import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
-import com.zayenha.qatra.shared.domain.BloodType;
-import com.zayenha.qatra.shared.exception.ConflictException;
-import com.zayenha.qatra.shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.exception.ConflictException;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,9 +1,9 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
-import com.zayenha.qatra.shared.exception.NotFoundException;
-import com.zayenha.qatra.shared.domain.SearchCriteria;
-import com.zayenha.qatra.shared.web.ApiResponse;
-import com.zayenha.qatra.shared.web.PageHelper;
+import com.zayenha.qatra._shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.web.ApiResponse;
+import com.zayenha.qatra._shared.web.PageHelper;
 import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;

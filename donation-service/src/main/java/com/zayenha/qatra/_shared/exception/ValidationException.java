@@ -1,4 +1,4 @@
-package com.zayenha.qatra.shared.exception;
+package com.zayenha.qatra._shared.exception;
 
 public class ValidationException extends BaseException {
     public ValidationException(String message, String errorCode) {

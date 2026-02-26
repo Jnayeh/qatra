@@ -1,8 +1,8 @@
 package com.zayenha.qatra.center.domain.port.out;
 
 import com.zayenha.qatra.center.domain.model.DonationCenter;
-import com.zayenha.qatra.shared.domain.PageResult;
-import com.zayenha.qatra.shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.PageResult;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
 
 import java.util.Optional;
 

@@ -1,7 +1,7 @@
 package com.zayenha.qatra.center.domain.service;
 
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
-import com.zayenha.qatra.shared.exception.ConflictException;
+import com.zayenha.qatra._shared.exception.ConflictException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

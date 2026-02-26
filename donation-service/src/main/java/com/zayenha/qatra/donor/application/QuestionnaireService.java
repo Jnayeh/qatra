@@ -6,7 +6,7 @@ import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireQueryUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
-import com.zayenha.qatra.shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +44,7 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         boolean hasLocation = profile.getLatitude() != null && profile.getLongitude() != null;
         profile.setProfileComplete(hasLocation);
 
-        donorRepository.save(profile); 
+        donorRepository.save(profile);
         return donorRepository.saveQuestionnaire(questionnaire);
     }
 

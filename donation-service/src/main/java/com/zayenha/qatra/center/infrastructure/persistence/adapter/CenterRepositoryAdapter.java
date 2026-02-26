@@ -1,11 +1,11 @@
 package com.zayenha.qatra.center.infrastructure.persistence.adapter;
 
 import com.zayenha.qatra.center.domain.model.DonationCenter;
-import com.zayenha.qatra.shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaRepository;
-import com.zayenha.qatra.shared.domain.PageResult;
+import com.zayenha.qatra._shared.domain.PageResult;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

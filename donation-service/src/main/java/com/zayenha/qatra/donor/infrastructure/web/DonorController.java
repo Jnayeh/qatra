@@ -10,7 +10,7 @@ import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorHealthRespon
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorProfileResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityResponse;
 import com.zayenha.qatra.donor.infrastructure.web.mapper.DonorMapper;
-import com.zayenha.qatra.shared.web.ApiResponse;
+import com.zayenha.qatra._shared.web.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

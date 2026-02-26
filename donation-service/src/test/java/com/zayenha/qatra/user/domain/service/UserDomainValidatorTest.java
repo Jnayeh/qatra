@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.domain.service;
 
-import com.zayenha.qatra.shared.exception.ConflictException;
+import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra.user.domain.exception.EmailAlreadyExistsException;
 import com.zayenha.qatra.user.domain.exception.PhoneAlreadyExistsException;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;

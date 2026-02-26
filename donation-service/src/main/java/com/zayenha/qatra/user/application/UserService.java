@@ -1,7 +1,7 @@
 package com.zayenha.qatra.user.application;
 
-import com.zayenha.qatra.shared.domain.PageResult;
-import com.zayenha.qatra.shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.PageResult;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.user.api.dto.UserCreatedEvent;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;

@@ -1,4 +1,4 @@
-package com.zayenha.qatra.shared.web;
+package com.zayenha.qatra._shared.web;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;

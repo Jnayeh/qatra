@@ -1,4 +1,4 @@
-package com.zayenha.qatra.shared.web.serializer;
+package com.zayenha.qatra._shared.web.serializer;
 
 import org.springframework.boot.jackson.JacksonComponent;
 import tools.jackson.core.JsonParser;

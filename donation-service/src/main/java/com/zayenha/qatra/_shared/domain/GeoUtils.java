@@ -1,4 +1,4 @@
-package com.zayenha.qatra.shared.domain;
+package com.zayenha.qatra._shared.domain;
 
 import org.springframework.security.access.prepost.PostAuthorize;
 

@@ -2,8 +2,7 @@ package com.zayenha.qatra.center.domain.service;
 
 import com.zayenha.qatra.center.domain.exception.CenterErrorCode;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
-import com.zayenha.qatra.shared.exception.ConflictException;
-import com.zayenha.qatra.shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.exception.ConflictException;
 
 public class CenterDomainValidator {
 

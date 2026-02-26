@@ -1,7 +1,7 @@
 package com.zayenha.qatra.user.domain.port.out;
 
-import com.zayenha.qatra.shared.domain.PageResult;
-import com.zayenha.qatra.shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.PageResult;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.user.domain.model.User;
 
 import java.util.Optional;

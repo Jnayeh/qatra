@@ -2,14 +2,14 @@ package com.zayenha.qatra.center.infrastructure.web;
 
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases;
 import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
-import com.zayenha.qatra.shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.center.infrastructure.web.dto.request.CreateCenterRequest;
 import com.zayenha.qatra.center.infrastructure.web.dto.request.UpdateCenterRequest;
 import com.zayenha.qatra.center.infrastructure.web.dto.request.UpdateCenterStatusRequest;
 import com.zayenha.qatra.center.infrastructure.web.dto.response.CenterResponse;
 import com.zayenha.qatra.center.infrastructure.web.mapper.CenterMapper;
-import com.zayenha.qatra.shared.web.ApiResponse;
-import com.zayenha.qatra.shared.web.PageHelper;
+import com.zayenha.qatra._shared.web.ApiResponse;
+import com.zayenha.qatra._shared.web.PageHelper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
