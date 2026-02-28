@@ -1,14 +1,9 @@
 package com.zayenha.qatra.center.infrastructure.web;
 
-import com.zayenha.qatra.center.domain.model.CenterStatus;
-import com.zayenha.qatra.center.domain.model.DonationCenter;
-import com.zayenha.qatra.center.domain.model.FacilityType;
-import com.zayenha.qatra.center.domain.model.OperatingHours;
+import com.zayenha.qatra.center.domain.model.*;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases;
 import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
-import com.zayenha.qatra.center.infrastructure.web.dto.request.CreateCenterRequest;
-import com.zayenha.qatra.center.infrastructure.web.dto.request.UpdateCenterRequest;
-import com.zayenha.qatra.center.infrastructure.web.dto.request.UpdateCenterStatusRequest;
+import com.zayenha.qatra.center.infrastructure.web.dto.request.*;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.exception.GlobalExceptionHandler;
@@ -21,13 +16,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -133,9 +127,9 @@ class CenterControllerTest {
     @Test
     void getByIdReturnsCenter() {
         var center = aCenter();
-        when(queryUseCases.getById(1L)).thenReturn(center);
+        when(queryUseCases.getById(1L, false)).thenReturn(center);
 
-        var response = controller.getById(1L);
+        var response = controller.getById(1L, false);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -158,6 +152,106 @@ class CenterControllerTest {
         assertThat(response.getBody().data()).hasSize(1);
         assertThat(response.getBody().page()).isNotNull();
         assertThat(response.getBody().page().number()).isEqualTo(1);
+    }
+
+    @Test
+    void addClosureReturnsClosureResponse() {
+        var result = new CenterCommandUseCases.ClosureResult(3, LocalDate.of(2025, 8, 15), "Holiday");
+        when(commandUseCases.addClosure(eq(1L), any())).thenReturn(result);
+
+        var request = new CreateClosureRequest(LocalDate.of(2025, 8, 15), "08:00", "17:00", false, "Holiday");
+        var response = controller.addClosure(1L, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+        assertThat(response.getBody().data().blockedSlotCount()).isEqualTo(3);
+        assertThat(response.getBody().data().reason()).isEqualTo("Holiday");
+    }
+
+    @Test
+    void blockSlotReturnsSlotResponse() {
+        var slot = new Slot(1L, LocalDate.now(), LocalTime.of(9, 0), LocalTime.of(10, 0), 10, 5);
+        slot.setId(100L);
+        slot.setBlocked(true);
+        when(commandUseCases.blockSlot(1L, 100L, true)).thenReturn(slot);
+
+        var request = new BlockSlotRequest(true);
+        var response = controller.blockSlot(1L, 100L, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+        assertThat(response.getBody().data().isBlocked()).isTrue();
+    }
+
+    @Test
+    void getSlotsReturnsSlotList() {
+        var slot = new Slot(1L, LocalDate.now(), LocalTime.of(9, 0), LocalTime.of(10, 0), 10, 5);
+        slot.setId(100L);
+        when(queryUseCases.getSlots(eq(1L), any(), any(), eq(false))).thenReturn(List.of(slot));
+
+        var response = controller.getSlots(1L, null, null, false);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+        assertThat(response.getBody().data()).hasSize(1);
+    }
+
+    @Test
+    void addStaffReturnsCreated() {
+        var staff = new CenterStaffProfile(10L, 1L);
+        staff.setId(100L);
+        when(commandUseCases.addStaff(1L, 10L)).thenReturn(staff);
+
+        var request = new AddStaffRequest(10L);
+        var response = controller.addStaff(1L, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+        assertThat(response.getBody().data().userId()).isEqualTo(10L);
+    }
+
+    @Test
+    void removeStaffReturnsOk() {
+        var response = controller.removeStaff(1L, 10L);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+        assertThat(response.getBody().data()).isEqualTo("Staff removed");
+        verify(commandUseCases).removeStaff(1L, 10L);
+    }
+
+    @Test
+    void getPendingReturnsPaginatedCenters() {
+        var center = aCenter();
+        var result = new PageResult<DonationCenter>(List.of(center), 0, 20, 1, 1);
+        when(queryUseCases.getPending(any(SearchCriteria.class))).thenReturn(result);
+
+        var response = controller.getPending("id", "asc", 1, 20);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+        assertThat(response.getBody().data()).hasSize(1);
+    }
+
+    @Test
+    void approveReturnsCenter() {
+        var center = aCenter();
+        center.setStatus(CenterStatus.ACTIVE);
+        when(commandUseCases.approve(1L, true, "Approved")).thenReturn(center);
+
+        var request = new ApproveCenterRequest(true, "Approved");
+        var response = controller.approve(1L, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+        assertThat(response.getBody().data().status()).isEqualTo(CenterStatus.ACTIVE);
     }
 
     // --- ExceptionHandler tests ---
