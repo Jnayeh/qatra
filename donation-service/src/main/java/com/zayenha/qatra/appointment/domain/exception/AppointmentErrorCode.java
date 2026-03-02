@@ -1,0 +1,11 @@
+package com.zayenha.qatra.appointment.domain.exception;
+
+public enum AppointmentErrorCode {
+    APPOINTMENT_NOT_FOUND,
+    SLOT_NOT_AVAILABLE,
+    APPOINTMENT_CANNOT_BE_CANCELLED,
+    APPOINTMENT_ALREADY_COMPLETED,
+    INVALID_APPOINTMENT_STATUS,
+    DONOR_ALREADY_BOOKED,
+    SCREENING_NOT_FOUND
+}
