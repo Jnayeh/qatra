@@ -2,12 +2,10 @@ package com.zayenha.qatra.center.infrastructure.web;
 
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases;
 import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
-import com.zayenha.qatra._shared.domain.SearchCriteria;
-import com.zayenha.qatra.center.infrastructure.web.dto.request.CreateCenterRequest;
-import com.zayenha.qatra.center.infrastructure.web.dto.request.UpdateCenterRequest;
-import com.zayenha.qatra.center.infrastructure.web.dto.request.UpdateCenterStatusRequest;
-import com.zayenha.qatra.center.infrastructure.web.dto.response.CenterResponse;
+import com.zayenha.qatra.center.infrastructure.web.dto.request.*;
+import com.zayenha.qatra.center.infrastructure.web.dto.response.*;
 import com.zayenha.qatra.center.infrastructure.web.mapper.CenterMapper;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
 import jakarta.validation.Valid;
@@ -16,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -27,37 +26,29 @@ public class CenterController {
     private final CenterQueryUseCases queryUseCases;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<CenterResponse>> create(
-            @Valid @RequestBody CreateCenterRequest request) {
+    public ResponseEntity<ApiResponse<CenterResponse>> create(@Valid @RequestBody CreateCenterRequest request) {
         var command = new CenterCommandUseCases.CreateCenterCommand(
-            request.name(), request.address(), request.city(),
-            request.country(), request.postalCode(), request.phone(),
-            request.email(), request.latitude(), request.longitude(),
-            request.facilityType(), request.operatingHours(),
-            request.totalCapacity(), request.maxRegular(), request.slotPeriod()
-        );
+            request.name(), request.address(), request.city(), request.country(),
+            request.postalCode(), request.phone(), request.email(),
+            request.latitude(), request.longitude(), request.facilityType(),
+            request.operatingHours(), request.totalCapacity(), request.maxRegular(), request.slotPeriod());
         var center = commandUseCases.create(command);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(CenterMapper.toResponse(center)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(CenterMapper.toResponse(center)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<CenterResponse>> update(
-            @PathVariable Long id, @Valid @RequestBody UpdateCenterRequest request) {
+    public ResponseEntity<ApiResponse<CenterResponse>> update(@PathVariable Long id, @Valid @RequestBody UpdateCenterRequest request) {
         var command = new CenterCommandUseCases.UpdateCenterCommand(
-            request.name(), request.address(), request.city(),
-            request.country(), request.postalCode(), request.phone(),
-            request.email(), request.latitude(), request.longitude(),
-            request.facilityType(), request.operatingHours(),
-            request.totalCapacity(), request.maxRegular(), request.slotPeriod()
-        );
+            request.name(), request.address(), request.city(), request.country(),
+            request.postalCode(), request.phone(), request.email(),
+            request.latitude(), request.longitude(), request.facilityType(),
+            request.operatingHours(), request.totalCapacity(), request.maxRegular(), request.slotPeriod());
         var center = commandUseCases.update(id, command);
         return ResponseEntity.ok(ApiResponse.success(CenterMapper.toResponse(center)));
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<ApiResponse<Void>> updateStatus(
-            @PathVariable Long id, @Valid @RequestBody UpdateCenterStatusRequest request) {
+    public ResponseEntity<ApiResponse<Void>> updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateCenterStatusRequest request) {
         commandUseCases.updateStatus(id, request.status());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -69,8 +60,9 @@ public class CenterController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CenterResponse>> getById(@PathVariable Long id) {
-        var center = queryUseCases.getById(id);
+    public ResponseEntity<ApiResponse<CenterResponse>> getById(@PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean fetchJoins) {
+        var center = queryUseCases.getById(id, fetchJoins);
         return ResponseEntity.ok(ApiResponse.success(CenterMapper.toResponse(center)));
     }
 
@@ -78,14 +70,75 @@ public class CenterController {
     public ResponseEntity<ApiResponse<List<CenterResponse>>> getAll(
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDirection,
-            @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String search) {
-        var criteria = new SearchCriteria(search, sortBy, sortDirection,
-            PageHelper.toPageIndex(page), size);
+        var criteria = new SearchCriteria(search, sortBy, sortDirection, PageHelper.toPageIndex(page), size);
         var result = queryUseCases.getAll(criteria);
-        var centers = result.content().stream()
-                .map(CenterMapper::toResponse)
-                .toList();
+        var centers = result.content().stream().map(CenterMapper::toResponse).toList();
         return ResponseEntity.ok(ApiResponse.success(centers, PageHelper.fromDomain(result)));
+    }
+
+    @PostMapping("/{id}/closures")
+    public ResponseEntity<ApiResponse<ClosureResponse>> addClosure(@PathVariable Long id,
+            @Valid @RequestBody CreateClosureRequest request) {
+        var command = new CenterCommandUseCases.ClosureCommand(
+            request.date(), request.startTime(), request.endTime(), request.allDay(), request.reason());
+        var result = commandUseCases.addClosure(id, command);
+        return ResponseEntity.ok(ApiResponse.success(new ClosureResponse(result.blockedSlotCount(), result.date(), result.reason())));
+    }
+
+    @GetMapping("/{id}/slots")
+    public ResponseEntity<ApiResponse<List<SlotResponse>>> getSlots(@PathVariable Long id,
+            @RequestParam(required = false) LocalDate date,
+            @RequestParam(required = false) String slotType,
+            @RequestParam(defaultValue = "false") boolean fetchJoins) {
+        var slots = queryUseCases.getSlots(id, date, slotType, fetchJoins);
+        return ResponseEntity.ok(ApiResponse.success(slots.stream().map(CenterMapper::toSlotResponse).toList()));
+    }
+
+    @PatchMapping("/{id}/slots/{slotId}/block")
+    public ResponseEntity<ApiResponse<SlotResponse>> blockSlot(@PathVariable Long id, @PathVariable Long slotId,
+            @Valid @RequestBody BlockSlotRequest request) {
+        var slot = commandUseCases.blockSlot(id, slotId, request.isBlocked());
+        return ResponseEntity.ok(ApiResponse.success(CenterMapper.toSlotResponse(slot)));
+    }
+
+    @GetMapping("/{id}/staff")
+    public ResponseEntity<ApiResponse<List<StaffSummaryResponse>>> getStaff(@PathVariable Long id) {
+        var staff = queryUseCases.getStaff(id);
+        return ResponseEntity.ok(ApiResponse.success(staff.stream().map(CenterMapper::toStaffResponse).toList()));
+    }
+
+    @PostMapping("/{id}/staff")
+    public ResponseEntity<ApiResponse<StaffSummaryResponse>> addStaff(@PathVariable Long id,
+            @Valid @RequestBody AddStaffRequest request) {
+        var staff = commandUseCases.addStaff(id, request.userId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(CenterMapper.toStaffResponse(staff)));
+    }
+
+    @DeleteMapping("/{id}/staff/{userId}")
+    public ResponseEntity<ApiResponse<String>> removeStaff(@PathVariable Long id, @PathVariable Long userId) {
+        commandUseCases.removeStaff(id, userId);
+        return ResponseEntity.ok(ApiResponse.success("Staff removed"));
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<ApiResponse<List<CenterResponse>>> getPending(
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDirection,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var criteria = new SearchCriteria(null, sortBy, sortDirection, PageHelper.toPageIndex(page), size);
+        var result = queryUseCases.getPending(criteria);
+        var centers = result.content().stream().map(CenterMapper::toResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(centers, PageHelper.fromDomain(result)));
+    }
+
+    @PatchMapping("/{id}/approve")
+    public ResponseEntity<ApiResponse<CenterResponse>> approve(@PathVariable Long id,
+            @Valid @RequestBody ApproveCenterRequest request) {
+        var center = commandUseCases.approve(id, request.approved(), request.reason());
+        return ResponseEntity.ok(ApiResponse.success(CenterMapper.toResponse(center)));
     }
 }
