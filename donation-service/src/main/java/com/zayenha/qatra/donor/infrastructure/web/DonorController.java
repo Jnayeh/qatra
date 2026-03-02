@@ -8,7 +8,9 @@ import com.zayenha.qatra.donor.infrastructure.web.dto.request.*;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorDetailResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorHealthResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorProfileResponse;
+import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityDetailResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityResponse;
+import com.zayenha.qatra.donor.infrastructure.web.dto.response.ImpactResponse;
 import com.zayenha.qatra.donor.infrastructure.web.mapper.DonorMapper;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import jakarta.validation.Valid;
@@ -102,8 +104,21 @@ public class DonorController {
     public ResponseEntity<ApiResponse<EligibilityResponse>> getEligibility(
             @RequestHeader("x-user-id") Long userId) {
         var profile = donorQueryUseCases.getMyProfile(userId);
-        return ResponseEntity.ok(ApiResponse.success(
-                DonorMapper.toEligibilityResponse(profile)));
+        return ResponseEntity.ok(ApiResponse.success(DonorMapper.toEligibilityResponse(profile)));
+    }
+
+    @GetMapping("/api/v1/donors/me/impact")
+    public ResponseEntity<ApiResponse<ImpactResponse>> getImpact(
+            @RequestHeader("x-user-id") Long userId) {
+        var result = donorQueryUseCases.getImpact(userId);
+        return ResponseEntity.ok(ApiResponse.success(DonorMapper.toImpactResponse(result)));
+    }
+
+    @GetMapping("/api/v1/donors/{id}/eligibility")
+    public ResponseEntity<ApiResponse<EligibilityDetailResponse>> getDonorEligibility(
+            @PathVariable Long id) {
+        var profile = donorQueryUseCases.getDonorById(id);
+        return ResponseEntity.ok(ApiResponse.success(DonorMapper.toEligibilityDetailResponse(profile)));
     }
 
     @DeleteMapping("/api/v1/donors/me")

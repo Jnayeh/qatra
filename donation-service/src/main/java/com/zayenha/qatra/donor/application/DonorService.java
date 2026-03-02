@@ -157,4 +157,17 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
                         DonorErrorCode.DONOR_NOT_FOUND.name()));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public ImpactResult getImpact(Long userId) {
+        var profile = donorRepository.findByUserId(userId).orElseThrow(() -> new NotFoundException(
+                "Donor not found: " + userId, DonorErrorCode.DONOR_NOT_FOUND.name()));
+        var milestones = new java.util.ArrayList<String>();
+        if (profile.getTotalDonations() >= 1) milestones.add("First donation completed");
+        if (profile.getTotalDonations() >= 5) milestones.add("5 donations milestone");
+        if (profile.getTotalDonations() >= 10) milestones.add("10 donations milestone");
+        if (profile.getEstimatedLivesSaved() >= 10) milestones.add("Saved 10+ lives");
+        return new ImpactResult(profile.getTotalDonations(), profile.getEstimatedLivesSaved(), milestones);
+    }
+
 }

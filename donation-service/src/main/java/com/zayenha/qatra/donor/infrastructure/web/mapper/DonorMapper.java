@@ -2,9 +2,8 @@ package com.zayenha.qatra.donor.infrastructure.web.mapper;
 
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
-import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorHealthResponse;
-import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorProfileResponse;
-import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityResponse;
+import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
+import com.zayenha.qatra.donor.infrastructure.web.dto.response.*;
 
 import java.time.Instant;
 
@@ -48,5 +47,17 @@ public class DonorMapper {
             reason = profile.getRestrictionReason();
         }
         return new EligibilityResponse(eligible, profile.getEligibleFromDate(), reason);
+    }
+
+    public static EligibilityDetailResponse toEligibilityDetailResponse(DonorProfile profile) {
+        var now = Instant.now();
+        var eligible = profile.getEligibleFromDate() == null || !now.isBefore(profile.getEligibleFromDate());
+        if (profile.isPermanentlyRestricted()) eligible = false;
+        return new EligibilityDetailResponse(eligible, profile.getEligibleFromDate(),
+                profile.isPermanentlyRestricted(), profile.getRestrictionReason());
+    }
+
+    public static ImpactResponse toImpactResponse(DonorQueryUseCases.ImpactResult result) {
+        return new ImpactResponse(result.totalDonations(), result.estimatedLivesSaved(), result.milestones());
     }
 }
