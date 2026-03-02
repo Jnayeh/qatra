@@ -11,12 +11,17 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "donation_centers")
 @Getter
 @Setter
 @NoArgsConstructor
+@NamedEntityGraph(
+    name = "CenterEntity.withSlots",
+    attributeNodes = @NamedAttributeNode("slots")
+)
 public class CenterEntity {
 
     @Id
@@ -61,10 +66,19 @@ public class CenterEntity {
     private Integer maxRegular;
     private Integer slotPeriod;
 
-    @Column(nullable = false, updatable = false)
+    @OneToMany(mappedBy = "center", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SlotEntity> slots;
+
+    @OneToMany(mappedBy = "center", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CenterStaffProfileEntity> staff;
+
+    @OneToMany(mappedBy = "center", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CenterAdminProfileEntity> admins;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
     @PrePersist
