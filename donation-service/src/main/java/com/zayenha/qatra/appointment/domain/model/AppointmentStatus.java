@@ -1,11 +1,5 @@
 package com.zayenha.qatra.appointment.domain.model;
 
 public enum AppointmentStatus {
-    SCHEDULED,
-    CONFIRMED,
-    IN_PROGRESS,
-    COMPLETED,
-    CANCELLED,
-    NO_SHOW,
-    RESCHEDULED
+    SCHEDULED, CHECKED_IN, IN_SCREENING, COMPLETED, CANCELLED, NO_SHOW
 }
