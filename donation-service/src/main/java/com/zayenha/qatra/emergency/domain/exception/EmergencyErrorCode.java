@@ -1,0 +1,11 @@
+package com.zayenha.qatra.emergency.domain.exception;
+
+public enum EmergencyErrorCode {
+    EMERGENCY_NOT_FOUND,
+    EMERGENCY_ALREADY_FULFILLED,
+    EMERGENCY_ALREADY_CANCELLED,
+    RESPONSE_NOT_FOUND,
+    RESPONSE_ALREADY_EXISTS,
+    DONOR_NOT_QUALIFIED,
+    INVALID_RESPONSE_STATUS
+}
