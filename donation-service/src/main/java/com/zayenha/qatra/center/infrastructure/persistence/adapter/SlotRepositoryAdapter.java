@@ -1,6 +1,7 @@
 package com.zayenha.qatra.center.infrastructure.persistence.adapter;
 
 import com.zayenha.qatra.center.domain.model.Slot;
+import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.SlotEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaRepository;
@@ -17,7 +18,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class SlotRepositoryAdapter {
+public class SlotRepositoryAdapter implements SlotRepositoryPort {
 
     private final SlotJpaRepository slotJpaRepository;
     private final CenterJpaRepository centerJpaRepository;
