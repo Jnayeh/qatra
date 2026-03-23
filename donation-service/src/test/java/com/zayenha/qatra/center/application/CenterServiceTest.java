@@ -4,7 +4,7 @@ import com.zayenha.qatra.center.domain.model.*;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases.CreateCenterCommand;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases.UpdateCenterCommand;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
-import com.zayenha.qatra.center.infrastructure.persistence.adapter.SlotRepositoryAdapter;
+import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.exception.ConflictException;
@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -30,13 +31,15 @@ class CenterServiceTest {
     @Mock
     private CenterRepositoryPort centerRepository;
     @Mock
-    private SlotRepositoryAdapter slotRepositoryAdapter;
+    private SlotRepositoryPort slotRepository;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     private CenterService centerService;
 
     @BeforeEach
     void setUp() {
-        centerService = new CenterService(centerRepository, slotRepositoryAdapter);
+        centerService = new CenterService(centerRepository, slotRepository, eventPublisher);
     }
 
     private DonationCenter aCenter() {
