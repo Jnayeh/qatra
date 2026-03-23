@@ -17,10 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -167,6 +167,34 @@ class DonorControllerTest {
         when(queryUseCases.getMyProfile(1L)).thenReturn(profile);
 
         var response = controller.getEligibility(1L);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+        assertThat(response.getBody().data().eligible()).isTrue();
+    }
+
+    @Test
+    void getImpactReturnsImpactResponse() {
+        var impact = new DonorQueryUseCases.ImpactResult(5, 15, List.of("First donation completed"));
+        when(queryUseCases.getImpact(1L)).thenReturn(impact);
+
+        var response = controller.getImpact(1L);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+        assertThat(response.getBody().data().totalDonations()).isEqualTo(5);
+        assertThat(response.getBody().data().estimatedLivesSaved()).isEqualTo(15);
+        assertThat(response.getBody().data().milestones()).hasSize(1);
+    }
+
+    @Test
+    void getDonorEligibilityReturnsEligibilityDetail() {
+        var profile = aProfile();
+        when(queryUseCases.getDonorById(10L)).thenReturn(profile);
+
+        var response = controller.getDonorEligibility(10L);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();

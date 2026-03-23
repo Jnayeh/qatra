@@ -206,6 +206,22 @@ class DonorServiceTest {
                 .hasMessageContaining("99");
     }
 
+    // --- getImpact ---
+
+    @Test
+    void getImpactReturnsImpactResult() {
+        var profile = aProfile();
+        profile.setTotalDonations(3);
+        profile.setEstimatedLivesSaved(9);
+        when(donorRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+
+        var result = donorService.getImpact(1L);
+
+        assertThat(result.totalDonations()).isEqualTo(3);
+        assertThat(result.estimatedLivesSaved()).isEqualTo(9);
+        assertThat(result.milestones()).contains("First donation completed");
+    }
+
     // --- updateNotificationPrefs ---
 
     @Test

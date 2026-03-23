@@ -13,6 +13,7 @@ application-local.properties
 .classpath
 .factorypath
 .project
+.opencode
 .settings
 .springBeans
 .sts4-cache

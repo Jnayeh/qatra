@@ -1,12 +1,10 @@
 package com.zayenha.qatra.center.application;
 
-import com.zayenha.qatra.center.domain.model.CenterStatus;
-import com.zayenha.qatra.center.domain.model.DonationCenter;
-import com.zayenha.qatra.center.domain.model.FacilityType;
-import com.zayenha.qatra.center.domain.model.OperatingHours;
+import com.zayenha.qatra.center.domain.model.*;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases.CreateCenterCommand;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases.UpdateCenterCommand;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
+import com.zayenha.qatra.center.infrastructure.persistence.adapter.SlotRepositoryAdapter;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.exception.ConflictException;
@@ -31,12 +29,14 @@ class CenterServiceTest {
 
     @Mock
     private CenterRepositoryPort centerRepository;
+    @Mock
+    private SlotRepositoryAdapter slotRepositoryAdapter;
 
     private CenterService centerService;
 
     @BeforeEach
     void setUp() {
-        centerService = new CenterService(centerRepository);
+        centerService = new CenterService(centerRepository, slotRepositoryAdapter);
     }
 
     private DonationCenter aCenter() {
@@ -189,6 +189,16 @@ class CenterServiceTest {
     }
 
     @Test
+    void getByIdWithFetchJoinsReturnsCenter() {
+        var center = aCenter();
+        when(centerRepository.findById(1L, true)).thenReturn(Optional.of(center));
+
+        var result = centerService.getById(1L, true);
+
+        assertThat(result).isEqualTo(center);
+    }
+
+    @Test
     void getByIdThrowsWhenNotFound() {
         when(centerRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -209,5 +219,32 @@ class CenterServiceTest {
 
         assertThat(result.content()).hasSize(1);
         assertThat(result.totalElements()).isEqualTo(1);
+    }
+
+    // --- addStaff ---
+
+    @Test
+    void addStaffSavesAndReturnsStaff() {
+        when(centerRepository.existsById(1L)).thenReturn(true);
+        when(centerRepository.existsStaffByCenterIdAndUserId(1L, 10L)).thenReturn(false);
+        when(centerRepository.saveStaff(any())).thenAnswer(i -> i.getArgument(0));
+
+        var result = centerService.addStaff(1L, 10L);
+
+        assertThat(result.getUserId()).isEqualTo(10L);
+        assertThat(result.getCenterId()).isEqualTo(1L);
+    }
+
+    // --- approve ---
+
+    @Test
+    void approveSetsActiveWhenApproved() {
+        var center = aCenter();
+        when(centerRepository.findById(1L)).thenReturn(Optional.of(center));
+        when(centerRepository.save(any())).thenReturn(center);
+
+        var result = centerService.approve(1L, true, "Looks good");
+
+        assertThat(result.getStatus()).isEqualTo(CenterStatus.ACTIVE);
     }
 }

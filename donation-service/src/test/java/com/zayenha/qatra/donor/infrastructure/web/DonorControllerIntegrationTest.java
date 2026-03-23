@@ -60,9 +60,7 @@ class DonorControllerIntegrationTest {
         mockMvc.perform(put("/api/v1/donors/me/blood-type")
                 .header("X-User-Id", userId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                    {"bloodType": "A_POSITIVE"}
-                    """))
+                .content("{\"bloodType\": \"A_POSITIVE\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.bloodType").value("A_POSITIVE"))
@@ -77,17 +75,13 @@ class DonorControllerIntegrationTest {
         mockMvc.perform(put("/api/v1/donors/me/blood-type")
                 .header("X-User-Id", userId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                    {"bloodType": "A_POSITIVE"}
-                    """))
+                .content("{\"bloodType\": \"A_POSITIVE\"}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(put("/api/v1/donors/me/blood-type")
                 .header("X-User-Id", userId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                    {"bloodType": "B_POSITIVE"}
-                    """))
+                .content("{\"bloodType\": \"B_POSITIVE\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.bloodType").value("B_POSITIVE"));
     }
@@ -100,9 +94,7 @@ class DonorControllerIntegrationTest {
         mockMvc.perform(put("/api/v1/donors/me/location")
                 .header("X-User-Id", userId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                    {"latitude": 40.71, "longitude": -74.00, "city": "NYC", "country": "USA"}
-                    """))
+                .content("{\"latitude\": 40.71, \"longitude\": -74.00, \"city\": \"NYC\", \"country\": \"USA\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.latitude").value(40.71))
@@ -119,9 +111,7 @@ class DonorControllerIntegrationTest {
         mockMvc.perform(put("/api/v1/donors/me/availability")
                 .header("X-User-Id", userId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                    {"status": "TEMPORARILY_UNAVAILABLE"}
-                    """))
+                .content("{\"status\": \"TEMPORARILY_UNAVAILABLE\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.availabilityStatus").value("TEMPORARILY_UNAVAILABLE"));
@@ -135,11 +125,7 @@ class DonorControllerIntegrationTest {
         mockMvc.perform(put("/api/v1/donors/me/health-questionnaire")
                 .header("X-User-Id", userId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                    {"hasChronicIllness": false, "onMedication": false,
-                     "recentSurgery": false, "recentTravel": true,
-                     "recentTattooOrPiercing": false}
-                    """))
+                .content("{\"hasChronicIllness\": false, \"onMedication\": false, \"recentSurgery\": false, \"recentTravel\": true, \"recentTattooOrPiercing\": false}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.recentTravel").value(true));
@@ -159,11 +145,7 @@ class DonorControllerIntegrationTest {
         mockMvc.perform(put("/api/v1/donors/me/health-questionnaire")
                 .header("X-User-Id", userId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                    {"hasChronicIllness": true, "onMedication": false,
-                     "recentSurgery": false, "recentTravel": false,
-                     "recentTattooOrPiercing": false}
-                    """))
+                .content("{\"hasChronicIllness\": true, \"onMedication\": false, \"recentSurgery\": false, \"recentTravel\": false, \"recentTattooOrPiercing\": false}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/v1/donors/me")
@@ -185,6 +167,20 @@ class DonorControllerIntegrationTest {
     }
 
     @Test
+    void getImpactReturnsImpactResponse() throws Exception {
+        var userId = ++counter;
+        createProfile(userId);
+
+        mockMvc.perform(get("/api/v1/donors/me/impact")
+                .header("X-User-Id", userId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalDonations").value(0))
+                .andExpect(jsonPath("$.data.estimatedLivesSaved").value(0))
+                .andExpect(jsonPath("$.data.milestones").isArray());
+    }
+
+    @Test
     void requestDeletionSetsInactive() throws Exception {
         var userId = ++counter;
         createProfile(userId);
@@ -194,6 +190,24 @@ class DonorControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").value("Deletion requested"));
+    }
+
+    @Test
+    void getDonorEligibilityReturnsEligibility() throws Exception {
+        var donorUserId = ++counter;
+        createProfile(donorUserId);
+
+        var profileJson = mockMvc.perform(get("/api/v1/donors/me")
+                .header("X-User-Id", donorUserId))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        var donorId = profileJson.substring(profileJson.indexOf("\"id\":") + 5, profileJson.indexOf(",", profileJson.indexOf("\"id\":")));
+        donorId = donorId.trim();
+
+        mockMvc.perform(get("/api/v1/donors/" + donorId + "/eligibility"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.eligible").value(true));
     }
 
     @Test
@@ -211,9 +225,7 @@ class DonorControllerIntegrationTest {
 
         mockMvc.perform(patch("/api/v1/donors/" + id + "/restriction")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                    {"permanentlyRestricted": true, "restrictionReason": "Admin override"}
-                    """))
+                .content("{\"permanentlyRestricted\": true, \"restrictionReason\": \"Admin override\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.permanentlyRestricted").value(true));
@@ -234,9 +246,7 @@ class DonorControllerIntegrationTest {
 
         mockMvc.perform(patch("/api/v1/donors/" + id + "/flag")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                    {"flaggedForManualReview": true}
-                    """))
+                .content("{\"flaggedForManualReview\": true}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.flaggedForManualReview").value(true));
