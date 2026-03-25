@@ -2,6 +2,8 @@ package com.zayenha.qatra.user.application;
 
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.event.AuditEvent;
+import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra.user.api.dto.UserCreatedEvent;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
@@ -12,13 +14,16 @@ import com.zayenha.qatra.user.domain.model.UserRole;
 import com.zayenha.qatra.user.domain.model.UserStatus;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
+import com.zayenha.qatra.user.domain.port.out.PasswordEncoderPort;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
 import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
 import com.zayenha.qatra.user.domain.service.UserDomainValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,15 +37,29 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
     private final UserRepositoryPort userRepository;
     private final UserRoleRepositoryPort userRoleRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoderPort passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
+
+    @Value("${super-admin.email:}")
+    private String superAdminEmail;
+
+    @Value("${super-admin.phone:}")
+    private String superAdminPhone;
+
+    @Value("${super-admin.password:}")
+    private String superAdminPassword;
 
     private UserDomainValidator validator() {
         return new UserDomainValidator(userRepository);
     }
 
+    private void audit(String action, Long entityId, String oldValue, String newValue) {
+        eventPublisher.publishEvent(new AuditEvent(AuditUtils.currentUserId(), action, "User", entityId, oldValue, newValue, null, null));
+    }
+
     @Override
     @Transactional
+    @CacheEvict(value = {"users", "userExists"}, allEntries = true)
     public User create(String email, String phone, String password, String displayName) {
         validator().validateCreate(email, phone);
         var user = new User(email, phone, passwordEncoder.encode(password), displayName);
@@ -48,35 +67,40 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         eventPublisher.publishEvent(
                 new UserCreatedEvent(this, user.getId(), user.getEmail())
         );
-        log.info("AUDIT [actor={}] action={} details={}", user.getId(), "USER_CREATED", "email=" + email);
+        audit("USER_CREATED", user.getId(), null, "email=" + email);
         return user;
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"users", "userExists"}, allEntries = true)
     public User update(Long id, String email, String phone, String displayName) {
         validator().validateUpdate(id, email, phone);
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
+        var oldEmail = user.getEmail();
         log.info("validated");
         user.update(email, phone, displayName);
         user = userRepository.save(user); //UP
-        log.info("AUDIT [actor={}] action={} details={}", id, "USER_UPDATED", "email=" + email);
+        audit("USER_UPDATED", id, "email=" + oldEmail, "email=" + email);
         return user;
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"users"}, allEntries = true)
     public void updateStatus(Long id, UserStatus status) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
+        var oldStatus = user.getStatus();
         user.updateStatus(status);
         userRepository.save(user);
-        log.info("AUDIT [actor={}] action={} details={}", id, "USER_STATUS_CHANGED", "newStatus=" + status);
+        audit("USER_STATUS_CHANGED", id, "oldStatus=" + oldStatus, "newStatus=" + status);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"userRoles"}, allEntries = true)
     public void assignRole(Long userId, Role role) {
         var user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         if (!user.isActive()) {
@@ -87,11 +111,12 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         }
 
         userRoleRepository.save(new UserRole(userId, role));
-        log.info("AUDIT [actor={}] action={} details={}", userId, "ROLE_ASSIGNED", "role=" + role);
+        audit("ROLE_ASSIGNED", userId, null, "role=" + role);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"userRoles"}, allEntries = true)
     public void revokeRole(Long userId, Role role) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
@@ -100,11 +125,12 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
             throw new InvalidRoleAssignmentException("User does not have role: " + role);
         }
         userRoleRepository.deleteByUserIdAndRole(userId, role);
-        log.info("AUDIT [actor={}] action={} details={}", userId, "ROLE_REVOKED", "role=" + role);
+        audit("ROLE_REVOKED", userId, null, "role=" + role);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"users", "userExists", "userRoles"}, allEntries = true)
     public void delete(Long id) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -114,49 +140,55 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user.markDeleted();
         userRepository.save(user);
         userRoleRepository.deleteByUserId(id);
-        log.info("AUDIT [actor={}] action={} details={}", id, "USER_DELETED", "");
+        audit("USER_DELETED", id, null, "");
     }
 
     @Override
     @Transactional
+    // ponytail: null-safe for test-created instances bypassing @Value
     public void seedSuperAdminIfAbsent() {
-        var email = System.getenv("SUPER_ADMIN_EMAIL");
-        var phone = System.getenv("SUPER_ADMIN_PHONE");
-        var password = System.getenv("SUPER_ADMIN_PASSWORD");
-        if (email == null || phone == null || password == null) return;
-        if (userRepository.existsByEmail(email)) {
+        if (superAdminEmail == null || superAdminEmail.isBlank()
+                || superAdminPhone == null || superAdminPhone.isBlank()
+                || superAdminPassword == null || superAdminPassword.isBlank()) return;
+        if (userRepository.existsByEmail(superAdminEmail)) {
             return;
         }
-        var user = create(email, phone, password, "Super Admin");
+        var user = create(superAdminEmail, superAdminPhone, superAdminPassword, "Super Admin");
         userRoleRepository.save(new UserRole(user.getId(), Role.SUPER_ADMIN));
     }
 
     @Override
+    @Cacheable(value = "users", key = "#id")
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
 
     @Override
+    @Cacheable(value = "users", key = "'email:' + #email")
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
     @Override
+    @Cacheable(value = "users", key = "'phone:' + #phone")
     public Optional<User> findByPhone(String phone) {
         return userRepository.findByPhone(phone);
     }
 
     @Override
+    @Cacheable(value = "userExists", key = "'email:' + #email")
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
     @Override
+    @Cacheable(value = "userExists", key = "'phone:' + #phone")
     public boolean existsByPhone(String phone) {
         return userRepository.existsByPhone(phone);
     }
 
     @Override
+    @Cacheable(value = "userRoles", key = "#userId")
     public List<Role> getUserRoles(Long userId) {
         return userRoleRepository.findByUserId(userId).stream()
                 .map(UserRole::getRole)

@@ -11,6 +11,7 @@ import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserRole;
 import com.zayenha.qatra.user.domain.model.UserStatus;
+import com.zayenha.qatra.user.domain.port.out.PasswordEncoderPort;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
 import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +39,7 @@ class UserServiceTest {
     @Mock
     private UserRoleRepositoryPort userRoleRepository;
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoderPort passwordEncoder;
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
