@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -22,12 +23,14 @@ class GDPRServiceTest {
 
     @Mock
     private GDPRRepositoryPort repository;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     private GDPRService service;
 
     @BeforeEach
     void setUp() {
-        service = new GDPRService(repository);
+        service = new GDPRService(repository, eventPublisher);
     }
 
     @Test

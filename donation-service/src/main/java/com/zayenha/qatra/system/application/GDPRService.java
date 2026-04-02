@@ -1,10 +1,13 @@
 package com.zayenha.qatra.system.application;
 
+import com.zayenha.qatra._shared.event.AuditEvent;
+import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionRequest;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionStatus;
 import com.zayenha.qatra.system.domain.port.out.GDPRRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +18,11 @@ import java.util.List;
 public class GDPRService {
 
     private final GDPRRepositoryPort repository;
+    private final ApplicationEventPublisher eventPublisher;
+
+    private void audit(String action, Long entityId, String oldValue, String newValue) {
+        eventPublisher.publishEvent(new AuditEvent(AuditUtils.currentUserId(), action, "GDPRDeletionRequest", entityId, oldValue, newValue, null, null));
+    }
 
     @Transactional
     public GDPRDeletionRequest requestDeletion(Long userId, String reason) {
@@ -22,28 +30,39 @@ public class GDPRService {
         if (existing.isPresent() && existing.get().getStatus() == GDPRDeletionStatus.PENDING) {
             return existing.get();
         }
-        return repository.save(new GDPRDeletionRequest(userId, reason));
+        var saved = repository.save(new GDPRDeletionRequest(userId, reason));
+        audit("GDPR_DELETION_REQUESTED", saved.getId(), null, "userId=" + userId);
+        return saved;
     }
 
     @Transactional
     public GDPRDeletionRequest approve(Long requestId, String processedBy) {
         var request = findOrThrow(requestId);
+        var oldStatus = request.getStatus();
         request.approve(processedBy);
-        return repository.save(request);
+        var saved = repository.save(request);
+        audit("GDPR_DELETION_APPROVED", requestId, "status=" + oldStatus, "processedBy=" + processedBy);
+        return saved;
     }
 
     @Transactional
     public GDPRDeletionRequest reject(Long requestId, String processedBy) {
         var request = findOrThrow(requestId);
+        var oldStatus = request.getStatus();
         request.reject(processedBy);
-        return repository.save(request);
+        var saved = repository.save(request);
+        audit("GDPR_DELETION_REJECTED", requestId, "status=" + oldStatus, "processedBy=" + processedBy);
+        return saved;
     }
 
     @Transactional
     public GDPRDeletionRequest complete(Long requestId) {
         var request = findOrThrow(requestId);
+        var oldStatus = request.getStatus();
         request.complete();
-        return repository.save(request);
+        var saved = repository.save(request);
+        audit("GDPR_DELETION_COMPLETED", requestId, "status=" + oldStatus, "");
+        return saved;
     }
 
     @Transactional(readOnly = true)
