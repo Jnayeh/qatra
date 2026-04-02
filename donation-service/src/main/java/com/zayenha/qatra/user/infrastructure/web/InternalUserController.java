@@ -6,6 +6,7 @@ import com.zayenha.qatra.user.api.dto.UserSummary;
 import com.zayenha.qatra.user.domain.model.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/internal/users")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
 public class InternalUserController {
 
     private final UserApi userApi;
