@@ -1,7 +1,5 @@
 package com.zayenha.qatra.center.domain.model;
 
-import jakarta.annotation.Nullable;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -10,24 +8,24 @@ import java.util.List;
 import java.util.Optional;
 
 public record OperatingHours(
-    @Nullable DaySchedule monday,
-    @Nullable DaySchedule tuesday,
-    @Nullable DaySchedule wednesday,
-    @Nullable DaySchedule thursday,
-    @Nullable DaySchedule friday,
-    @Nullable DaySchedule saturday,
-    @Nullable DaySchedule sunday,
-    @Nullable List<ClosureWindow> closedWindows
+    DaySchedule monday,
+    DaySchedule tuesday,
+    DaySchedule wednesday,
+    DaySchedule thursday,
+    DaySchedule friday,
+    DaySchedule saturday,
+    DaySchedule sunday,
+    List<ClosureWindow> closedWindows
 ) {
     public record DaySchedule(
-        LocalTime open,
-        LocalTime close
+        LocalTime opens,
+        LocalTime closes
     ) {}
 
     public record ClosureWindow(
         LocalDate date,
-        @Nullable LocalTime startTime,
-        @Nullable LocalTime endTime,
+        LocalTime startTime,
+        LocalTime endTime,
         boolean allDay,
         String reason
     ) {}
