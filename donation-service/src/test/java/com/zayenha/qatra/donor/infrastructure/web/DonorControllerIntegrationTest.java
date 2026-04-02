@@ -10,8 +10,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.List;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -26,12 +32,20 @@ class DonorControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .build();
+    }
+
+    private UsernamePasswordAuthenticationToken auth(long userId) {
+        return new UsernamePasswordAuthenticationToken(
+                userId, null, List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN")));
     }
 
     private void createProfile(long userId) throws Exception {
         mockMvc.perform(put("/api/v1/donors/me")
-                .header("X-User-Id", userId)
+                .with(authentication(auth(userId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(status().isOk());
@@ -43,7 +57,7 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         mockMvc.perform(get("/api/v1/donors/me")
-                .header("X-User-Id", userId))
+                .with(authentication(auth(userId))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.userId").value(userId))
@@ -58,7 +72,7 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/blood-type")
-                .header("X-User-Id", userId)
+                .with(authentication(auth(userId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"bloodType\": \"A_POSITIVE\"}"))
                 .andExpect(status().isOk())
@@ -73,13 +87,13 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/blood-type")
-                .header("X-User-Id", userId)
+                .with(authentication(auth(userId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"bloodType\": \"A_POSITIVE\"}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(put("/api/v1/donors/me/blood-type")
-                .header("X-User-Id", userId)
+                .with(authentication(auth(userId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"bloodType\": \"B_POSITIVE\"}"))
                 .andExpect(status().isOk())
@@ -92,7 +106,7 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/location")
-                .header("X-User-Id", userId)
+                .with(authentication(auth(userId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"latitude\": 40.71, \"longitude\": -74.00, \"city\": \"NYC\", \"country\": \"USA\"}"))
                 .andExpect(status().isOk())
@@ -109,7 +123,7 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/availability")
-                .header("X-User-Id", userId)
+                .with(authentication(auth(userId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"status\": \"TEMPORARILY_UNAVAILABLE\"}"))
                 .andExpect(status().isOk())
@@ -123,7 +137,7 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/health-questionnaire")
-                .header("X-User-Id", userId)
+                .with(authentication(auth(userId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"hasChronicIllness\": false, \"onMedication\": false, \"recentSurgery\": false, \"recentTravel\": true, \"recentTattooOrPiercing\": false}"))
                 .andExpect(status().isOk())
@@ -131,7 +145,7 @@ class DonorControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.recentTravel").value(true));
 
         mockMvc.perform(get("/api/v1/donors/me/health-questionnaire")
-                .header("X-User-Id", userId))
+                .with(authentication(auth(userId))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.recentTravel").value(true));
@@ -143,13 +157,13 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         mockMvc.perform(put("/api/v1/donors/me/health-questionnaire")
-                .header("X-User-Id", userId)
+                .with(authentication(auth(userId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"hasChronicIllness\": true, \"onMedication\": false, \"recentSurgery\": false, \"recentTravel\": false, \"recentTattooOrPiercing\": false}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/v1/donors/me")
-                .header("X-User-Id", userId))
+                .with(authentication(auth(userId))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.restrictionReason", org.hamcrest.Matchers.containsString("Chronic illness")));
     }
@@ -160,7 +174,7 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         mockMvc.perform(get("/api/v1/donors/me/eligibility")
-                .header("X-User-Id", userId))
+                .with(authentication(auth(userId))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.eligible").value(true));
@@ -172,7 +186,7 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         mockMvc.perform(get("/api/v1/donors/me/impact")
-                .header("X-User-Id", userId))
+                .with(authentication(auth(userId))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalDonations").value(0))
@@ -186,7 +200,7 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         mockMvc.perform(delete("/api/v1/donors/me")
-                .header("X-User-Id", userId))
+                .with(authentication(auth(userId))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").value("Deletion requested"));
@@ -198,13 +212,14 @@ class DonorControllerIntegrationTest {
         createProfile(donorUserId);
 
         var profileJson = mockMvc.perform(get("/api/v1/donors/me")
-                .header("X-User-Id", donorUserId))
+                .with(authentication(auth(donorUserId))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         var donorId = profileJson.substring(profileJson.indexOf("\"id\":") + 5, profileJson.indexOf(",", profileJson.indexOf("\"id\":")));
         donorId = donorId.trim();
 
-        mockMvc.perform(get("/api/v1/donors/" + donorId + "/eligibility"))
+        mockMvc.perform(get("/api/v1/donors/" + donorId + "/eligibility")
+                .with(authentication(auth(99L))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.eligible").value(true));
@@ -216,7 +231,7 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         var getProfile = mockMvc.perform(get("/api/v1/donors/me")
-                .header("X-User-Id", userId))
+                .with(authentication(auth(userId))))
                 .andExpect(status().isOk())
                 .andReturn();
         var json = getProfile.getResponse().getContentAsString();
@@ -224,6 +239,7 @@ class DonorControllerIntegrationTest {
         id = id.trim();
 
         mockMvc.perform(patch("/api/v1/donors/" + id + "/restriction")
+                .with(authentication(auth(99L)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"permanentlyRestricted\": true, \"restrictionReason\": \"Admin override\"}"))
                 .andExpect(status().isOk())
@@ -237,7 +253,7 @@ class DonorControllerIntegrationTest {
         createProfile(userId);
 
         var getProfile = mockMvc.perform(get("/api/v1/donors/me")
-                .header("X-User-Id", userId))
+                .with(authentication(auth(userId))))
                 .andExpect(status().isOk())
                 .andReturn();
         var json = getProfile.getResponse().getContentAsString();
@@ -245,6 +261,7 @@ class DonorControllerIntegrationTest {
         id = id.trim();
 
         mockMvc.perform(patch("/api/v1/donors/" + id + "/flag")
+                .with(authentication(auth(99L)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"flaggedForManualReview\": true}"))
                 .andExpect(status().isOk())

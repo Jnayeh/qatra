@@ -6,10 +6,15 @@ import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireQueryUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
+import com.zayenha.qatra._shared.event.AuditEvent;
+import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 import java.util.List;
@@ -19,6 +24,14 @@ import java.util.List;
 public class QuestionnaireService implements QuestionnaireCommandUseCases, QuestionnaireQueryUseCases {
 
     private final DonorRepositoryPort donorRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Value("${questionnaire.permanent-restriction-keywords:insulin,chemo,immunosuppressant}")
+    private String restrictionKeywords;
+
+    private void audit(String action, Long entityId, String oldValue, String newValue) {
+        eventPublisher.publishEvent(new AuditEvent(AuditUtils.currentUserId(), action, "HealthQuestionnaire", entityId, oldValue, newValue, null, null));
+    }
 
     @Override
     @Transactional
@@ -45,7 +58,9 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         profile.setProfileComplete(hasLocation);
 
         donorRepository.save(profile);
-        return donorRepository.saveQuestionnaire(questionnaire);
+        var saved = donorRepository.saveQuestionnaire(questionnaire);
+        audit("HEALTH_QUESTIONNAIRE_UPDATED", saved.getId(), null, "userId=" + userId);
+        return saved;
     }
 
     @Override
@@ -68,10 +83,15 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         }
     }
 
+    // ponytail: fallback default for test-created instances bypassing @Value
     private boolean containsPermanentMedicationKeyword(String details) {
-        var keywords = List.of("insulin", "chemo", "immunosuppressant");
+        if (details == null) return false;
+        var src = restrictionKeywords != null ? restrictionKeywords : "insulin,chemo,immunosuppressant";
         var lower = details.toLowerCase();
-        return keywords.stream().anyMatch(lower::contains);
+        for (var kw : src.split(",")) {
+            if (lower.contains(kw.trim().toLowerCase())) return true;
+        }
+        return false;
     }
 
     private boolean hasQuestionnaire(Long id, HealthQuestionnaire questionnaire) {

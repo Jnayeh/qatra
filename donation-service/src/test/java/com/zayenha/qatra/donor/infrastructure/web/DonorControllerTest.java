@@ -9,12 +9,16 @@ import com.zayenha.qatra.donor.infrastructure.web.dto.request.*;
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.exception.GlobalExceptionHandler;
 import com.zayenha.qatra._shared.exception.NotFoundException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Instant;
 import java.util.List;
@@ -38,6 +42,14 @@ class DonorControllerTest {
     void setUp() {
         controller = new DonorController(commandUseCases, queryUseCases, healthCommandUseCases, healthQueryUseCases);
         exceptionHandler = new GlobalExceptionHandler();
+        SecurityContextHolder.getContext().setAuthentication(
+            new UsernamePasswordAuthenticationToken(1L, null, java.util.List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN")))
+        );
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     private DonorProfile aProfile() {
@@ -58,7 +70,7 @@ class DonorControllerTest {
         var profile = aProfile();
         when(queryUseCases.getMyProfile(1L)).thenReturn(profile);
 
-        var response = controller.getMyProfile(1L);
+        var response = controller.getMyProfile();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -73,7 +85,7 @@ class DonorControllerTest {
         profile.setId(10L);
         when(queryUseCases.getMyProfile(1L)).thenReturn(profile);
 
-        var response = controller.getMyProfile(1L);
+        var response = controller.getMyProfile();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -86,7 +98,7 @@ class DonorControllerTest {
         when(commandUseCases.updateBloodType(eq(1L), any())).thenReturn(profile);
 
         var request = new UpdateBloodTypeRequest(BloodType.A_POSITIVE);
-        var response = controller.updateBloodType(1L, request);
+        var response = controller.updateBloodType(request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -100,7 +112,7 @@ class DonorControllerTest {
         when(commandUseCases.updateLocation(eq(1L), any())).thenReturn(profile);
 
         var request = new UpdateLocationRequest(40.71, -74.00, "NYC", "USA");
-        var response = controller.updateLocation(1L, request);
+        var response = controller.updateLocation(request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -114,7 +126,7 @@ class DonorControllerTest {
         when(commandUseCases.updateAvailability(eq(1L), any())).thenReturn(profile);
 
         var request = new UpdateAvailabilityRequest(AvailabilityStatus.TEMPORARILY_UNAVAILABLE);
-        var response = controller.updateAvailability(1L, request);
+        var response = controller.updateAvailability(request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -133,7 +145,7 @@ class DonorControllerTest {
         q.setUpdatedAt(Instant.now());
         when(healthQueryUseCases.getHealthQuestionnaire(1L)).thenReturn(q);
 
-        var response = controller.getHealthQuestionnaire(1L);
+        var response = controller.getHealthQuestionnaire();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -153,7 +165,7 @@ class DonorControllerTest {
 
         var request = new HealthQuestionnaireRequest(
                 false, null, false, null, false, false, false);
-        var response = controller.updateHealthQuestionnaire(1L, request);
+        var response = controller.updateHealthQuestionnaire(request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -166,7 +178,7 @@ class DonorControllerTest {
         var profile = aProfile();
         when(queryUseCases.getMyProfile(1L)).thenReturn(profile);
 
-        var response = controller.getEligibility(1L);
+        var response = controller.getEligibility();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -179,7 +191,7 @@ class DonorControllerTest {
         var impact = new DonorQueryUseCases.ImpactResult(5, 15, List.of("First donation completed"));
         when(queryUseCases.getImpact(1L)).thenReturn(impact);
 
-        var response = controller.getImpact(1L);
+        var response = controller.getImpact();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -204,7 +216,7 @@ class DonorControllerTest {
 
     @Test
     void requestDeletionReturnsSuccess() {
-        var response = controller.requestDeletion(1L);
+        var response = controller.requestDeletion();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
