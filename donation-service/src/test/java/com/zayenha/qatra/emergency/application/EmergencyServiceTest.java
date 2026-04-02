@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -24,12 +25,14 @@ class EmergencyServiceTest {
 
     @Mock
     private EmergencyRepositoryPort repository;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     private EmergencyService service;
 
     @BeforeEach
     void setUp() {
-        service = new EmergencyService(repository);
+        service = new EmergencyService(repository, eventPublisher);
     }
 
     @Test

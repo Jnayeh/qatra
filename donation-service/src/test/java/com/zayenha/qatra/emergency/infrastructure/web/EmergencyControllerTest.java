@@ -9,12 +9,16 @@ import com.zayenha.qatra.emergency.domain.port.in.EmergencyQueryUseCases;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.AcceptResponseRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.CreateEmergencyRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.UpdateEmergencyRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Instant;
 import java.util.List;
@@ -37,6 +41,14 @@ class EmergencyControllerTest {
     @BeforeEach
     void setUp() {
         controller = new EmergencyController(commandUseCases, queryUseCases);
+        SecurityContextHolder.getContext().setAuthentication(
+            new UsernamePasswordAuthenticationToken(10L, null, java.util.List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN")))
+        );
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     private EmergencyRequest anEmergency() {
@@ -107,7 +119,7 @@ class EmergencyControllerTest {
         donorResponse.setStatus(ResponseStatus.PENDING);
         when(commandUseCases.respond(1L, 10L)).thenReturn(donorResponse);
 
-        var response = controller.respond(1L, 10L);
+        var response = controller.respond(1L);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody().data().donorId()).isEqualTo(10L);

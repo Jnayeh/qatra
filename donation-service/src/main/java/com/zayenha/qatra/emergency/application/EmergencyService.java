@@ -3,6 +3,8 @@ package com.zayenha.qatra.emergency.application;
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.event.AuditEvent;
+import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
@@ -12,6 +14,10 @@ import com.zayenha.qatra.emergency.domain.port.in.EmergencyCommandUseCases;
 import com.zayenha.qatra.emergency.domain.port.in.EmergencyQueryUseCases;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,19 +31,31 @@ import java.util.Optional;
 public class EmergencyService implements EmergencyCommandUseCases, EmergencyQueryUseCases {
 
     private final EmergencyRepositoryPort repository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Override
-    @Transactional
-    public EmergencyRequest create(String patientName, BloodType bloodType, Integer unitsNeeded,
-                                    EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
-                                    String contactPhone) {
-        var request = new EmergencyRequest(patientName, bloodType, unitsNeeded, urgency, hospital, latitude, longitude, contactPhone);
-        request.setExpiresAt(Instant.now().plus(48, ChronoUnit.HOURS));
-        return repository.save(request);
+    @Value("${emergency.expiration-hours:48}")
+    private long expirationHours;
+
+    private void audit(String action, Long entityId, String oldValue, String newValue) {
+        eventPublisher.publishEvent(new AuditEvent(AuditUtils.currentUserId(), action, "EmergencyRequest", entityId, oldValue, newValue, null, null));
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"emergencies"}, allEntries = true)
+    public EmergencyRequest create(String patientName, BloodType bloodType, Integer unitsNeeded,
+                                    EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
+                                    String contactPhone) {
+        var request = new EmergencyRequest(patientName, bloodType, unitsNeeded, urgency, hospital, latitude, longitude, contactPhone);
+        request.setExpiresAt(Instant.now().plus(expirationHours, ChronoUnit.HOURS));
+        var saved = repository.save(request);
+        audit("EMERGENCY_CREATED", saved.getId(), null, "patient=" + patientName + " bloodType=" + bloodType);
+        return saved;
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = {"emergencies"}, allEntries = true)
     public EmergencyRequest update(Long id, String patientName, BloodType bloodType, Integer unitsNeeded,
                                     EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
                                     String contactPhone) {
@@ -46,6 +64,7 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
             throw new ValidationException("Only open emergencies can be updated",
                     EmergencyErrorCode.EMERGENCY_ALREADY_FULFILLED.name());
         }
+        var oldPatientName = request.getPatientName();
         request.setPatientName(patientName);
         request.setBloodType(bloodType);
         request.setUnitsNeeded(unitsNeeded);
@@ -54,23 +73,30 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         request.setLatitude(latitude);
         request.setLongitude(longitude);
         request.setContactPhone(contactPhone);
-        return repository.save(request);
+        var saved = repository.save(request);
+        audit("EMERGENCY_UPDATED", saved.getId(), "patient=" + oldPatientName, "patient=" + patientName);
+        return saved;
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"emergencies", "responses"}, allEntries = true)
     public EmergencyRequest cancel(Long id) {
         var request = findOrThrow(id);
         if (request.getStatus() == EmergencyStatus.FULFILLED) {
             throw new ValidationException("Cannot cancel a fulfilled emergency",
                     EmergencyErrorCode.EMERGENCY_ALREADY_FULFILLED.name());
         }
+        var oldStatus = request.getStatus();
         request.cancel();
-        return repository.save(request);
+        var saved = repository.save(request);
+        audit("EMERGENCY_CANCELLED", saved.getId(), "status=" + oldStatus, "");
+        return saved;
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"responses"}, allEntries = true)
     public DonorResponse respond(Long emergencyId, Long donorId) {
         var request = findOrThrow(emergencyId);
         if (request.getStatus() != EmergencyStatus.OPEN) {
@@ -82,39 +108,49 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
                     EmergencyErrorCode.RESPONSE_ALREADY_EXISTS.name());
         }
         var response = new DonorResponse(emergencyId, donorId);
-        return repository.saveResponse(response);
+        var saved = repository.saveResponse(response);
+        audit("DONOR_RESPONDED", saved.getId(), null, "emergencyId=" + emergencyId + " donorId=" + donorId);
+        return saved;
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"responses", "emergencies"}, allEntries = true)
     public DonorResponse acceptResponse(Long responseId, Long slotId) {
         var response = findResponseOrThrow(responseId);
         if (response.getStatus() != ResponseStatus.PENDING) {
             throw new ValidationException("Response is not in pending status",
                     EmergencyErrorCode.INVALID_RESPONSE_STATUS.name());
         }
+        var oldStatus = response.getStatus();
         response.accept(slotId);
         var saved = repository.saveResponse(response);
         var emergency = findOrThrow(response.getEmergencyId());
         emergency.fulfill();
         repository.save(emergency);
+        audit("RESPONSE_ACCEPTED", responseId, "status=" + oldStatus, "slotId=" + slotId);
         return saved;
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"responses"}, allEntries = true)
     public DonorResponse declineResponse(Long responseId) {
         var response = findResponseOrThrow(responseId);
         if (response.getStatus() != ResponseStatus.PENDING) {
             throw new ValidationException("Response is not in pending status",
                     EmergencyErrorCode.INVALID_RESPONSE_STATUS.name());
         }
+        var oldStatus = response.getStatus();
         response.decline();
-        return repository.saveResponse(response);
+        var saved = repository.saveResponse(response);
+        audit("RESPONSE_DECLINED", responseId, "status=" + oldStatus, "");
+        return saved;
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "emergencies", key = "#id")
     public Optional<EmergencyRequest> findById(Long id) {
         return repository.findById(id);
     }
@@ -146,12 +182,14 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "responses", key = "'emergency:' + #emergencyId")
     public List<DonorResponse> findResponsesByEmergencyId(Long emergencyId) {
         return repository.findResponsesByEmergencyId(emergencyId);
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "responses", key = "'donor:' + #donorId")
     public List<DonorResponse> findResponsesByDonorId(Long donorId) {
         return repository.findResponsesByDonorId(donorId);
     }
