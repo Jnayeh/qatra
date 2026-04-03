@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,12 +25,14 @@ class AppointmentServiceTest {
 
     @Mock
     private AppointmentRepositoryPort repository;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     private AppointmentService service;
 
     @BeforeEach
     void setUp() {
-        service = new AppointmentService(repository);
+        service = new AppointmentService(repository, eventPublisher);
     }
 
     @Test

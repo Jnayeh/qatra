@@ -1,5 +1,6 @@
 package com.zayenha.qatra.analytics.infrastructure.event;
 
+import com.zayenha.qatra._shared.event.AuditEvent;
 import com.zayenha.qatra.analytics.application.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -14,12 +15,14 @@ public class AuditEventListener {
     @EventListener
     public void onAuditEvent(AuditEvent event) {
         auditLogService.record(
-            event.getEventType(),
-            event.getActorId(),
-            event.getTargetType(),
-            event.getTargetId(),
-            event.getDetails(),
-            event.getSourceModule()
+            event.userId(),
+            event.action(),
+            event.entityType(),
+            event.entityId(),
+            event.oldValue(),
+            event.newValue(),
+            event.ipAddress(),
+            event.userAgent()
         );
     }
 }

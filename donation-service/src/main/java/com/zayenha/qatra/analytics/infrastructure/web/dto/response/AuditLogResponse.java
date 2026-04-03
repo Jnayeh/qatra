@@ -4,12 +4,13 @@ import java.time.Instant;
 
 public record AuditLogResponse(
     Long id,
-    String eventType,
-    Long actorId,
-    String actorEmail,
-    String targetType,
-    Long targetId,
-    String details,
-    String sourceModule,
+    Long userId,
+    String action,
+    String entityType,
+    Long entityId,
+    String oldValue,
+    String newValue,
+    String ipAddress,
+    String userAgent,
     Instant timestamp
 ) {}

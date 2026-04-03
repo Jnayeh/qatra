@@ -10,8 +10,8 @@ import java.util.List;
 public interface AuditLogRepositoryPort {
     AuditLog save(AuditLog log);
     PageResult<AuditLog> findAll(SearchCriteria criteria);
-    List<AuditLog> findByEventType(String eventType);
-    List<AuditLog> findByActorId(Long actorId);
+    List<AuditLog> findByAction(String action);
+    List<AuditLog> findByUserId(Long userId);
     List<AuditLog> findByTimestampBetween(Instant from, Instant to);
-    long countByEventType(String eventType);
+    long countByAction(String action);
 }

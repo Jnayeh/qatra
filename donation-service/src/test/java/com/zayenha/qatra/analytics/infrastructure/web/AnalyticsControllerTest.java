@@ -36,7 +36,7 @@ class AnalyticsControllerTest {
     void getAuditLogsReturnsPaginatedResults() {
         var log = new AuditLog();
         log.setId(1L);
-        log.setEventType("APPOINTMENT_CREATED");
+        log.setAction("APPOINTMENT_CREATED");
         log.setTimestamp(Instant.now());
         var pageResult = new PageResult<AuditLog>(List.of(log), 0, 20, 1, 1);
         when(auditLogService.findAll(any(SearchCriteria.class))).thenReturn(pageResult);
@@ -49,7 +49,7 @@ class AnalyticsControllerTest {
 
     @Test
     void getMetricsReturnsCounts() {
-        when(auditLogService.countByEventType(anyString())).thenReturn(0L);
+        when(auditLogService.countByAction(anyString())).thenReturn(0L);
 
         var response = controller.getMetrics();
 

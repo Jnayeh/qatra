@@ -30,15 +30,15 @@ class AuditLogServiceTest {
     void recordSavesAuditLog() {
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        service.record("APPOINTMENT_CREATED", 1L, "Appointment", 10L, "{}", "appointment");
+        service.record(1L, "APPOINTMENT_CREATED", "Appointment", 10L, null, "{}", null, null);
 
         verify(repository).save(any());
     }
 
     @Test
-    void countByEventTypeReturnsCount() {
-        when(repository.countByEventType("APPOINTMENT_CREATED")).thenReturn(5L);
+    void countByActionReturnsCount() {
+        when(repository.countByAction("APPOINTMENT_CREATED")).thenReturn(5L);
 
-        assertThat(service.countByEventType("APPOINTMENT_CREATED")).isEqualTo(5L);
+        assertThat(service.countByAction("APPOINTMENT_CREATED")).isEqualTo(5L);
     }
 }

@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -30,6 +31,7 @@ public class AppointmentController {
     private final AppointmentQueryUseCases queryUseCases;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> book(@Valid @RequestBody CreateAppointmentRequest request) {
         var appointment = commandUseCases.book(request.donorId(), request.slotId());
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -37,18 +39,21 @@ public class AppointmentController {
     }
 
     @PostMapping("/{id}/check-in")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> checkIn(@PathVariable Long id) {
         var appointment = commandUseCases.checkIn(id);
         return ResponseEntity.ok(ApiResponse.success(AppointmentMapper.toResponse(appointment)));
     }
 
     @PostMapping("/{id}/screening")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<HealthScreeningResponse>> startScreening(@PathVariable Long id) {
         commandUseCases.startScreening(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PostMapping("/{id}/complete")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> complete(
             @PathVariable Long id, @Valid @RequestBody CompleteAppointmentRequest request) {
         var outcome = AppointmentMapper.toOutcome(request.outcome());
@@ -57,6 +62,7 @@ public class AppointmentController {
     }
 
     @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> cancel(@PathVariable Long id) {
         var appointment = commandUseCases.cancel(id);
         return ResponseEntity.ok(ApiResponse.success(AppointmentMapper.toResponse(appointment)));
@@ -82,6 +88,7 @@ public class AppointmentController {
     }
 
     @GetMapping("/by-donor/{donorId}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<List<AppointmentResponse>>> getByDonor(@PathVariable Long donorId) {
         var appointments = queryUseCases.findByDonorId(donorId);
         return ResponseEntity.ok(ApiResponse.success(
@@ -89,6 +96,7 @@ public class AppointmentController {
     }
 
     @GetMapping("/by-center/{centerId}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<List<AppointmentResponse>>> getByCenterAndDate(
             @PathVariable Long centerId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
@@ -98,6 +106,7 @@ public class AppointmentController {
     }
 
     @PostMapping("/{id}/screening-results")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<HealthScreeningResponse>> saveScreening(
             @PathVariable Long id, @Valid @RequestBody ScreeningRequest request) {
         var screening = commandUseCases.saveScreening(id, request.weight(), request.bloodPressure(),

@@ -9,7 +9,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -20,25 +19,24 @@ public class AuditLogService {
 
     @Async
     @Transactional
-    public void record(String eventType, Long actorId, String targetType, Long targetId, String details, String sourceModule) {
-        var log = new AuditLog(eventType, actorId, targetType, targetId, details, sourceModule);
+    public void record(Long userId, String action, String entityType, Long entityId, String oldValue, String newValue, String ipAddress, String userAgent) {
+        var log = new AuditLog(userId, action, entityType, entityId, oldValue, newValue, ipAddress, userAgent);
         repository.save(log);
     }
-
 
     public PageResult<AuditLog> findAll(SearchCriteria criteria) {
         return repository.findAll(criteria);
     }
 
-    public List<AuditLog> findByEventType(String eventType) {
-        return repository.findByEventType(eventType);
+    public List<AuditLog> findByAction(String action) {
+        return repository.findByAction(action);
     }
 
-    public List<AuditLog> findByActorId(Long actorId) {
-        return repository.findByActorId(actorId);
+    public List<AuditLog> findByUserId(Long userId) {
+        return repository.findByUserId(userId);
     }
 
-    public long countByEventType(String eventType) {
-        return repository.countByEventType(eventType);
+    public long countByAction(String action) {
+        return repository.countByAction(action);
     }
 }

@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -26,6 +27,7 @@ public class CenterController {
     private final CenterQueryUseCases queryUseCases;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<CenterResponse>> create(@Valid @RequestBody CreateCenterRequest request) {
         var command = new CenterCommandUseCases.CreateCenterCommand(
             request.name(), request.address(), request.city(), request.country(),
@@ -37,6 +39,7 @@ public class CenterController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<CenterResponse>> update(@PathVariable Long id, @Valid @RequestBody UpdateCenterRequest request) {
         var command = new CenterCommandUseCases.UpdateCenterCommand(
             request.name(), request.address(), request.city(), request.country(),
@@ -48,12 +51,14 @@ public class CenterController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateCenterStatusRequest request) {
         commandUseCases.updateStatus(id, request.status());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) {
         commandUseCases.delete(id);
         return ResponseEntity.ok(ApiResponse.success("Center deleted"));
@@ -80,6 +85,7 @@ public class CenterController {
     }
 
     @PostMapping("/{id}/closures")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<ClosureResponse>> addClosure(@PathVariable Long id,
             @Valid @RequestBody CreateClosureRequest request) {
         var command = new CenterCommandUseCases.ClosureCommand(
@@ -98,6 +104,7 @@ public class CenterController {
     }
 
     @PatchMapping("/{id}/slots/{slotId}/block")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<SlotResponse>> blockSlot(@PathVariable Long id, @PathVariable Long slotId,
             @Valid @RequestBody BlockSlotRequest request) {
         var slot = commandUseCases.blockSlot(id, slotId, request.isBlocked());
@@ -111,6 +118,7 @@ public class CenterController {
     }
 
     @PostMapping("/{id}/staff")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<StaffSummaryResponse>> addStaff(@PathVariable Long id,
             @Valid @RequestBody AddStaffRequest request) {
         var staff = commandUseCases.addStaff(id, request.userId());
@@ -118,6 +126,7 @@ public class CenterController {
     }
 
     @DeleteMapping("/{id}/staff/{userId}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<String>> removeStaff(@PathVariable Long id, @PathVariable Long userId) {
         commandUseCases.removeStaff(id, userId);
         return ResponseEntity.ok(ApiResponse.success("Staff removed"));
@@ -136,6 +145,7 @@ public class CenterController {
     }
 
     @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<CenterResponse>> approve(@PathVariable Long id,
             @Valid @RequestBody ApproveCenterRequest request) {
         var center = commandUseCases.approve(id, request.approved(), request.reason());

@@ -36,13 +36,13 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
     }
 
     @Override
-    public List<AuditLog> findByEventType(String eventType) {
-        return jpaRepository.findByEventTypeOrderByTimestampDesc(eventType).stream().map(this::toDomain).toList();
+    public List<AuditLog> findByAction(String action) {
+        return jpaRepository.findByActionOrderByTimestampDesc(action).stream().map(this::toDomain).toList();
     }
 
     @Override
-    public List<AuditLog> findByActorId(Long actorId) {
-        return jpaRepository.findByActorIdOrderByTimestampDesc(actorId).stream().map(this::toDomain).toList();
+    public List<AuditLog> findByUserId(Long userId) {
+        return jpaRepository.findByUserIdOrderByTimestampDesc(userId).stream().map(this::toDomain).toList();
     }
 
     @Override
@@ -51,20 +51,21 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
     }
 
     @Override
-    public long countByEventType(String eventType) {
-        return jpaRepository.countByEventType(eventType);
+    public long countByAction(String action) {
+        return jpaRepository.countByAction(action);
     }
 
     private AuditLogEntity toEntity(AuditLog domain) {
         var entity = new AuditLogEntity();
         entity.setId(domain.getId());
-        entity.setEventType(domain.getEventType());
-        entity.setActorId(domain.getActorId());
-        entity.setActorEmail(domain.getActorEmail());
-        entity.setTargetType(domain.getTargetType());
-        entity.setTargetId(domain.getTargetId());
-        entity.setDetails(domain.getDetails());
-        entity.setSourceModule(domain.getSourceModule());
+        entity.setUserId(domain.getUserId());
+        entity.setAction(domain.getAction());
+        entity.setEntityType(domain.getEntityType());
+        entity.setEntityId(domain.getEntityId());
+        entity.setOldValue(domain.getOldValue());
+        entity.setNewValue(domain.getNewValue());
+        entity.setIpAddress(domain.getIpAddress());
+        entity.setUserAgent(domain.getUserAgent());
         entity.setTimestamp(domain.getTimestamp());
         return entity;
     }
@@ -72,13 +73,14 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
     private AuditLog toDomain(AuditLogEntity entity) {
         var domain = new AuditLog();
         domain.setId(entity.getId());
-        domain.setEventType(entity.getEventType());
-        domain.setActorId(entity.getActorId());
-        domain.setActorEmail(entity.getActorEmail());
-        domain.setTargetType(entity.getTargetType());
-        domain.setTargetId(entity.getTargetId());
-        domain.setDetails(entity.getDetails());
-        domain.setSourceModule(entity.getSourceModule());
+        domain.setUserId(entity.getUserId());
+        domain.setAction(entity.getAction());
+        domain.setEntityType(entity.getEntityType());
+        domain.setEntityId(entity.getEntityId());
+        domain.setOldValue(entity.getOldValue());
+        domain.setNewValue(entity.getNewValue());
+        domain.setIpAddress(entity.getIpAddress());
+        domain.setUserAgent(entity.getUserAgent());
         domain.setTimestamp(entity.getTimestamp());
         return domain;
     }

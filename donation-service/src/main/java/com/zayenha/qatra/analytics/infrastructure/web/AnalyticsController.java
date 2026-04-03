@@ -9,6 +9,7 @@ import com.zayenha.qatra.analytics.infrastructure.web.dto.response.MetricsRespon
 import com.zayenha.qatra.analytics.infrastructure.web.mapper.AnalyticsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/analytics")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('SUPER_ADMIN')")
 public class AnalyticsController {
 
     private final AuditLogService auditLogService;
@@ -32,16 +34,16 @@ public class AnalyticsController {
         ));
     }
 
-    @GetMapping("/audit-logs/by-event/{eventType}")
-    public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getByEventType(@PathVariable String eventType) {
-        var logs = auditLogService.findByEventType(eventType);
+    @GetMapping("/audit-logs/by-action/{action}")
+    public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getByAction(@PathVariable String action) {
+        var logs = auditLogService.findByAction(action);
         return ResponseEntity.ok(ApiResponse.success(
             logs.stream().map(AnalyticsMapper::toResponse).toList()));
     }
 
-    @GetMapping("/audit-logs/by-actor/{actorId}")
-    public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getByActor(@PathVariable Long actorId) {
-        var logs = auditLogService.findByActorId(actorId);
+    @GetMapping("/audit-logs/by-user/{userId}")
+    public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getByUser(@PathVariable Long userId) {
+        var logs = auditLogService.findByUserId(userId);
         return ResponseEntity.ok(ApiResponse.success(
             logs.stream().map(AnalyticsMapper::toResponse).toList()));
     }
@@ -49,11 +51,11 @@ public class AnalyticsController {
     @GetMapping("/metrics")
     public ResponseEntity<ApiResponse<List<MetricsResponse>>> getMetrics() {
         return ResponseEntity.ok(ApiResponse.success(List.of(
-            new MetricsResponse("APPOINTMENTS_CREATED", auditLogService.countByEventType("APPOINTMENT_CREATED")),
-            new MetricsResponse("APPOINTMENTS_COMPLETED", auditLogService.countByEventType("APPOINTMENT_COMPLETED")),
-            new MetricsResponse("EMERGENCIES_CREATED", auditLogService.countByEventType("EMERGENCY_CREATED")),
-            new MetricsResponse("EMERGENCIES_FULFILLED", auditLogService.countByEventType("EMERGENCY_FULFILLED")),
-            new MetricsResponse("DONOR_RESPONSES", auditLogService.countByEventType("DONOR_RESPONSE"))
+            new MetricsResponse("APPOINTMENTS_CREATED", auditLogService.countByAction("APPOINTMENT_CREATED")),
+            new MetricsResponse("APPOINTMENTS_COMPLETED", auditLogService.countByAction("APPOINTMENT_COMPLETED")),
+            new MetricsResponse("EMERGENCIES_CREATED", auditLogService.countByAction("EMERGENCY_CREATED")),
+            new MetricsResponse("EMERGENCIES_FULFILLED", auditLogService.countByAction("EMERGENCY_FULFILLED")),
+            new MetricsResponse("DONOR_RESPONSES", auditLogService.countByAction("DONOR_RESPONSE"))
         )));
     }
 }

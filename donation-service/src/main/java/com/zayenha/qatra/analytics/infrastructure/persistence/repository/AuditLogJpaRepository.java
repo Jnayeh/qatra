@@ -10,8 +10,8 @@ import java.util.List;
 
 public interface AuditLogJpaRepository extends JpaRepository<AuditLogEntity, Long> {
     Page<AuditLogEntity> findAllByOrderByTimestampDesc(Pageable pageable);
-    List<AuditLogEntity> findByEventTypeOrderByTimestampDesc(String eventType);
-    List<AuditLogEntity> findByActorIdOrderByTimestampDesc(Long actorId);
+    List<AuditLogEntity> findByActionOrderByTimestampDesc(String action);
+    List<AuditLogEntity> findByUserIdOrderByTimestampDesc(Long userId);
     List<AuditLogEntity> findByTimestampBetweenOrderByTimestampDesc(Instant from, Instant to);
-    long countByEventType(String eventType);
+    long countByAction(String action);
 }

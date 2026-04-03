@@ -9,24 +9,27 @@ import java.time.Instant;
 @Setter
 public class AuditLog {
     private Long id;
-    private String eventType;
-    private Long actorId;
-    private String actorEmail;
-    private String targetType;
-    private Long targetId;
-    private String details;
-    private String sourceModule;
+    private Long userId;
+    private String action;
+    private String entityType;
+    private Long entityId;
+    private String oldValue;
+    private String newValue;
+    private String ipAddress;
+    private String userAgent;
     private Instant timestamp;
 
     public AuditLog() {}
 
-    public AuditLog(String eventType, Long actorId, String targetType, Long targetId, String details, String sourceModule) {
-        this.eventType = eventType;
-        this.actorId = actorId;
-        this.targetType = targetType;
-        this.targetId = targetId;
-        this.details = details;
-        this.sourceModule = sourceModule;
+    public AuditLog(Long userId, String action, String entityType, Long entityId, String oldValue, String newValue, String ipAddress, String userAgent) {
+        this.userId = userId;
+        this.action = action;
+        this.entityType = entityType;
+        this.entityId = entityId;
+        this.oldValue = oldValue;
+        this.newValue = newValue;
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
         this.timestamp = Instant.now();
     }
 }

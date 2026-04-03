@@ -18,18 +18,22 @@ public class AuditLogEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String eventType;
+    private Long userId;
 
-    private Long actorId;
-    private String actorEmail;
-    private String targetType;
-    private Long targetId;
+    @Column(nullable = false)
+    private String action;
+
+    private String entityType;
+    private Long entityId;
 
     @Column(columnDefinition = "TEXT")
-    private String details;
+    private String oldValue;
 
-    private String sourceModule;
+    @Column(columnDefinition = "TEXT")
+    private String newValue;
+
+    private String ipAddress;
+    private String userAgent;
 
     @Column(nullable = false, updatable = false)
     private Instant timestamp;

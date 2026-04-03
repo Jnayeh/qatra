@@ -9,8 +9,8 @@ public final class AnalyticsMapper {
 
     public static AuditLogResponse toResponse(AuditLog log) {
         return new AuditLogResponse(
-            log.getId(), log.getEventType(), log.getActorId(), log.getActorEmail(),
-            log.getTargetType(), log.getTargetId(), log.getDetails(), log.getSourceModule(), log.getTimestamp()
+            log.getId(), log.getUserId(), log.getAction(), log.getEntityType(), log.getEntityId(),
+            log.getOldValue(), log.getNewValue(), log.getIpAddress(), log.getUserAgent(), log.getTimestamp()
         );
     }
 }
