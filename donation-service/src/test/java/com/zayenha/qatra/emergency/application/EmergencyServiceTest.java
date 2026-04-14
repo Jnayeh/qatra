@@ -1,11 +1,13 @@
 package com.zayenha.qatra.emergency.application;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.emergency.domain.model.*;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
+import com.zayenha.qatra.infrastructure.kafka.NotificationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,12 +29,16 @@ class EmergencyServiceTest {
     private EmergencyRepositoryPort repository;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private NotificationEventPublisher notificationEventPublisher;
+    @Mock
+    private CacheService cacheService;
 
     private EmergencyService service;
 
     @BeforeEach
     void setUp() {
-        service = new EmergencyService(repository, eventPublisher);
+        service = new EmergencyService(repository, eventPublisher, notificationEventPublisher, cacheService);
     }
 
     @Test

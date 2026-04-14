@@ -1,5 +1,6 @@
 package com.zayenha.qatra.donor.application;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.DonorStatus;
@@ -31,12 +32,14 @@ class DonorServiceTest {
     private DonorRepositoryPort donorRepository;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private CacheService cacheService;
 
     private DonorService donorService;
 
     @BeforeEach
     void setUp() {
-        donorService = new DonorService(donorRepository, eventPublisher);
+        donorService = new DonorService(donorRepository, eventPublisher, cacheService);
     }
 
     private DonorProfile aProfile() {

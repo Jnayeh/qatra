@@ -1,5 +1,6 @@
 package com.zayenha.qatra.center.application;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra.center.domain.model.*;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases.CreateCenterCommand;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases.UpdateCenterCommand;
@@ -34,12 +35,14 @@ class CenterServiceTest {
     private SlotRepositoryPort slotRepository;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private CacheService cacheService;
 
     private CenterService centerService;
 
     @BeforeEach
     void setUp() {
-        centerService = new CenterService(centerRepository, slotRepository, eventPublisher);
+        centerService = new CenterService(centerRepository, slotRepository, eventPublisher, cacheService);
     }
 
     private DonationCenter aCenter() {

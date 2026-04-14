@@ -1,5 +1,6 @@
 package com.zayenha.qatra.user.application;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditEvent;
@@ -18,11 +19,10 @@ import com.zayenha.qatra.user.domain.port.out.PasswordEncoderPort;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
 import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
 import com.zayenha.qatra.user.domain.service.UserDomainValidator;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +39,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
     private final UserRoleRepositoryPort userRoleRepository;
     private final PasswordEncoderPort passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
+    private final CacheService cacheService;
 
     @Value("${super-admin.email:}")
     private String superAdminEmail;
@@ -59,11 +60,12 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"users", "userExists"}, allEntries = true)
     public User create(String email, String phone, String password, String displayName) {
         validator().validateCreate(email, phone);
         var user = new User(email, phone, passwordEncoder.encode(password), displayName);
         user = userRepository.save(user);
+        cacheService.evictByPattern("users:*");
+        cacheService.evictByPattern("userExists:*");
         eventPublisher.publishEvent(
                 new UserCreatedEvent(this, user.getId(), user.getEmail())
         );
@@ -73,7 +75,6 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"users", "userExists"}, allEntries = true)
     public User update(Long id, String email, String phone, String displayName) {
         validator().validateUpdate(id, email, phone);
         var user = userRepository.findById(id)
@@ -82,25 +83,26 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         log.info("validated");
         user.update(email, phone, displayName);
         user = userRepository.save(user); //UP
+        cacheService.evictByPattern("users:*");
+        cacheService.evictByPattern("userExists:*");
         audit("USER_UPDATED", id, "email=" + oldEmail, "email=" + email);
         return user;
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"users"}, allEntries = true)
     public void updateStatus(Long id, UserStatus status) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         var oldStatus = user.getStatus();
         user.updateStatus(status);
         userRepository.save(user);
+        cacheService.evictByPattern("users:*");
         audit("USER_STATUS_CHANGED", id, "oldStatus=" + oldStatus, "newStatus=" + status);
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"userRoles"}, allEntries = true)
     public void assignRole(Long userId, Role role) {
         var user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         if (!user.isActive()) {
@@ -111,12 +113,12 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         }
 
         userRoleRepository.save(new UserRole(userId, role));
+        cacheService.evictByPattern("userRoles:*");
         audit("ROLE_ASSIGNED", userId, null, "role=" + role);
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"userRoles"}, allEntries = true)
     public void revokeRole(Long userId, Role role) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
@@ -125,12 +127,12 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
             throw new InvalidRoleAssignmentException("User does not have role: " + role);
         }
         userRoleRepository.deleteByUserIdAndRole(userId, role);
+        cacheService.evictByPattern("userRoles:*");
         audit("ROLE_REVOKED", userId, null, "role=" + role);
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"users", "userExists", "userRoles"}, allEntries = true)
     public void delete(Long id) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -140,6 +142,9 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user.markDeleted();
         userRepository.save(user);
         userRoleRepository.deleteByUserId(id);
+        cacheService.evictByPattern("users:*");
+        cacheService.evictByPattern("userExists:*");
+        cacheService.evictByPattern("userRoles:*");
         audit("USER_DELETED", id, null, "");
     }
 
@@ -158,41 +163,65 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
     }
 
     @Override
-    @Cacheable(value = "users", key = "#id")
     public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
+        var key = "users:" + id;
+        var cached = cacheService.get(key, User.class);
+        if (cached.isPresent()) return cached;
+        var result = userRepository.findById(id);
+        result.ifPresent(r -> cacheService.put(key, r));
+        return result;
     }
 
     @Override
-    @Cacheable(value = "users", key = "'email:' + #email")
     public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
+        var key = "users:email:" + email;
+        var cached = cacheService.get(key, User.class);
+        if (cached.isPresent()) return cached;
+        var result = userRepository.findByEmail(email);
+        result.ifPresent(r -> cacheService.put(key, r));
+        return result;
     }
 
     @Override
-    @Cacheable(value = "users", key = "'phone:' + #phone")
     public Optional<User> findByPhone(String phone) {
-        return userRepository.findByPhone(phone);
+        var key = "users:phone:" + phone;
+        var cached = cacheService.get(key, User.class);
+        if (cached.isPresent()) return cached;
+        var result = userRepository.findByPhone(phone);
+        result.ifPresent(r -> cacheService.put(key, r));
+        return result;
     }
 
     @Override
-    @Cacheable(value = "userExists", key = "'email:' + #email")
     public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+        var key = "userExists:email:" + email;
+        var cached = cacheService.get(key, Boolean.class);
+        if (cached.isPresent()) return cached.get();
+        var result = userRepository.existsByEmail(email);
+        cacheService.put(key, result);
+        return result;
     }
 
     @Override
-    @Cacheable(value = "userExists", key = "'phone:' + #phone")
     public boolean existsByPhone(String phone) {
-        return userRepository.existsByPhone(phone);
+        var key = "userExists:phone:" + phone;
+        var cached = cacheService.get(key, Boolean.class);
+        if (cached.isPresent()) return cached.get();
+        var result = userRepository.existsByPhone(phone);
+        cacheService.put(key, result);
+        return result;
     }
 
     @Override
-    @Cacheable(value = "userRoles", key = "#userId")
     public List<Role> getUserRoles(Long userId) {
-        return userRoleRepository.findByUserId(userId).stream()
+        var key = "userRoles:" + userId;
+        var cached = cacheService.get(key, new TypeReference<List<Role>>() {});
+        if (cached.isPresent()) return cached.get();
+        var result = userRoleRepository.findByUserId(userId).stream()
                 .map(UserRole::getRole)
                 .toList();
+        cacheService.put(key, result);
+        return result;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.zayenha.qatra.user.application;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.user.api.dto.UserCreatedEvent;
@@ -42,12 +43,14 @@ class UserServiceTest {
     private PasswordEncoderPort passwordEncoder;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private CacheService cacheService;
 
     private UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, userRoleRepository, passwordEncoder, eventPublisher);
+        userService = new UserService(userRepository, userRoleRepository, passwordEncoder, eventPublisher, cacheService);
     }
 
     private User aUser() {

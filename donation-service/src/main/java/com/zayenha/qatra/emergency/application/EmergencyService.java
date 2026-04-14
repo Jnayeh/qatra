@@ -5,7 +5,10 @@ import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditEvent;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.exception.ConflictException;
+import com.zayenha.qatra.infrastructure.kafka.NotificationEventPublisher;
+import java.util.Collections;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.emergency.domain.exception.EmergencyErrorCode;
@@ -13,10 +16,9 @@ import com.zayenha.qatra.emergency.domain.model.*;
 import com.zayenha.qatra.emergency.domain.port.in.EmergencyCommandUseCases;
 import com.zayenha.qatra.emergency.domain.port.in.EmergencyQueryUseCases;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,8 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
 
     private final EmergencyRepositoryPort repository;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificationEventPublisher notificationEventPublisher;
+    private final CacheService cacheService;
 
     @Value("${emergency.expiration-hours:48}")
     private long expirationHours;
@@ -42,20 +46,21 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
 
     @Override
     @Transactional
-    @CacheEvict(value = {"emergencies"}, allEntries = true)
     public EmergencyRequest create(String patientName, BloodType bloodType, Integer unitsNeeded,
-                                    EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
-                                    String contactPhone) {
+                                     EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
+                                     String contactPhone) {
         var request = new EmergencyRequest(patientName, bloodType, unitsNeeded, urgency, hospital, latitude, longitude, contactPhone);
         request.setExpiresAt(Instant.now().plus(expirationHours, ChronoUnit.HOURS));
         var saved = repository.save(request);
+        cacheService.evictByPattern("emergencies:*");
         audit("EMERGENCY_CREATED", saved.getId(), null, "patient=" + patientName + " bloodType=" + bloodType);
+        // ponytail: matchedDonorIds is empty until donor matching is implemented
+        notificationEventPublisher.publishEmergencyCreated(saved.getId(), Collections.emptyList());
         return saved;
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"emergencies"}, allEntries = true)
     public EmergencyRequest update(Long id, String patientName, BloodType bloodType, Integer unitsNeeded,
                                     EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
                                     String contactPhone) {
@@ -80,7 +85,6 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
 
     @Override
     @Transactional
-    @CacheEvict(value = {"emergencies", "responses"}, allEntries = true)
     public EmergencyRequest cancel(Long id) {
         var request = findOrThrow(id);
         if (request.getStatus() == EmergencyStatus.FULFILLED) {
@@ -90,13 +94,14 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         var oldStatus = request.getStatus();
         request.cancel();
         var saved = repository.save(request);
+        cacheService.evictByPattern("emergencies:*");
+        cacheService.evictByPattern("responses:*");
         audit("EMERGENCY_CANCELLED", saved.getId(), "status=" + oldStatus, "");
         return saved;
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"responses"}, allEntries = true)
     public DonorResponse respond(Long emergencyId, Long donorId) {
         var request = findOrThrow(emergencyId);
         if (request.getStatus() != EmergencyStatus.OPEN) {
@@ -109,13 +114,13 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         }
         var response = new DonorResponse(emergencyId, donorId);
         var saved = repository.saveResponse(response);
+        cacheService.evictByPattern("responses:*");
         audit("DONOR_RESPONDED", saved.getId(), null, "emergencyId=" + emergencyId + " donorId=" + donorId);
         return saved;
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"responses", "emergencies"}, allEntries = true)
     public DonorResponse acceptResponse(Long responseId, Long slotId) {
         var response = findResponseOrThrow(responseId);
         if (response.getStatus() != ResponseStatus.PENDING) {
@@ -128,13 +133,14 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         var emergency = findOrThrow(response.getEmergencyId());
         emergency.fulfill();
         repository.save(emergency);
+        cacheService.evictByPattern("responses:*");
+        cacheService.evictByPattern("emergencies:*");
         audit("RESPONSE_ACCEPTED", responseId, "status=" + oldStatus, "slotId=" + slotId);
         return saved;
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"responses"}, allEntries = true)
     public DonorResponse declineResponse(Long responseId) {
         var response = findResponseOrThrow(responseId);
         if (response.getStatus() != ResponseStatus.PENDING) {
@@ -144,15 +150,20 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         var oldStatus = response.getStatus();
         response.decline();
         var saved = repository.saveResponse(response);
+        cacheService.evictByPattern("responses:*");
         audit("RESPONSE_DECLINED", responseId, "status=" + oldStatus, "");
         return saved;
     }
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "emergencies", key = "#id")
     public Optional<EmergencyRequest> findById(Long id) {
-        return repository.findById(id);
+        var key = "emergencies:" + id;
+        var cached = cacheService.get(key, EmergencyRequest.class);
+        if (cached.isPresent()) return cached;
+        var result = repository.findById(id);
+        result.ifPresent(r -> cacheService.put(key, r));
+        return result;
     }
 
     @Override
@@ -182,16 +193,26 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "responses", key = "'emergency:' + #emergencyId")
     public List<DonorResponse> findResponsesByEmergencyId(Long emergencyId) {
-        return repository.findResponsesByEmergencyId(emergencyId);
+        var key = "responses:emergency:" + emergencyId;
+        return cacheService.get(key, new TypeReference<List<DonorResponse>>() {})
+                .orElseGet(() -> {
+                    var result = repository.findResponsesByEmergencyId(emergencyId);
+                    cacheService.put(key, result);
+                    return result;
+                });
     }
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "responses", key = "'donor:' + #donorId")
     public List<DonorResponse> findResponsesByDonorId(Long donorId) {
-        return repository.findResponsesByDonorId(donorId);
+        var key = "responses:donor:" + donorId;
+        return cacheService.get(key, new TypeReference<List<DonorResponse>>() {})
+                .orElseGet(() -> {
+                    var result = repository.findResponsesByDonorId(donorId);
+                    cacheService.put(key, result);
+                    return result;
+                });
     }
 
     private EmergencyRequest findOrThrow(Long id) {

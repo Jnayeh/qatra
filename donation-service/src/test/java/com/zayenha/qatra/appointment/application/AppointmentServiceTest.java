@@ -1,10 +1,12 @@
 package com.zayenha.qatra.appointment.application;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
+import com.zayenha.qatra.infrastructure.kafka.NotificationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,12 +29,16 @@ class AppointmentServiceTest {
     private AppointmentRepositoryPort repository;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private NotificationEventPublisher notificationEventPublisher;
+    @Mock
+    private CacheService cacheService;
 
     private AppointmentService service;
 
     @BeforeEach
     void setUp() {
-        service = new AppointmentService(repository, eventPublisher);
+        service = new AppointmentService(repository, eventPublisher, notificationEventPublisher, cacheService);
     }
 
     @Test
@@ -168,6 +174,10 @@ class AppointmentServiceTest {
 
     @Test
     void saveScreeningPersistsAndReturns() {
+        var appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDonorId(10L);
+        when(repository.findById(1L)).thenReturn(Optional.of(appointment));
         var screening = new HealthScreening();
         screening.setId(1L);
         screening.setAppointmentId(1L);
