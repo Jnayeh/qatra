@@ -32,6 +32,34 @@ public class KafkaConfig {
     @Value("${kafka.topic.audit-events.replicas:1}")
     private int auditReplicas;
 
+    @Value("${kafka.topic.notification-dispatch.name:notification.dispatch}")
+    private String notificationDispatchTopicName;
+    @Value("${kafka.topic.notification-dispatch.partitions:3}")
+    private int notificationDispatchPartitions;
+    @Value("${kafka.topic.notification-dispatch.replicas:1}")
+    private int notificationDispatchReplicas;
+
+    @Value("${kafka.topic.emergency-created.name:emergency.created}")
+    private String emergencyCreatedTopicName;
+    @Value("${kafka.topic.emergency-created.partitions:3}")
+    private int emergencyCreatedPartitions;
+    @Value("${kafka.topic.emergency-created.replicas:1}")
+    private int emergencyCreatedReplicas;
+
+    @Value("${kafka.topic.appointment-reminder.name:appointment.reminder}")
+    private String appointmentReminderTopicName;
+    @Value("${kafka.topic.appointment-reminder.partitions:3}")
+    private int appointmentReminderPartitions;
+    @Value("${kafka.topic.appointment-reminder.replicas:1}")
+    private int appointmentReminderReplicas;
+
+    @Value("${kafka.topic.eligibility-restored.name:eligibility.restored}")
+    private String eligibilityRestoredTopicName;
+    @Value("${kafka.topic.eligibility-restored.partitions:3}")
+    private int eligibilityRestoredPartitions;
+    @Value("${kafka.topic.eligibility-restored.replicas:1}")
+    private int eligibilityRestoredReplicas;
+
     @Bean
     public NewTopic appointmentEventsTopic() {
         return TopicBuilder.name(appointmentTopicName)
@@ -48,5 +76,29 @@ public class KafkaConfig {
     public NewTopic auditEventsTopic() {
         return TopicBuilder.name(auditTopicName)
                 .partitions(auditPartitions).replicas(auditReplicas).build();
+    }
+
+    @Bean
+    public NewTopic notificationDispatchTopic() {
+        return TopicBuilder.name(notificationDispatchTopicName)
+                .partitions(notificationDispatchPartitions).replicas(notificationDispatchReplicas).build();
+    }
+
+    @Bean
+    public NewTopic emergencyCreatedTopic() {
+        return TopicBuilder.name(emergencyCreatedTopicName)
+                .partitions(emergencyCreatedPartitions).replicas(emergencyCreatedReplicas).build();
+    }
+
+    @Bean
+    public NewTopic appointmentReminderTopic() {
+        return TopicBuilder.name(appointmentReminderTopicName)
+                .partitions(appointmentReminderPartitions).replicas(appointmentReminderReplicas).build();
+    }
+
+    @Bean
+    public NewTopic eligibilityRestoredTopic() {
+        return TopicBuilder.name(eligibilityRestoredTopicName)
+                .partitions(eligibilityRestoredPartitions).replicas(eligibilityRestoredReplicas).build();
     }
 }
