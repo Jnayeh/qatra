@@ -22,12 +22,10 @@ public class NoOpCacheService implements CacheService {
         return Optional.empty();
     }
 
-    @Override
     public <T> Optional<T> getWithRefresh(String key, Class<T> type, Supplier<T> loader) {
         return Optional.ofNullable(loader.get());
     }
 
-    @Override
     public <T> Optional<T> getWithRefresh(String key, TypeReference<T> typeRef, Supplier<T> loader) {
         return Optional.ofNullable(loader.get());
     }
@@ -48,12 +46,10 @@ public class NoOpCacheService implements CacheService {
     public void evictByPattern(String pattern) {
     }
 
-    @Override
     public Set<String> keys(String pattern) {
         return Collections.emptySet();
     }
 
-    @Override
     public boolean exists(String key) {
         return false;
     }
