@@ -53,6 +53,15 @@ services:
   donation-service:
     build:
       context: ./donation-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      redis:
+        condition: service_healthy
     environment:
       SERVER_PORT: 8080
       DB_URL: jdbc:postgresql://postgres:5432/qatra
@@ -65,17 +74,14 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_DEVTOOLS_RESTART: false
       SPRING_DEVTOOLS_LIVERELOAD: false
-    ports:
-      - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_started
-      redis:
-        condition: service_healthy
+      OTEL_SERVICE_NAME: donation-service
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_LOGS_EXPORTER: none
+      OTEL_METRICS_EXPORTER: none
 
-  # ── Notification Service ──────────────────────────────────
   notification-service:
     build:
       context: ./notification-service
@@ -93,6 +99,13 @@ services:
       GMAIL_SMTP_HOST: ""
       GMAIL_USERNAME: ""
       GMAIL_APP_PASSWORD: ""
+      OTEL_SERVICE_NAME: notification-service
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_LOGS_EXPORTER: none
+      OTEL_METRICS_EXPORTER: none
     ports:
       - "8082:8082"
     depends_on:
@@ -113,6 +126,14 @@ services:
       - notification-service
 
   # ── Monitoring ────────────────────────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"   # UI
+      - "4318:4318"     # OTLP HTTP
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -124,6 +145,27 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention.time=30d"
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    command:
+      - "-config.file=/etc/loki/loki-config.yml"
+
+  promtail:
+    image: grafana/promtail:latest
+    restart: always
+    volumes:
+      - ./loki/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - "-config.file=/etc/promtail/promtail-config.yml"
+    depends_on:
+      - loki
 
   grafana:
     image: grafana/grafana:latest
@@ -137,10 +179,13 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_INSTALL_PLUGINS: grafana-piechart-panel
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: ""
+    depends_on:
+      - loki
 
 volumes:
   postgres_data:
   kafka_data:
   redis_data:
   prometheus_data:
+  loki_data:
   grafana_data:
