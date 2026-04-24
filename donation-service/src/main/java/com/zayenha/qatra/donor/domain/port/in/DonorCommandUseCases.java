@@ -13,6 +13,7 @@ public interface DonorCommandUseCases {
     DonorProfile updateAvailability(Long userId, AvailabilityStatus status);
     DonorProfile updateNotificationPrefs(Long userId, NotificationPreferences prefs);
     void         requestDeletion(Long userId);
+    void         reactivateDonor(Long userId);
     DonorProfile updateRestriction(Long donorId, boolean permanentlyRestricted, String reason);
     DonorProfile updateFlag(Long donorId, boolean flagged);
 

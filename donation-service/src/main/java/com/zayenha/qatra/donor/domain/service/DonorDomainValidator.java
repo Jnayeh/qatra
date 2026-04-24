@@ -10,7 +10,7 @@ import com.zayenha.qatra._shared.exception.ValidationException;
 public class DonorDomainValidator {
 
     public void validateBloodTypeUpdate(DonorProfile profile) {
-        if (profile.isBloodTypeVerified()) {
+        if (profile.getBloodTypeVerified()) {
             throw new ConflictException("Blood type already verified and cannot be changed",
                     DonorErrorCode.BLOOD_TYPE_ALREADY_VERIFIED.name());
         }

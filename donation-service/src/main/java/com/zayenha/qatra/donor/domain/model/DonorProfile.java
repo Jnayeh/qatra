@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -12,26 +13,26 @@ public class DonorProfile {
     private Long id;
     private Long userId;
     private BloodType bloodType;
-    private boolean bloodTypeVerified;
+    private Boolean bloodTypeVerified;
+    private Boolean profileComplete;
+    private DonorStatus status;
     private Double latitude;
     private Double longitude;
     private String city;
-    private String country;
-    private AvailabilityStatus availabilityStatus;
+    private AvailabilityStatus availability;
+    private LocalDate lastDonationDate;
+    private LocalDate eligibleFromDate;
     private NotificationPreferences notificationPreferences;
-    private boolean permanentlyRestricted;
+    private Boolean allowEmergencyNotifications;
+    private Integer consecutiveEmergencyDeclines;
+    private Boolean flaggedForManualReview;
+    private Boolean permanentlyRestricted;
     private String restrictionReason;
-    private boolean flaggedForManualReview;
-    private int consecutiveEmergencyDeclines;
-    private int reliabilityScore;
-    private Instant eligibleFromDate;
-    private boolean profileComplete;
-    private Instant lastAcceptAt;
+    private Double reliabilityScore;
     private int totalDonations;
-    private int estimatedLivesSaved;
-    private DonorStatus status;
     private Instant createdAt;
     private Instant updatedAt;
+    private Instant lastAcceptAt;
 
     public DonorProfile() {}
 
@@ -39,19 +40,42 @@ public class DonorProfile {
         this.userId = userId;
         this.bloodType = BloodType.UNKNOWN;
         this.bloodTypeVerified = false;
-        this.availabilityStatus = AvailabilityStatus.AVAILABLE;
+        this.profileComplete = false;
+        this.status = DonorStatus.ACTIVE;
+        this.availability = AvailabilityStatus.AVAILABLE;
         this.notificationPreferences = new NotificationPreferences(
             NotificationFrequency.IMMEDIATE, null, true, 25
         );
-        this.permanentlyRestricted = false;
-        this.flaggedForManualReview = false;
+        this.allowEmergencyNotifications = true;
         this.consecutiveEmergencyDeclines = 0;
-        this.reliabilityScore = 50;
-        this.profileComplete = false;
+        this.flaggedForManualReview = false;
+        this.permanentlyRestricted = false;
+        this.reliabilityScore = 50.0;
         this.totalDonations = 0;
-        this.estimatedLivesSaved = 0;
-        this.status = DonorStatus.ACTIVE;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
+    }
+
+    public boolean canDonate() {
+        return !permanentlyRestricted
+            && status == DonorStatus.ACTIVE
+            && (eligibleFromDate == null || !Instant.now().isBefore(eligibleFromDate.atStartOfDay(java.time.ZoneOffset.UTC).toInstant()));
+    }
+
+    public void calculateEligibility() {
+        // eligibility logic delegated to service
+    }
+
+    public void updateLocation(Double latitude, Double longitude, String city) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+        if (latitude != null && longitude != null) {
+            this.city = city;
+        }
+    }
+
+    public void resetConsecutiveDeclinesOnAccept() {
+        this.consecutiveEmergencyDeclines = 0;
+        this.lastAcceptAt = Instant.now();
     }
 }

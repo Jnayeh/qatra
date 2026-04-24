@@ -2,16 +2,18 @@ package com.zayenha.qatra.donor.domain.port.in;
 
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 
+import java.time.Instant;
+
 public interface QuestionnaireCommandUseCases {
     HealthQuestionnaire updateHealthQuestionnaire(Long userId, HealthQuestionnaireCommand command);
 
     record HealthQuestionnaireCommand(
-        boolean hasChronicIllness,
+        Boolean hasChronicIllness,
         String medicalConditionsDetails,
-        boolean onMedication,
+        Boolean onMedication,
         String medicationDetails,
-        boolean recentSurgery,
-        boolean recentTravel,
-        boolean recentTattooOrPiercing
+        Instant lastSurgeryAt,
+        Instant lastTravelAt,
+        Instant lastTattooOrPiercingAt
     ) {}
 }

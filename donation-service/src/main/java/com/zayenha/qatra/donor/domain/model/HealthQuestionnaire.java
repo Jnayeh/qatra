@@ -10,13 +10,13 @@ import java.time.Instant;
 public class HealthQuestionnaire {
     private Long id;
     private Long donorId;
-    private boolean hasChronicIllness;
+    private Boolean hasChronicIllness;
+    private Instant lastSurgeryAt;
+    private Instant lastTravelAt;
+    private Instant lastTattooOrPiercingAt;
+    private Boolean onMedication;
     private String medicalConditionsDetails;
-    private boolean onMedication;
     private String medicationDetails;
-    private boolean recentSurgery;
-    private boolean recentTravel;
-    private boolean recentTattooOrPiercing;
     private Instant createdAt;
     private Instant updatedAt;
 
