@@ -1,9 +1,11 @@
 package com.zayenha.qatra.user.application.mapper;
 
-import com.zayenha.qatra.user.api.dto.UserSummary;
 import com.zayenha.qatra.user.domain.model.User;
+import com.zayenha.qatra.user.domain.model.UserStatus;
 
 public class UserDomainMapper {
+
+    public record UserSummary(Long id, String email, String phone, String displayName, UserStatus status) {}
 
     public static UserSummary toSummary(User user) {
         return new UserSummary(

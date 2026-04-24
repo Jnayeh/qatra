@@ -12,50 +12,69 @@ public class User {
     private String phone;
     private String hashedPassword;
     private String displayName;
+    private String firstName;
+    private String familyName;
     private UserStatus status;
     private boolean emailVerified;
-    private Instant deletedAt;
     private Instant createdAt;
     private Instant lastActiveAt;
+    private Instant deletedAt;
     private List<Role> roles;
 
-    public User(String email, String phone, String hashedPassword, String displayName) {
+    public User(String email, String phone, String hashedPassword, String displayName,
+                String firstName, String familyName) {
         this.email = email;
         this.phone = phone;
         this.hashedPassword = hashedPassword;
         this.displayName = displayName;
+        this.firstName = firstName;
+        this.familyName = familyName;
         this.status = UserStatus.ACTIVE;
         this.emailVerified = false;
         this.createdAt = Instant.now();
         this.roles = List.of();
     }
 
+    public User(String email, String phone, String hashedPassword, String displayName) {
+        this(email, phone, hashedPassword, displayName, null, null);
+    }
+
     private User() {}
 
     public static User reconstruct(Long id, String email, String phone,
                                    String hashedPassword, String displayName,
+                                   String firstName, String familyName,
                                    UserStatus status, boolean emailVerified,
-                                   Instant deletedAt, Instant createdAt,
-                                   Instant lastActiveAt, List<Role> roles) {
+                                   Instant createdAt, Instant lastActiveAt,
+                                   Instant deletedAt, List<Role> roles) {
         var u = new User();
         u.id = id;
         u.email = email;
         u.phone = phone;
         u.hashedPassword = hashedPassword;
         u.displayName = displayName;
+        u.firstName = firstName;
+        u.familyName = familyName;
         u.status = status;
         u.emailVerified = emailVerified;
-        u.deletedAt = deletedAt;
         u.createdAt = createdAt;
         u.lastActiveAt = lastActiveAt;
-        u.roles = roles;
+        u.deletedAt = deletedAt;
+        u.roles = roles != null ? roles : List.of();
         return u;
     }
 
-    public void update(String email, String phone, String displayName) {
+    public void update(String email, String phone, String displayName,
+                       String firstName, String familyName) {
         this.email = email;
         this.phone = phone;
         this.displayName = displayName;
+        this.firstName = firstName;
+        this.familyName = familyName;
+    }
+
+    public void update(String email, String phone, String displayName) {
+        update(email, phone, displayName, null, null);
     }
 
     public void updateStatus(UserStatus status) {
@@ -74,5 +93,4 @@ public class User {
 
     public boolean isActive() { return status == UserStatus.ACTIVE; }
     public boolean isDeleted() { return status == UserStatus.DELETED; }
-
 }
