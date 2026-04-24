@@ -21,8 +21,7 @@ public class AuditEventListener {
             event.entityId(),
             event.oldValue(),
             event.newValue(),
-            event.ipAddress(),
-            event.userAgent()
+            event.ipAddress()
         );
     }
 }
