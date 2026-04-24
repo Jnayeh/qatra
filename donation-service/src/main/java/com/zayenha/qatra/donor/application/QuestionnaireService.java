@@ -1,13 +1,13 @@
 package com.zayenha.qatra.donor.application;
 
 import com.zayenha.qatra.donor.domain.exception.DonorErrorCode;
+import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireQueryUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
-import com.zayenha.qatra._shared.event.AuditEvent;
-import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,13 +26,10 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
 
     private final DonorRepositoryPort donorRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuditPublisher auditPublisher;
 
     @Value("${questionnaire.permanent-restriction-keywords:insulin,chemo,immunosuppressant}")
     private String restrictionKeywords;
-
-    private void audit(String action, Long entityId, String oldValue, String newValue) {
-        eventPublisher.publishEvent(new AuditEvent(AuditUtils.currentUserId(), action, "HealthQuestionnaire", entityId, oldValue, newValue, null, null));
-    }
 
     @Override
     @Transactional
@@ -47,9 +45,9 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         questionnaire.setMedicalConditionsDetails(command.medicalConditionsDetails());
         questionnaire.setOnMedication(command.onMedication());
         questionnaire.setMedicationDetails(command.medicationDetails());
-        questionnaire.setRecentSurgery(command.recentSurgery());
-        questionnaire.setRecentTravel(command.recentTravel());
-        questionnaire.setRecentTattooOrPiercing(command.recentTattooOrPiercing());
+        questionnaire.setLastSurgeryAt(command.lastSurgeryAt());
+        questionnaire.setLastTravelAt(command.lastTravelAt());
+        questionnaire.setLastTattooOrPiercingAt(command.lastTattooOrPiercingAt());
         questionnaire.setUpdatedAt(Instant.now());
 
         evaluatePermanentRestriction(profile, command);
@@ -59,7 +57,10 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
 
         donorRepository.save(profile);
         var saved = donorRepository.saveQuestionnaire(questionnaire);
-        audit("HEALTH_QUESTIONNAIRE_UPDATED", saved.getId(), null, "userId=" + userId);
+        auditPublisher.publish("HEALTH_QUESTIONNAIRE_UPDATED", saved.getId(), "HealthQuestionnaire", null,
+            Map.of("userId", userId, "donorId", profile.getId(),
+                   "hasChronicIllness", command.hasChronicIllness(),
+                   "onMedication", command.onMedication()));
         return saved;
     }
 
@@ -75,11 +76,19 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
     }
 
     private void evaluatePermanentRestriction(DonorProfile profile, HealthQuestionnaireCommand command) {
+        boolean restricted = false;
         if (command.hasChronicIllness()) {
             profile.setRestrictionReason("Chronic illness indicated in health questionnaire");
+            restricted = true;
         } else if (command.onMedication() && command.medicationDetails() != null
                 && containsPermanentMedicationKeyword(command.medicationDetails())) {
             profile.setRestrictionReason("Permanent medication: " + command.medicationDetails());
+            restricted = true;
+        }
+        if (restricted) {
+            profile.setPermanentlyRestricted(true);
+            profile.setAvailability(AvailabilityStatus.PERMANENTLY_RESTRICTED);
+            profile.setFlaggedForManualReview(true);
         }
     }
 

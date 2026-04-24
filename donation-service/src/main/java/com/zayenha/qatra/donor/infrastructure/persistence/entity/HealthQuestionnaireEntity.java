@@ -18,8 +18,9 @@ public class HealthQuestionnaireEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private Long donorId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "donor_id", nullable = false, unique = true)
+    private DonorProfileEntity donor;
 
     @Column(nullable = false)
     private boolean hasChronicIllness;
@@ -33,14 +34,9 @@ public class HealthQuestionnaireEntity {
     @Column(columnDefinition = "TEXT")
     private String medicationDetails;
 
-    @Column(nullable = false)
-    private boolean recentSurgery;
-
-    @Column(nullable = false)
-    private boolean recentTravel;
-
-    @Column(nullable = false)
-    private boolean recentTattooOrPiercing;
+    private Instant lastSurgeryAt;
+    private Instant lastTravelAt;
+    private Instant lastTattooOrPiercingAt;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

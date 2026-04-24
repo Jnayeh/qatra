@@ -4,6 +4,7 @@ import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorStatus;
 import com.zayenha.qatra.donor.domain.model.NotificationPreferences;
 import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "donor_profiles")
@@ -24,61 +26,62 @@ public class DonorProfileEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private UserEntity user;
 
     @Enumerated(EnumType.STRING)
     private BloodType bloodType;
 
     @Column(nullable = false)
-    private boolean bloodTypeVerified;
+    private Boolean bloodTypeVerified;
+
+    @Column(nullable = false)
+    private Boolean profileComplete;
+
+    @Enumerated(EnumType.STRING)
+    private DonorStatus status;
 
     private Double latitude;
     private Double longitude;
     private String city;
-    private String country;
 
     @Enumerated(EnumType.STRING)
-    private AvailabilityStatus availabilityStatus;
+    private AvailabilityStatus availability;
+
+    private LocalDate lastDonationDate;
+    private LocalDate eligibleFromDate;
 
     @JdbcTypeCode(SqlTypes.JSON)
     private NotificationPreferences notificationPreferences;
 
     @Column(nullable = false)
-    private boolean permanentlyRestricted;
+    private Boolean allowEmergencyNotifications;
+
+    @Column(nullable = false)
+    private Integer consecutiveEmergencyDeclines;
+
+    @Column(nullable = false)
+    private Boolean flaggedForManualReview;
+
+    @Column(nullable = false)
+    private Boolean permanentlyRestricted;
 
     private String restrictionReason;
 
     @Column(nullable = false)
-    private boolean flaggedForManualReview;
-
-    @Column(nullable = false)
-    private int consecutiveEmergencyDeclines;
-
-    @Column(nullable = false)
-    private int reliabilityScore;
-
-    private Instant eligibleFromDate;
-
-    @Column(nullable = false)
-    private boolean profileComplete;
-
-    private Instant lastAcceptAt;
+    private Double reliabilityScore;
 
     @Column(nullable = false)
     private int totalDonations;
-
-    @Column(nullable = false)
-    private int estimatedLivesSaved;
-
-    @Enumerated(EnumType.STRING)
-    private DonorStatus status;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     @Column(nullable = false)
     private Instant updatedAt;
+
+    private Instant lastAcceptAt;
 
     @PrePersist
     protected void onCreate() {

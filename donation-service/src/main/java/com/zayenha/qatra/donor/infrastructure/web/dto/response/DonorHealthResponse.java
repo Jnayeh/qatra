@@ -5,13 +5,13 @@ import java.time.Instant;
 public record DonorHealthResponse(
         Long id,
         Long donorId,
-        boolean hasChronicIllness,
+        Boolean hasChronicIllness,
         String medicalConditionsDetails,
-        boolean onMedication,
+        Boolean onMedication,
         String medicationDetails,
-        boolean recentSurgery,
-        boolean recentTravel,
-        boolean recentTattooOrPiercing,
+        Instant lastSurgeryAt,
+        Instant lastTravelAt,
+        Instant lastTattooOrPiercingAt,
         Instant createdAt,
         Instant updatedAt
 ) {}

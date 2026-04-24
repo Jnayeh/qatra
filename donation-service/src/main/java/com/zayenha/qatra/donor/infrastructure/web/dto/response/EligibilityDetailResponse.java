@@ -1,10 +1,10 @@
 package com.zayenha.qatra.donor.infrastructure.web.dto.response;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 public record EligibilityDetailResponse(
     boolean eligible,
-    Instant nextEligibleDate,
+    LocalDate eligibleFromDate,
     boolean permanentlyRestricted,
-    String restrictionReason
+    String reason
 ) {}

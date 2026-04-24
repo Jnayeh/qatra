@@ -11,8 +11,7 @@ import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.donor.domain.service.DonorDomainValidator;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.BloodType;
-import com.zayenha.qatra._shared.event.AuditEvent;
-import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -28,10 +28,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
     private final DonorRepositoryPort donorRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final CacheService cacheService;
-
-    private void audit(String action, Long entityId, String oldValue, String newValue) {
-        eventPublisher.publishEvent(new AuditEvent(AuditUtils.currentUserId(), action, "DonorProfile", entityId, oldValue, newValue, null, null));
-    }
+    private final AuditPublisher auditPublisher;
 
     private DonorDomainValidator validator() {
         return new DonorDomainValidator();
@@ -48,7 +45,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
         cacheService.evictByPattern("impactResults:*");
-        audit("DONOR_PROFILE_UPDATED", saved.getId(), null, "userId=" + userId);
+        auditPublisher.publish("DONOR_PROFILE_UPDATED", saved.getId(), "DonorProfile", null, Map.of("userId", userId));
         return saved;
     }
 
@@ -81,7 +78,9 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        audit("DONOR_BLOOD_TYPE_ADMIN_UPDATED", saved.getId(), "bloodType=" + oldBloodType, "bloodType=" + bloodType);
+        auditPublisher.publish("DONOR_BLOOD_TYPE_ADMIN_UPDATED", saved.getId(), "DonorProfile",
+            Map.of("bloodType", oldBloodType != null ? oldBloodType.name() : null),
+            Map.of("bloodType", bloodType.name(), "verified", true));
         return saved;
     }
 
@@ -96,14 +95,15 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setLatitude(command.latitude());
         profile.setLongitude(command.longitude());
         profile.setCity(command.city());
-        profile.setCountry(command.country());
         profile.setUpdatedAt(Instant.now());
         var hasQuestionnaire = donorRepository.donorHasQuestionnaire(profile.getId());
         profile.setProfileComplete(command.latitude() != null && command.longitude() != null && hasQuestionnaire);
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
         cacheService.evictByPattern("impactResults:*");
-        audit("DONOR_LOCATION_UPDATED", saved.getId(), "lat=" + oldLat + " lon=" + oldLon, "lat=" + command.latitude() + " lon=" + command.longitude());
+        auditPublisher.publish("DONOR_LOCATION_UPDATED", saved.getId(), "DonorProfile",
+            Map.of("latitude", oldLat, "longitude", oldLon),
+            Map.of("latitude", command.latitude(), "longitude", command.longitude(), "city", command.city()));
         return saved;
     }
 
@@ -113,12 +113,14 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         var profile = donorRepository.findByUserId(userId).orElseThrow(()-> new NotFoundException(
                 "Donor not found: " + userId,
                 DonorErrorCode.DONOR_NOT_FOUND.name()));
-        var oldStatus = profile.getAvailabilityStatus();
-        profile.setAvailabilityStatus(status);
+        var oldStatus = profile.getAvailability();
+        profile.setAvailability(status);
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        audit("DONOR_AVAILABILITY_UPDATED", saved.getId(), "status=" + oldStatus, "status=" + status);
+        auditPublisher.publish("DONOR_AVAILABILITY_UPDATED", saved.getId(), "DonorProfile",
+            Map.of("availability", oldStatus != null ? oldStatus.name() : null),
+            Map.of("availability", status.name()));
         return saved;
     }
 
@@ -132,7 +134,9 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        audit("DONOR_NOTIFICATION_PREFS_UPDATED", saved.getId(), null, "userId=" + userId);
+        auditPublisher.publish("DONOR_NOTIFICATION_PREFS_UPDATED", saved.getId(), "DonorProfile", null,
+            Map.of("userId", userId, "frequency",
+                   prefs != null && prefs.frequency() != null ? prefs.frequency().name() : null));
         return saved;
     }
 
@@ -143,12 +147,28 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
                 .orElseThrow(() -> new NotFoundException(
                 "Donor not found by userID: " + userId,
                 DonorErrorCode.DONOR_NOT_FOUND.name()));
-        profile.setStatus(DonorStatus.INACTIVE);
+        profile.setStatus(DonorStatus.PENDING_DELETION);
         profile.setUpdatedAt(Instant.now());
         donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
         cacheService.evictByPattern("impactResults:*");
-        audit("DONOR_DELETION_REQUESTED", profile.getId(), null, "userId=" + userId);
+        auditPublisher.publish("DONOR_DELETION_REQUESTED", profile.getId(), "DonorProfile", null, Map.of("userId", userId));
+    }
+
+    @Override
+    @Transactional
+    public void reactivateDonor(Long userId) {
+        var profile = donorRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(
+                "Donor not found by userID: " + userId,
+                DonorErrorCode.DONOR_NOT_FOUND.name()));
+        if (profile.getStatus() == DonorStatus.PENDING_DELETION) {
+            profile.setStatus(DonorStatus.ACTIVE);
+            profile.setUpdatedAt(Instant.now());
+            donorRepository.save(profile);
+            cacheService.evictByPattern("donorProfiles:*");
+            auditPublisher.publish("DONOR_REACTIVATED", profile.getId(), "DonorProfile", null, Map.of("userId", userId, "previousStatus", "PENDING_DELETION"));
+        }
     }
 
     @Override
@@ -158,13 +178,15 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
                 .orElseThrow(() -> new NotFoundException(
                         "Donor not found: " + donorId,
                         DonorErrorCode.DONOR_NOT_FOUND.name()));
-        var oldRestricted = profile.isPermanentlyRestricted();
+        var oldRestricted = profile.getPermanentlyRestricted();
         profile.setPermanentlyRestricted(permanentlyRestricted);
         profile.setRestrictionReason(reason);
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        audit("DONOR_RESTRICTION_UPDATED", saved.getId(), "restricted=" + oldRestricted, "restricted=" + permanentlyRestricted);
+        auditPublisher.publish("DONOR_RESTRICTION_UPDATED", saved.getId(), "DonorProfile",
+            Map.of("restricted", oldRestricted),
+            Map.of("restricted", permanentlyRestricted, "reason", reason));
         return saved;
     }
 
@@ -175,12 +197,14 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
                 .orElseThrow(() -> new NotFoundException(
                         "Donor not found: " + donorId,
                         DonorErrorCode.DONOR_NOT_FOUND.name()));
-        var oldFlagged = profile.isFlaggedForManualReview();
+        var oldFlagged = profile.getFlaggedForManualReview();
         profile.setFlaggedForManualReview(flagged);
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        audit("DONOR_FLAG_UPDATED", saved.getId(), "flagged=" + oldFlagged, "flagged=" + flagged);
+        auditPublisher.publish("DONOR_FLAG_UPDATED", saved.getId(), "DonorProfile",
+            Map.of("flagged", oldFlagged),
+            Map.of("flagged", flagged));
         return saved;
     }
 
@@ -223,8 +247,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         if (profile.getTotalDonations() >= 1) milestones.add("First donation completed");
         if (profile.getTotalDonations() >= 5) milestones.add("5 donations milestone");
         if (profile.getTotalDonations() >= 10) milestones.add("10 donations milestone");
-        if (profile.getEstimatedLivesSaved() >= 10) milestones.add("Saved 10+ lives");
-        var result = new ImpactResult(profile.getTotalDonations(), profile.getEstimatedLivesSaved(), milestones);
+        var result = new ImpactResult(profile.getTotalDonations(), 0, milestones);
         cacheService.put(key, result);
         return result;
     }

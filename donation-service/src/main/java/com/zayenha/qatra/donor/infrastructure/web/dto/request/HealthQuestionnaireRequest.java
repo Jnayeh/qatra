@@ -2,12 +2,14 @@ package com.zayenha.qatra.donor.infrastructure.web.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 
+import java.time.Instant;
+
 public record HealthQuestionnaireRequest(
-    @NotNull boolean hasChronicIllness,
+    @NotNull Boolean hasChronicIllness,
     String medicalConditionsDetails,
-    @NotNull boolean onMedication,
+    @NotNull Boolean onMedication,
     String medicationDetails,
-    @NotNull boolean recentSurgery,
-    @NotNull boolean recentTravel,
-    @NotNull boolean recentTattooOrPiercing
+    Instant lastSurgeryAt,
+    Instant lastTravelAt,
+    Instant lastTattooOrPiercingAt
 ) {}

@@ -5,26 +5,25 @@ import com.zayenha.qatra.donor.domain.model.NotificationPreferences;
 import com.zayenha.qatra._shared.domain.BloodType;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 public record DonorDetailResponse(
     Long id,
     Long userId,
     BloodType bloodType,
-    boolean bloodTypeVerified,
+    Boolean bloodTypeVerified,
     Double latitude,
     Double longitude,
     String city,
-    String country,
-    AvailabilityStatus availabilityStatus,
+    AvailabilityStatus availability,
     NotificationPreferences notificationPreferences,
-    boolean permanentlyRestricted,
+    Boolean permanentlyRestricted,
     String restrictionReason,
-    boolean flaggedForManualReview,
-    int reliabilityScore,
-    Instant eligibleFromDate,
-    boolean profileComplete,
+    Boolean flaggedForManualReview,
+    Double reliabilityScore,
+    LocalDate eligibleFromDate,
+    Boolean profileComplete,
     int totalDonations,
-    int estimatedLivesSaved,
     DonorHealthResponse healthQuestionnaire,
     int appointmentCount,
     Instant createdAt,
