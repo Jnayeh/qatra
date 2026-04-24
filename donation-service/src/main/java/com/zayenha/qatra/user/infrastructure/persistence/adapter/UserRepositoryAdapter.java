@@ -127,18 +127,19 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     private User toDomain(UserEntity e, boolean withRoles) {
-        List<Role> roles = new ArrayList<>();
-        if (withRoles){
-            roles.addAll(e.getRoles().stream()
-                    .map(UserRoleEntity::getRole).toList());
+        List<Role> roles = List.of();
+        if (withRoles && e.getRoles() != null) {
+            roles = e.getRoles().stream()
+                    .map(UserRoleEntity::getRole).toList();
         }
 
         return User.reconstruct(
             e.getId(), e.getEmail(), e.getPhone(),
             e.getHashedPassword(), e.getDisplayName(),
+            e.getFirstName(), e.getFamilyName(),
             e.getStatus(), e.isEmailVerified(),
-            e.getDeletedAt(), e.getCreatedAt(), e.getLastActiveAt(),
-            roles
+            e.getCreatedAt(), e.getLastActiveAt(),
+            e.getDeletedAt(), roles
         );
     }
 

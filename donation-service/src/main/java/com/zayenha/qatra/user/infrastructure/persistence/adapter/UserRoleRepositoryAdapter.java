@@ -19,12 +19,12 @@ public class UserRoleRepositoryAdapter implements UserRoleRepositoryPort {
 
     @Override
     public List<UserRole> findByUserId(Long userId) {
-        return jpaRepository.findByUserId(userId).stream().map(e -> toDomain(e, userId)).toList();
+        return jpaRepository.findByUser_Id(userId).stream().map(e -> toDomain(e, userId)).toList();
     }
 
     @Override
     public boolean existsByUserIdAndRole(Long userId, Role role) {
-        return jpaRepository.existsByUserIdAndRole(userId, role);
+        return jpaRepository.existsByUser_IdAndRole(userId, role);
     }
 
     @Override
@@ -36,12 +36,12 @@ public class UserRoleRepositoryAdapter implements UserRoleRepositoryPort {
 
     @Override
     public void deleteByUserId(Long userId) {
-        jpaRepository.deleteByUserId(userId);
+        jpaRepository.deleteByUser_Id(userId);
     }
 
     @Override
     public void deleteByUserIdAndRole(Long userId, Role role) {
-        jpaRepository.deleteByUserIdAndRole(userId, role);
+        jpaRepository.deleteByUser_IdAndRole(userId, role);
     }
 
     private UserRole toDomain(UserRoleEntity e, Long userId) {

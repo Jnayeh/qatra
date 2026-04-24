@@ -9,7 +9,7 @@ import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import com.zayenha.qatra.user.infrastructure.web.dto.request.*;
 import com.zayenha.qatra.user.infrastructure.web.dto.response.UserDetailResponse;
-import com.zayenha.qatra.user.infrastructure.web.mapper.UserMapper;
+import com.zayenha.qatra.user.infrastructure.mapper.UserMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,6 +27,7 @@ public class UserController {
 
     private final UserCommandUseCases commandUseCases;
     private final UserQueryUseCases queryUseCases;
+    private final UserMapper mapper;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserDetailResponse>>> listAll(
@@ -39,7 +40,7 @@ public class UserController {
             PageHelper.toPageIndex(page), size);
         var result = queryUseCases.findAll(criteria);
         var users = result.content().stream()
-                .map(u -> UserMapper.toDetail(u, u.getRoles()))
+                .map(u -> mapper.toDetail(u, u.getRoles()))
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(users, PageHelper.fromDomain(result)));
     }
@@ -49,7 +50,7 @@ public class UserController {
         var user = queryUseCases.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found: " + id, UserErrorCode.USER_NOT_FOUND.name()));
         return ResponseEntity.ok(ApiResponse.success(
-            UserMapper.toDetail(user, user.getRoles())));
+            mapper.toDetail(user, user.getRoles())));
     }
 
     @PostMapping
@@ -59,7 +60,7 @@ public class UserController {
                 request.email(), request.phone(), request.password(), request.displayName());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(
-                    UserMapper.toDetail(user, user.getRoles())));
+                    mapper.toDetail(user, user.getRoles())));
     }
 
     @PutMapping("/{id}")
@@ -68,7 +69,7 @@ public class UserController {
         var user = commandUseCases.update(
                 id, request.email(), request.phone(), request.displayName());
         return ResponseEntity.ok(ApiResponse.success(
-            UserMapper.toDetail(user, user.getRoles())));
+            mapper.toDetail(user, user.getRoles())));
     }
 
     @PatchMapping("/{id}/status")

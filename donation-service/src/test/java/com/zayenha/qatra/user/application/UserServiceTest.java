@@ -12,8 +12,8 @@ import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserRole;
 import com.zayenha.qatra.user.domain.model.UserStatus;
-import com.zayenha.qatra.user.domain.port.out.PasswordEncoderPort;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ class UserServiceTest {
     @Mock
     private UserRoleRepositoryPort userRoleRepository;
     @Mock
-    private PasswordEncoderPort passwordEncoder;
+    private PasswordEncoder passwordEncoder;
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Mock
