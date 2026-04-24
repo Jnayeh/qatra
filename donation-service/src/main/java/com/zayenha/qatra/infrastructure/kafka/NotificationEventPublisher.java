@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
@@ -51,9 +52,9 @@ public class NotificationEventPublisher {
         eventPublisher.publish(eligibilityRestoredTopic, "elig-" + donorId, event);
     }
 
-    public void publishNotificationDispatch(Long userId, String type, String title, String body, String data) {
+    public void publishNotificationDispatch(Long userId, String type, String title, String body, Map<String, Object> data) {
         var event = new NotificationDispatchEvent(
-            userId, type, title, body, data,
+            userId, null, type, title, body, data,
             UUID.randomUUID().toString(), Instant.now());
         eventPublisher.publish(notificationDispatchTopic, "notif-" + userId, event);
     }
