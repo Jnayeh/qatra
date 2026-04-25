@@ -18,4 +18,5 @@ public interface AppointmentRepositoryPort {
     boolean existsByDonorIdAndStatusIn(Long donorId, List<com.zayenha.qatra.appointment.domain.model.AppointmentStatus> statuses);
     HealthScreening saveScreening(HealthScreening screening);
     Optional<HealthScreening> findScreeningByAppointmentId(Long appointmentId);
+    List<Appointment> findByEmergencyId(Long emergencyId);
 }
