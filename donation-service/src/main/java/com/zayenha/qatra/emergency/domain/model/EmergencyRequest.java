@@ -10,36 +10,56 @@ import java.time.Instant;
 @Setter
 public class EmergencyRequest {
     private Long id;
-    private String patientName;
+    private Long centerId;
+    private Long createdByStaffId;
     private BloodType bloodType;
     private Integer unitsNeeded;
     private EmergencyUrgency urgency;
-    private String hospital;
-    private String hospitalAddress;
-    private Double latitude;
-    private Double longitude;
     private String contactPhone;
     private EmergencyStatus status;
+    private Integer matchRadius;
+    private Integer escalationLevel;
+    private Instant expiresAt;
     private Instant createdAt;
     private Instant updatedAt;
-    private Instant expiresAt;
+    private Instant resolvedAt;
+    private Long resolvedByUserId;
 
     public EmergencyRequest() {}
 
-    public EmergencyRequest(String patientName, BloodType bloodType, Integer unitsNeeded,
-                            EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
-                            String contactPhone) {
-        this.patientName = patientName;
+    public EmergencyRequest(Long centerId, Long createdByStaffId, BloodType bloodType,
+                            Integer unitsNeeded, EmergencyUrgency urgency,
+                            String contactPhone, Integer matchRadius, Instant expiresAt) {
+        this.centerId = centerId;
+        this.createdByStaffId = createdByStaffId;
         this.bloodType = bloodType;
         this.unitsNeeded = unitsNeeded;
         this.urgency = urgency;
-        this.hospital = hospital;
-        this.latitude = latitude;
-        this.longitude = longitude;
         this.contactPhone = contactPhone;
+        this.matchRadius = matchRadius;
+        this.expiresAt = expiresAt;
         this.status = EmergencyStatus.OPEN;
+        this.escalationLevel = 0;
+        this.createdAt = Instant.now();
     }
 
-    public void cancel() { this.status = EmergencyStatus.CANCELLED; }
-    public void fulfill() { this.status = EmergencyStatus.FULFILLED; }
+    public void matchDonors() {}
+
+    public void updateStatus(EmergencyStatus status) {
+        this.status = status;
+    }
+
+    public void resolve(Long resolvedByUserId) {
+        this.status = EmergencyStatus.FULFILLED;
+        this.resolvedAt = Instant.now();
+        this.resolvedByUserId = resolvedByUserId;
+    }
+
+    public void cancel() {
+        this.status = EmergencyStatus.CANCELLED;
+    }
+
+    public void fulfill() {
+        this.status = EmergencyStatus.FULFILLED;
+    }
 }

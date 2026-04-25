@@ -6,12 +6,10 @@ import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.EmergencyUrgency;
 
 public interface EmergencyCommandUseCases {
-    EmergencyRequest create(String patientName, BloodType bloodType, Integer unitsNeeded,
-                            EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
-                            String contactPhone);
-    EmergencyRequest update(Long id, String patientName, BloodType bloodType, Integer unitsNeeded,
-                            EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
-                            String contactPhone);
+    EmergencyRequest create(Long centerId, Long createdByStaffId, BloodType bloodType, Integer unitsNeeded,
+                            EmergencyUrgency urgency, Integer matchRadius, String contactPhone);
+    EmergencyRequest update(Long id, Long centerId, BloodType bloodType, Integer unitsNeeded,
+                            EmergencyUrgency urgency, Integer matchRadius, String contactPhone);
     EmergencyRequest cancel(Long id);
     DonorResponse respond(Long emergencyId, Long donorId);
     DonorResponse acceptResponse(Long responseId, Long slotId);

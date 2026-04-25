@@ -13,15 +13,14 @@ public class DonorResponse {
     private Long donorId;
     private Long slotId;
     private ResponseStatus status;
+    private String reason;
     private Instant respondedAt;
-    private Instant createdAt;
 
     public DonorResponse() {}
 
     public DonorResponse(Long emergencyId, Long donorId) {
         this.emergencyId = emergencyId;
         this.donorId = donorId;
-        this.status = ResponseStatus.PENDING;
     }
 
     public void accept(Long slotId) {
@@ -30,8 +29,9 @@ public class DonorResponse {
         this.respondedAt = Instant.now();
     }
 
-    public void decline() {
+    public void decline(String reason) {
         this.status = ResponseStatus.DECLINED;
+        this.reason = reason;
         this.respondedAt = Instant.now();
     }
 }
