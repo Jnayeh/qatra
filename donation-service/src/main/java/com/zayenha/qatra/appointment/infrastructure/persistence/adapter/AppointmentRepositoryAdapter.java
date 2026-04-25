@@ -5,7 +5,6 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.zayenha.qatra.appointment.infrastructure.persistence.entity.AppointmentEntity;
-import com.zayenha.qatra.appointment.infrastructure.persistence.entity.HealthScreeningEntity;
 import com.zayenha.qatra.appointment.infrastructure.persistence.repository.AppointmentJpaRepository;
 import com.zayenha.qatra.appointment.infrastructure.persistence.repository.HealthScreeningJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,37 +21,52 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
 
     private final AppointmentJpaRepository jpaRepository;
     private final HealthScreeningJpaRepository screeningJpaRepository;
+    private final AppointmentMapper mapper;
 
     @Override
     public Appointment save(Appointment appointment) {
-        var entity = toEntity(appointment);
-        if (entity.getId() != null) {
-            var existing = jpaRepository.findById(entity.getId()).orElseThrow();
-            existing.setStatus(entity.getStatus());
-            existing.setCheckInTime(entity.getCheckInTime());
-            existing.setCompletedAt(entity.getCompletedAt());
-            existing.setOutcome(entity.getOutcome());
-            existing.setNotes(entity.getNotes());
-            existing.setUpdatedAt(entity.getUpdatedAt());
-            return toDomain(jpaRepository.save(existing));
+        if (appointment.getId() != null) {
+            var existing = jpaRepository.findById(appointment.getId()).orElseThrow();
+            merge(existing, appointment);
+            return mapper.toDomain(jpaRepository.save(existing));
         }
-        return toDomain(jpaRepository.save(entity));
+        return mapper.toDomain(jpaRepository.save(mapper.toEntity(appointment)));
+    }
+
+    private void merge(AppointmentEntity existing, Appointment source) {
+        var updated = mapper.toEntity(source);
+        existing.setStatus(updated.getStatus());
+        existing.setCheckedInAt(updated.getCheckedInAt());
+        existing.setStartedAt(updated.getStartedAt());
+        existing.setCompletedAt(updated.getCompletedAt());
+        existing.setCancelledAt(updated.getCancelledAt());
+        existing.setCancellationReason(updated.getCancellationReason());
+        existing.setOutcome(updated.getOutcome());
+        existing.setNotes(updated.getNotes());
+        existing.setMlCollected(updated.getMlCollected());
+        existing.setCompletedByStaff(updated.getCompletedByStaff());
+        existing.setUpdatedAt(updated.getUpdatedAt());
     }
 
     @Override
     public Optional<Appointment> findById(Long id) {
-        return jpaRepository.findById(id).map(this::toDomain);
+        return jpaRepository.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public List<Appointment> findByDonorId(Long donorId) {
-        return jpaRepository.findByDonorIdOrderByCreatedAtDesc(donorId).stream().map(this::toDomain).toList();
+        return jpaRepository.findByDonor_IdOrderByCreatedAtDesc(donorId).stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public List<Appointment> findByCenterIdAndDate(Long centerId, LocalDate date) {
-        return jpaRepository.findByCenterIdAndAppointmentDateOrderByStartTime(centerId, date)
-                .stream().map(this::toDomain).toList();
+        return jpaRepository.findByCenter_IdOrderByCreatedAtDesc(centerId)
+                .stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Appointment> findByEmergencyId(Long emergencyId) {
+        return jpaRepository.findByEmergency_Id(emergencyId).stream().map(mapper::toDomain).toList();
     }
 
     @Override
@@ -60,7 +74,7 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
         var pageable = PageRequest.of(criteria.page(), criteria.size());
         var page = jpaRepository.findAllByOrderByCreatedAtDesc(pageable);
         return new PageResult<>(
-            page.getContent().stream().map(this::toDomain).toList(),
+            page.getContent().stream().map(mapper::toDomain).toList(),
             page.getNumber(), page.getSize(),
             page.getTotalElements(), page.getTotalPages()
         );
@@ -68,80 +82,17 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
 
     @Override
     public boolean existsByDonorIdAndStatusIn(Long donorId, List<AppointmentStatus> statuses) {
-        return jpaRepository.existsByDonorIdAndStatusIn(donorId, statuses);
+        return jpaRepository.existsByDonor_IdAndStatusIn(donorId, statuses);
     }
 
     @Override
     public HealthScreening saveScreening(HealthScreening screening) {
-        var entity = toScreeningEntity(screening);
-        return toScreeningDomain(screeningJpaRepository.save(entity));
+        var entity = mapper.toScreeningEntity(screening);
+        return mapper.toScreeningDomain(screeningJpaRepository.save(entity));
     }
 
     @Override
     public Optional<HealthScreening> findScreeningByAppointmentId(Long appointmentId) {
-        return screeningJpaRepository.findByAppointmentId(appointmentId).map(this::toScreeningDomain);
-    }
-
-    private AppointmentEntity toEntity(Appointment domain) {
-        var entity = new AppointmentEntity();
-        entity.setId(domain.getId());
-        entity.setDonorId(domain.getDonorId());
-        entity.setSlotId(domain.getSlotId());
-        entity.setCenterId(domain.getCenterId());
-        entity.setStatus(domain.getStatus());
-        entity.setAppointmentDate(domain.getAppointmentDate());
-        entity.setStartTime(domain.getStartTime());
-        entity.setEndTime(domain.getEndTime());
-        entity.setCheckInTime(domain.getCheckInTime());
-        entity.setCompletedAt(domain.getCompletedAt());
-        entity.setOutcome(domain.getOutcome());
-        entity.setNotes(domain.getNotes());
-        return entity;
-    }
-
-    private Appointment toDomain(AppointmentEntity entity) {
-        var domain = new Appointment();
-        domain.setId(entity.getId());
-        domain.setDonorId(entity.getDonorId());
-        domain.setSlotId(entity.getSlotId());
-        domain.setCenterId(entity.getCenterId());
-        domain.setStatus(entity.getStatus());
-        domain.setAppointmentDate(entity.getAppointmentDate());
-        domain.setStartTime(entity.getStartTime());
-        domain.setEndTime(entity.getEndTime());
-        domain.setCheckInTime(entity.getCheckInTime());
-        domain.setCompletedAt(entity.getCompletedAt());
-        domain.setOutcome(entity.getOutcome());
-        domain.setNotes(entity.getNotes());
-        domain.setCreatedAt(entity.getCreatedAt());
-        domain.setUpdatedAt(entity.getUpdatedAt());
-        return domain;
-    }
-
-    private HealthScreeningEntity toScreeningEntity(HealthScreening domain) {
-        var entity = new HealthScreeningEntity();
-        entity.setId(domain.getId());
-        entity.setAppointmentId(domain.getAppointmentId());
-        entity.setWeight(domain.getWeight());
-        entity.setBloodPressure(domain.getBloodPressure());
-        entity.setHemoglobin(domain.getHemoglobin());
-        entity.setTemperature(domain.getTemperature());
-        entity.setEligible(domain.getEligible());
-        entity.setNotes(domain.getNotes());
-        return entity;
-    }
-
-    private HealthScreening toScreeningDomain(HealthScreeningEntity entity) {
-        var domain = new HealthScreening();
-        domain.setId(entity.getId());
-        domain.setAppointmentId(entity.getAppointmentId());
-        domain.setWeight(entity.getWeight());
-        domain.setBloodPressure(entity.getBloodPressure());
-        domain.setHemoglobin(entity.getHemoglobin());
-        domain.setTemperature(entity.getTemperature());
-        domain.setEligible(entity.getEligible());
-        domain.setNotes(entity.getNotes());
-        domain.setCreatedAt(entity.getCreatedAt());
-        return domain;
+        return screeningJpaRepository.findByAppointment_Id(appointmentId).map(mapper::toScreeningDomain);
     }
 }

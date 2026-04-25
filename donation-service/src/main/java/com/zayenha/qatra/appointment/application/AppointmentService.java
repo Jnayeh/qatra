@@ -3,8 +3,7 @@ package com.zayenha.qatra.appointment.application;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
-import com.zayenha.qatra._shared.event.AuditEvent;
-import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra.infrastructure.kafka.NotificationEventPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
@@ -14,6 +13,8 @@ import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentQueryUseCases;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
+import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
+import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -29,13 +31,12 @@ import java.util.Optional;
 public class AppointmentService implements AppointmentCommandUseCases, AppointmentQueryUseCases {
 
     private final AppointmentRepositoryPort repository;
+    private final DonorRepositoryPort donorRepository;
+    private final SlotRepositoryPort slotRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final NotificationEventPublisher notificationEventPublisher;
     private final CacheService cacheService;
-
-    private void audit(String action, Long entityId, String oldValue, String newValue) {
-        eventPublisher.publishEvent(new AuditEvent(AuditUtils.currentUserId(), action, "Appointment", entityId, oldValue, newValue, null, null));
-    }
+    private final AuditPublisher auditPublisher;
 
     @Override
     @Transactional
@@ -47,13 +48,10 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         var appointment = new Appointment(donorId, slotId, null, null, null, null);
         var saved = repository.save(appointment);
         cacheService.evictByPattern("appointments:*");
-        audit("APPOINTMENT_BOOKED", saved.getId(), null, "donorId=" + donorId + " slotId=" + slotId);
-        // ponytail: appointment reminder should be scheduled via a cron job closer to the appointment time;
-        // slotTime is formatted from available fields — slot look-up from center module would provide full info
-        var slotTime = saved.getAppointmentDate() != null
-            ? saved.getAppointmentDate().toString() + (saved.getStartTime() != null ? "T" + saved.getStartTime() : "")
-            : null;
-        notificationEventPublisher.publishAppointmentReminder(saved.getId(), donorId, slotTime);
+        auditPublisher.publish("APPOINTMENT_BOOKED", saved.getId(), "Appointment", null,
+            Map.of("donorId", donorId, "slotId", slotId, "appointmentType",
+                   saved.getAppointmentType() != null ? saved.getAppointmentType().name() : null));
+        notificationEventPublisher.publishAppointmentReminder(saved.getId(), donorId, null);
         return saved;
     }
 
@@ -69,7 +67,9 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         appointment.checkIn();
         var saved = repository.save(appointment);
         cacheService.evictByPattern("appointments:*");
-        audit("APPOINTMENT_CHECKED_IN", saved.getId(), "status=" + oldStatus, "");
+        auditPublisher.publish("APPOINTMENT_CHECKED_IN", saved.getId(), "Appointment",
+            Map.of("status", oldStatus.name()),
+            Map.of("status", AppointmentStatus.CHECKED_IN.name(), "donorId", saved.getDonorId()));
         return saved;
     }
 
@@ -85,7 +85,9 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         appointment.startScreening();
         var saved = repository.save(appointment);
         cacheService.evictByPattern("appointments:*");
-        audit("APPOINTMENT_SCREENING_STARTED", saved.getId(), "status=" + oldStatus, "");
+        auditPublisher.publish("APPOINTMENT_SCREENING_STARTED", saved.getId(), "Appointment",
+            Map.of("status", oldStatus.name()),
+            Map.of("status", AppointmentStatus.IN_SCREENING.name(), "donorId", saved.getDonorId()));
         return saved;
     }
 
@@ -101,7 +103,25 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         appointment.complete(outcome, notes);
         var saved = repository.save(appointment);
         cacheService.evictByPattern("appointments:*");
-        audit("APPOINTMENT_COMPLETED", saved.getId(), "status=" + oldStatus, "outcome=" + outcome);
+
+        // Update donor profile stats
+        donorRepository.findByUserId(saved.getDonorId()).ifPresent(profile -> {
+            if (outcome == DonationOutcome.COMPLETED) {
+                profile.setTotalDonations(profile.getTotalDonations() + 1);
+                profile.setLastDonationDate(LocalDate.now());
+                profile.setEligibleFromDate(LocalDate.now().plusDays(56));
+                profile.setReliabilityScore(Math.min(100.0, (profile.getReliabilityScore() != null ? profile.getReliabilityScore() : 50.0) + 2.0));
+                profile.resetConsecutiveDeclinesOnAccept();
+            }
+            profile.setUpdatedAt(java.time.Instant.now());
+            donorRepository.save(profile);
+            cacheService.evictByPattern("donorProfiles:*");
+        });
+
+        auditPublisher.publish("APPOINTMENT_COMPLETED", saved.getId(), "Appointment",
+            Map.of("status", oldStatus.name()),
+            Map.of("status", AppointmentStatus.COMPLETED.name(), "outcome", outcome.name(),
+                   "donorId", saved.getDonorId(), "mlCollected", saved.getMlCollected()));
         return saved;
     }
 
@@ -117,7 +137,21 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         appointment.cancel();
         var saved = repository.save(appointment);
         cacheService.evictByPattern("appointments:*");
-        audit("APPOINTMENT_CANCELLED", saved.getId(), "status=" + oldStatus, "");
+
+        // Release slot capacity
+        if (saved.getSlotId() != null) {
+            slotRepository.findById(saved.getSlotId()).ifPresent(slot -> {
+                slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
+                if (saved.getAppointmentType() == AppointmentType.REGULAR) {
+                    slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
+                }
+                slotRepository.update(slot);
+            });
+        }
+
+        auditPublisher.publish("APPOINTMENT_CANCELLED", saved.getId(), "Appointment",
+            Map.of("status", oldStatus.name()),
+            Map.of("status", AppointmentStatus.CANCELLED.name(), "donorId", saved.getDonorId()));
         return saved;
     }
 
@@ -135,7 +169,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
     @Transactional
     public HealthScreening saveScreening(Long appointmentId, double weight, String bloodPressure,
                                           double hemoglobin, double temperature, boolean eligible, String notes) {
-        var screening = new HealthScreening(appointmentId);
+        var screening = new HealthScreening(appointmentId, null);
         screening.setWeight(weight);
         screening.setBloodPressure(bloodPressure);
         screening.setHemoglobin(hemoglobin);
@@ -144,11 +178,28 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         screening.setNotes(notes);
         var saved = repository.saveScreening(screening);
         cacheService.evictByPattern("screenings:*");
-        audit("SCREENING_SAVED", saved.getId(), null, "appointmentId=" + appointmentId + " eligible=" + eligible);
-        // ponytail: eligibility.restored should be triggered by a scheduled job scanning for expired cooldowns;
-        // this is a best-effort nudge when a health screening confirms eligibility
-        if (eligible) {
-            var appointment = findOrThrow(appointmentId);
+
+        var appointment = findOrThrow(appointmentId);
+        auditPublisher.publish("SCREENING_SAVED", saved.getId(), "Appointment", null,
+            Map.of("appointmentId", appointmentId, "eligible", eligible, "donorId",
+                   appointment.getDonorId()));
+
+        if (!eligible) {
+            // Auto-cancel appointment and release slot when screening fails
+            appointment.cancel("Failed health screening");
+            repository.save(appointment);
+            if (appointment.getSlotId() != null) {
+                slotRepository.findById(appointment.getSlotId()).ifPresent(slot -> {
+                    slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
+                    if (appointment.getAppointmentType() == AppointmentType.REGULAR) {
+                        slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
+                    }
+                    slotRepository.update(slot);
+                });
+            }
+            cacheService.evictByPattern("appointments:*");
+            notificationEventPublisher.publishEligibilityRestored(appointment.getDonorId(), "deferred");
+        } else {
             notificationEventPublisher.publishEligibilityRestored(appointment.getDonorId(), "now");
         }
         return saved;

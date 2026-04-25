@@ -5,11 +5,13 @@ import java.time.Instant;
 public record HealthScreeningResponse(
     Long id,
     Long appointmentId,
+    Long donorId,
+    Long screenedByStaffId,
     Double weight,
     String bloodPressure,
     Double hemoglobin,
     Double temperature,
     Boolean eligible,
     String notes,
-    Instant createdAt
+    Instant screenedAt
 ) {}

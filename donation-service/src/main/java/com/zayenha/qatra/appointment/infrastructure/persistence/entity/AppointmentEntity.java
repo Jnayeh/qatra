@@ -1,15 +1,20 @@
 package com.zayenha.qatra.appointment.infrastructure.persistence.entity;
 
+import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
+import com.zayenha.qatra.appointment.domain.model.AppointmentType;
 import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
+import com.zayenha.qatra.center.infrastructure.persistence.entity.SlotEntity;
+import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonorProfileEntity;
+import com.zayenha.qatra.emergency.infrastructure.persistence.entity.EmergencyRequestEntity;
+import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Entity
 @Table(name = "appointments")
@@ -22,27 +27,50 @@ public class AppointmentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long donorId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "donor_id", nullable = false)
+    private DonorProfileEntity donor;
 
-    @Column(nullable = false)
-    private Long slotId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "slot_id", nullable = false)
+    private SlotEntity slot;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "center_id", nullable = false)
+    private CenterEntity center;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "emergency_id")
+    private EmergencyRequestEntity emergency;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "completed_by_staff_id")
+    private UserEntity completedByStaff;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Long centerId;
+    private AppointmentType appointmentType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AppointmentStatus status;
 
-    private LocalDate appointmentDate;
-    private LocalTime startTime;
-    private LocalTime endTime;
-    private Instant checkInTime;
-    private Instant completedAt;
+    @Enumerated(EnumType.STRING)
+    private BloodType bloodType;
 
     @Enumerated(EnumType.STRING)
     private DonationOutcome outcome;
+
+    private Integer mlCollected;
+
+    private String qrCode;
+
+    private Instant checkedInAt;
+    private Instant startedAt;
+    private Instant completedAt;
+    private Instant cancelledAt;
+
+    private String cancellationReason;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

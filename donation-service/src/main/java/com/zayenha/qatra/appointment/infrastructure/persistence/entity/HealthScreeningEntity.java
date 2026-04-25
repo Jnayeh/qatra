@@ -1,5 +1,7 @@
 package com.zayenha.qatra.appointment.infrastructure.persistence.entity;
 
+import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonorProfileEntity;
+import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,8 +20,17 @@ public class HealthScreeningEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long appointmentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "appointment_id", nullable = false)
+    private AppointmentEntity appointment;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "donor_id", nullable = false)
+    private DonorProfileEntity donor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "screened_by_staff_id", nullable = false)
+    private UserEntity screenedByStaff;
 
     private Double weight;
     private String bloodPressure;
@@ -33,10 +44,10 @@ public class HealthScreeningEntity {
     private String notes;
 
     @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    private Instant screenedAt;
 
     @PrePersist
     void onCreate() {
-        createdAt = Instant.now();
+        if (screenedAt == null) screenedAt = Instant.now();
     }
 }

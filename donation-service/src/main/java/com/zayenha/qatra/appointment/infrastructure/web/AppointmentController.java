@@ -10,7 +10,7 @@ import com.zayenha.qatra.appointment.infrastructure.web.dto.request.CreateAppoin
 import com.zayenha.qatra.appointment.infrastructure.web.dto.request.ScreeningRequest;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.response.AppointmentResponse;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.response.HealthScreeningResponse;
-import com.zayenha.qatra.appointment.infrastructure.web.mapper.AppointmentMapper;
+import com.zayenha.qatra.appointment.infrastructure.mapper.AppointmentMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -29,20 +29,21 @@ public class AppointmentController {
 
     private final AppointmentCommandUseCases commandUseCases;
     private final AppointmentQueryUseCases queryUseCases;
+    private final AppointmentMapper mapper;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> book(@Valid @RequestBody CreateAppointmentRequest request) {
         var appointment = commandUseCases.book(request.donorId(), request.slotId());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(AppointmentMapper.toResponse(appointment)));
+                .body(ApiResponse.success(mapper.toResponse(appointment)));
     }
 
     @PostMapping("/{id}/check-in")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> checkIn(@PathVariable Long id) {
         var appointment = commandUseCases.checkIn(id);
-        return ResponseEntity.ok(ApiResponse.success(AppointmentMapper.toResponse(appointment)));
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(appointment)));
     }
 
     @PostMapping("/{id}/screening")
@@ -56,22 +57,22 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> complete(
             @PathVariable Long id, @Valid @RequestBody CompleteAppointmentRequest request) {
-        var outcome = AppointmentMapper.toOutcome(request.outcome());
+        var outcome = mapper.toOutcome(request.outcome());
         var appointment = commandUseCases.complete(id, outcome, request.notes());
-        return ResponseEntity.ok(ApiResponse.success(AppointmentMapper.toResponse(appointment)));
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(appointment)));
     }
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> cancel(@PathVariable Long id) {
         var appointment = commandUseCases.cancel(id);
-        return ResponseEntity.ok(ApiResponse.success(AppointmentMapper.toResponse(appointment)));
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(appointment)));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<AppointmentResponse>> getById(@PathVariable Long id) {
         return queryUseCases.findById(id)
-                .map(a -> ResponseEntity.ok(ApiResponse.success(AppointmentMapper.toResponse(a))))
+                .map(a -> ResponseEntity.ok(ApiResponse.success(mapper.toResponse(a))))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -82,7 +83,7 @@ public class AppointmentController {
         var criteria = new SearchCriteria(null, "id", "asc", page, size);
         var result = queryUseCases.findAll(criteria);
         return ResponseEntity.ok(ApiResponse.success(
-            result.content().stream().map(AppointmentMapper::toResponse).toList(),
+            result.content().stream().map(mapper::toResponse).toList(),
             PageHelper.fromDomain(result)
         ));
     }
@@ -92,7 +93,7 @@ public class AppointmentController {
     public ResponseEntity<ApiResponse<List<AppointmentResponse>>> getByDonor(@PathVariable Long donorId) {
         var appointments = queryUseCases.findByDonorId(donorId);
         return ResponseEntity.ok(ApiResponse.success(
-            appointments.stream().map(AppointmentMapper::toResponse).toList()));
+            appointments.stream().map(mapper::toResponse).toList()));
     }
 
     @GetMapping("/by-center/{centerId}")
@@ -102,7 +103,7 @@ public class AppointmentController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         var appointments = queryUseCases.findByCenterIdAndDate(centerId, date);
         return ResponseEntity.ok(ApiResponse.success(
-            appointments.stream().map(AppointmentMapper::toResponse).toList()));
+            appointments.stream().map(mapper::toResponse).toList()));
     }
 
     @PostMapping("/{id}/screening-results")
@@ -111,13 +112,13 @@ public class AppointmentController {
             @PathVariable Long id, @Valid @RequestBody ScreeningRequest request) {
         var screening = commandUseCases.saveScreening(id, request.weight(), request.bloodPressure(),
                 request.hemoglobin(), request.temperature(), request.eligible(), request.notes());
-        return ResponseEntity.ok(ApiResponse.success(AppointmentMapper.toScreeningResponse(screening)));
+        return ResponseEntity.ok(ApiResponse.success(mapper.toScreeningResponse(screening)));
     }
 
     @GetMapping("/{id}/screening")
     public ResponseEntity<ApiResponse<HealthScreeningResponse>> getScreening(@PathVariable Long id) {
         return queryUseCases.findScreeningByAppointmentId(id)
-                .map(s -> ResponseEntity.ok(ApiResponse.success(AppointmentMapper.toScreeningResponse(s))))
+                .map(s -> ResponseEntity.ok(ApiResponse.success(mapper.toScreeningResponse(s))))
                 .orElse(ResponseEntity.notFound().build());
     }
 }

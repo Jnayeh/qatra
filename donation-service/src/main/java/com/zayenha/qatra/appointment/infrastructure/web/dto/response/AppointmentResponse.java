@@ -1,24 +1,30 @@
 package com.zayenha.qatra.appointment.infrastructure.web.dto.response;
 
+import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
+import com.zayenha.qatra.appointment.domain.model.AppointmentType;
 import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 public record AppointmentResponse(
     Long id,
     Long donorId,
     Long slotId,
     Long centerId,
+    Long emergencyId,
+    Long completedByStaffId,
+    AppointmentType appointmentType,
     AppointmentStatus status,
-    LocalDate appointmentDate,
-    LocalTime startTime,
-    LocalTime endTime,
-    Instant checkInTime,
-    Instant completedAt,
+    BloodType bloodType,
     DonationOutcome outcome,
+    Integer mlCollected,
+    String qrCode,
+    Instant checkedInAt,
+    Instant startedAt,
+    Instant completedAt,
+    Instant cancelledAt,
+    String cancellationReason,
     String notes,
     Instant createdAt,
     Instant updatedAt
