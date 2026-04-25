@@ -53,7 +53,7 @@ class CenterServiceTest {
         var center = new DonationCenter("Main Center", "123 Street", "City", "Country",
                 "12345", "1234567890", "center@test.com",
                 40.7128, -74.0060, FacilityType.BLOOD_BANK, op,
-                100, 50, 30);
+                100, 50, 30, 0L);
         center.setId(1L);
         return center;
     }

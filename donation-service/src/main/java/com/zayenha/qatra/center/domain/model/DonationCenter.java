@@ -9,21 +9,22 @@ import java.time.Instant;
 @Setter
 public class DonationCenter {
     private Long id;
+    private Long createdByUserId;
     private String name;
+    private Double latitude;
+    private Double longitude;
     private String address;
     private String city;
     private String country;
     private String postalCode;
     private String phone;
     private String email;
-    private Double latitude;
-    private Double longitude;
-    private FacilityType facilityType;
     private OperatingHours operatingHours;
-    private CenterStatus status;
     private Integer totalCapacity;
     private Integer maxRegular;
     private Integer slotPeriod;
+    private FacilityType facilityType;
+    private CenterStatus status;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -33,7 +34,8 @@ public class DonationCenter {
                           String postalCode, String phone, String email,
                           Double latitude, Double longitude,
                           FacilityType facilityType, OperatingHours operatingHours,
-                          Integer totalCapacity, Integer maxRegular, Integer slotPeriod) {
+                          Integer totalCapacity, Integer maxRegular,
+                          Integer slotPeriod, Long createdByUserId) {
         this.name = name;
         this.address = address;
         this.city = city;
@@ -49,7 +51,13 @@ public class DonationCenter {
         this.totalCapacity = totalCapacity;
         this.maxRegular = maxRegular;
         this.slotPeriod = slotPeriod;
+        this.createdByUserId = createdByUserId;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
+    }
+
+    public boolean isOperatingNow() {
+        if (operatingHours == null) return false;
+        return operatingHours.today().isPresent();
     }
 }

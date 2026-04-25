@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface CenterAdminJpaRepository extends JpaRepository<CenterAdminProfileEntity, Long> {
 
-    Optional<CenterAdminProfileEntity> findByUserId(Long userId);
+    Optional<CenterAdminProfileEntity> findByUser_Id(Long userId);
 
-    boolean existsByUserId(Long userId);
+    boolean existsByUser_Id(Long userId);
 }

@@ -3,6 +3,7 @@ package com.zayenha.qatra.center.infrastructure.persistence.entity;
 import com.zayenha.qatra.center.domain.model.CenterStatus;
 import com.zayenha.qatra.center.domain.model.FacilityType;
 import com.zayenha.qatra.center.domain.model.OperatingHours;
+import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -57,6 +58,10 @@ public class CenterEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     private OperatingHours operatingHours;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id")
+    private UserEntity createdBy;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

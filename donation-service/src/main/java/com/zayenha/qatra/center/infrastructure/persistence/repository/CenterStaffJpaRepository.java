@@ -8,11 +8,11 @@ import java.util.Optional;
 
 public interface CenterStaffJpaRepository extends JpaRepository<CenterStaffProfileEntity, Long> {
 
-    List<CenterStaffProfileEntity> findByCenterId(Long centerId);
+    List<CenterStaffProfileEntity> findByCenter_Id(Long centerId);
 
-    Optional<CenterStaffProfileEntity> findByCenterIdAndUserId(Long centerId, Long userId);
+    Optional<CenterStaffProfileEntity> findByCenter_IdAndUser_Id(Long centerId, Long userId);
 
-    boolean existsByCenterIdAndUserId(Long centerId, Long userId);
+    boolean existsByCenter_IdAndUser_Id(Long centerId, Long userId);
 
-    void deleteByCenterIdAndUserId(Long centerId, Long userId);
+    void deleteByCenter_IdAndUser_Id(Long centerId, Long userId);
 }
