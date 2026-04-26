@@ -8,17 +8,17 @@ import java.time.Instant;
 
 public record EmergencyResponse(
     Long id,
-    String patientName,
+    Long centerId,
     BloodType bloodType,
     Integer unitsNeeded,
     EmergencyUrgency urgency,
-    String hospital,
-    String hospitalAddress,
-    Double latitude,
-    Double longitude,
+    Integer matchRadius,
+    Integer escalationLevel,
     String contactPhone,
     EmergencyStatus status,
     Instant createdAt,
     Instant updatedAt,
-    Instant expiresAt
+    Instant expiresAt,
+    Instant resolvedAt,
+    Long resolvedByUserId
 ) {}

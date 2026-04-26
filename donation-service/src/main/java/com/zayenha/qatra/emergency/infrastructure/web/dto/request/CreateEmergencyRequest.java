@@ -6,12 +6,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record CreateEmergencyRequest(
-    @NotBlank String patientName,
+    @NotNull Long centerId,
     @NotNull BloodType bloodType,
     @NotNull Integer unitsNeeded,
     @NotNull EmergencyUrgency urgency,
-    @NotBlank String hospital,
-    Double latitude,
-    Double longitude,
+    @NotNull Integer matchRadius,
     String contactPhone
 ) {}

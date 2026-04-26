@@ -10,6 +10,5 @@ public record DonorResponseResponse(
     Long donorId,
     Long slotId,
     ResponseStatus status,
-    Instant respondedAt,
-    Instant createdAt
+    Instant respondedAt
 ) {}

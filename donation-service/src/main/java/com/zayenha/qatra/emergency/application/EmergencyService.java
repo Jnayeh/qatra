@@ -3,14 +3,13 @@ package com.zayenha.qatra.emergency.application;
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
-import com.zayenha.qatra._shared.event.AuditEvent;
-import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra.infrastructure.kafka.NotificationEventPublisher;
-import java.util.Collections;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
+import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.emergency.domain.exception.EmergencyErrorCode;
 import com.zayenha.qatra.emergency.domain.model.*;
 import com.zayenha.qatra.emergency.domain.port.in.EmergencyCommandUseCases;
@@ -26,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -33,53 +33,48 @@ import java.util.Optional;
 public class EmergencyService implements EmergencyCommandUseCases, EmergencyQueryUseCases {
 
     private final EmergencyRepositoryPort repository;
+    private final DonorRepositoryPort donorRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final NotificationEventPublisher notificationEventPublisher;
     private final CacheService cacheService;
+    private final MatchingService matchingService;
 
     @Value("${emergency.expiration-hours:48}")
     private long expirationHours;
-
-    private void audit(String action, Long entityId, String oldValue, String newValue) {
-        eventPublisher.publishEvent(new AuditEvent(AuditUtils.currentUserId(), action, "EmergencyRequest", entityId, oldValue, newValue, null, null));
-    }
+    private final AuditPublisher auditPublisher;
 
     @Override
     @Transactional
-    public EmergencyRequest create(String patientName, BloodType bloodType, Integer unitsNeeded,
-                                     EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
-                                     String contactPhone) {
-        var request = new EmergencyRequest(patientName, bloodType, unitsNeeded, urgency, hospital, latitude, longitude, contactPhone);
-        request.setExpiresAt(Instant.now().plus(expirationHours, ChronoUnit.HOURS));
+    public EmergencyRequest create(Long centerId, Long createdByStaffId, BloodType bloodType, Integer unitsNeeded,
+                                    EmergencyUrgency urgency, Integer matchRadius, String contactPhone) {
+        var request = new EmergencyRequest(centerId, createdByStaffId, bloodType, unitsNeeded, urgency, contactPhone, matchRadius, Instant.now().plus(expirationHours, ChronoUnit.HOURS));
         var saved = repository.save(request);
         cacheService.evictByPattern("emergencies:*");
-        audit("EMERGENCY_CREATED", saved.getId(), null, "patient=" + patientName + " bloodType=" + bloodType);
-        // ponytail: matchedDonorIds is empty until donor matching is implemented
-        notificationEventPublisher.publishEmergencyCreated(saved.getId(), Collections.emptyList());
+        auditPublisher.publish("EMERGENCY_CREATED", saved.getId(), "EmergencyRequest", null,
+            Map.of("centerId", centerId, "bloodType", bloodType.name(),
+                   "unitsNeeded", unitsNeeded, "urgency", urgency.name()));
+        matchingService.matchDonors(saved);
         return saved;
     }
 
     @Override
     @Transactional
-    public EmergencyRequest update(Long id, String patientName, BloodType bloodType, Integer unitsNeeded,
-                                    EmergencyUrgency urgency, String hospital, Double latitude, Double longitude,
-                                    String contactPhone) {
+    public EmergencyRequest update(Long id, Long centerId, BloodType bloodType, Integer unitsNeeded,
+                                    EmergencyUrgency urgency, Integer matchRadius, String contactPhone) {
         var request = findOrThrow(id);
         if (request.getStatus() != EmergencyStatus.OPEN) {
             throw new ValidationException("Only open emergencies can be updated",
                     EmergencyErrorCode.EMERGENCY_ALREADY_FULFILLED.name());
         }
-        var oldPatientName = request.getPatientName();
-        request.setPatientName(patientName);
+        request.setCenterId(centerId);
         request.setBloodType(bloodType);
         request.setUnitsNeeded(unitsNeeded);
         request.setUrgency(urgency);
-        request.setHospital(hospital);
-        request.setLatitude(latitude);
-        request.setLongitude(longitude);
+        request.setMatchRadius(matchRadius);
         request.setContactPhone(contactPhone);
         var saved = repository.save(request);
-        audit("EMERGENCY_UPDATED", saved.getId(), "patient=" + oldPatientName, "patient=" + patientName);
+        auditPublisher.publish("EMERGENCY_UPDATED", saved.getId(), "EmergencyRequest", null,
+            Map.of("centerId", centerId, "bloodType", bloodType.name(), "urgency", urgency.name()));
         return saved;
     }
 
@@ -96,7 +91,9 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         var saved = repository.save(request);
         cacheService.evictByPattern("emergencies:*");
         cacheService.evictByPattern("responses:*");
-        audit("EMERGENCY_CANCELLED", saved.getId(), "status=" + oldStatus, "");
+        auditPublisher.publish("EMERGENCY_CANCELLED", saved.getId(), "EmergencyRequest",
+            Map.of("status", oldStatus != null ? oldStatus.name() : null),
+            Map.of("status", EmergencyStatus.CANCELLED.name()));
         return saved;
     }
 
@@ -115,7 +112,15 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         var response = new DonorResponse(emergencyId, donorId);
         var saved = repository.saveResponse(response);
         cacheService.evictByPattern("responses:*");
-        audit("DONOR_RESPONDED", saved.getId(), null, "emergencyId=" + emergencyId + " donorId=" + donorId);
+
+        // Sync MatchResult status to RESPONDED
+        repository.findMatchResultByEmergencyIdAndDonorId(emergencyId, donorId).ifPresent(mr -> {
+            mr.setStatus(MatchStatus.RESPONDED);
+            repository.saveMatchResult(mr);
+        });
+
+        auditPublisher.publish("DONOR_RESPONDED", saved.getId(), "EmergencyRequest", null,
+            Map.of("emergencyId", emergencyId, "donorId", donorId));
         return saved;
     }
 
@@ -123,19 +128,33 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
     @Transactional
     public DonorResponse acceptResponse(Long responseId, Long slotId) {
         var response = findResponseOrThrow(responseId);
-        if (response.getStatus() != ResponseStatus.PENDING) {
-            throw new ValidationException("Response is not in pending status",
-                    EmergencyErrorCode.INVALID_RESPONSE_STATUS.name());
-        }
         var oldStatus = response.getStatus();
         response.accept(slotId);
         var saved = repository.saveResponse(response);
+
+        // Update MatchResult status
+        repository.findMatchResultByEmergencyIdAndDonorId(
+            response.getEmergencyId(), response.getDonorId()).ifPresent(mr -> {
+            mr.setStatus(MatchStatus.RESPONDED);
+            repository.saveMatchResult(mr);
+        });
+
+        // Reset consecutive declines on accept
+        donorRepository.findByUserId(response.getDonorId()).ifPresent(profile -> {
+            profile.resetConsecutiveDeclinesOnAccept();
+            donorRepository.save(profile);
+            cacheService.evictByPattern("donorProfiles:*");
+        });
+
+        // Accept on DonorResponse triggers emergency fulfillment check
         var emergency = findOrThrow(response.getEmergencyId());
         emergency.fulfill();
         repository.save(emergency);
-        cacheService.evictByPattern("responses:*");
         cacheService.evictByPattern("emergencies:*");
-        audit("RESPONSE_ACCEPTED", responseId, "status=" + oldStatus, "slotId=" + slotId);
+        cacheService.evictByPattern("responses:*");
+        auditPublisher.publish("RESPONSE_ACCEPTED", responseId, "EmergencyRequest",
+            Map.of("status", oldStatus != null ? oldStatus.name() : null),
+            Map.of("status", "ACCEPTED", "slotId", slotId));
         return saved;
     }
 
@@ -143,15 +162,33 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
     @Transactional
     public DonorResponse declineResponse(Long responseId) {
         var response = findResponseOrThrow(responseId);
-        if (response.getStatus() != ResponseStatus.PENDING) {
-            throw new ValidationException("Response is not in pending status",
-                    EmergencyErrorCode.INVALID_RESPONSE_STATUS.name());
-        }
         var oldStatus = response.getStatus();
-        response.decline();
+        response.decline(null);
         var saved = repository.saveResponse(response);
+
+        // Update MatchResult status
+        repository.findMatchResultByEmergencyIdAndDonorId(
+            response.getEmergencyId(), response.getDonorId()).ifPresent(mr -> {
+            mr.setStatus(MatchStatus.RESPONDED);
+            repository.saveMatchResult(mr);
+        });
+
+        // Track consecutive declines
+        donorRepository.findByUserId(response.getDonorId()).ifPresent(profile -> {
+            var declines = profile.getConsecutiveEmergencyDeclines() != null
+                ? profile.getConsecutiveEmergencyDeclines() + 1 : 1;
+            profile.setConsecutiveEmergencyDeclines(declines);
+            if (declines >= 3) {
+                profile.setFlaggedForManualReview(true);
+            }
+            donorRepository.save(profile);
+            cacheService.evictByPattern("donorProfiles:*");
+        });
+
         cacheService.evictByPattern("responses:*");
-        audit("RESPONSE_DECLINED", responseId, "status=" + oldStatus, "");
+        auditPublisher.publish("RESPONSE_DECLINED", responseId, "EmergencyRequest",
+            Map.of("status", oldStatus != null ? oldStatus.name() : null),
+            Map.of("status", "DECLINED"));
         return saved;
     }
 
@@ -183,11 +220,6 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
     public List<EmergencyRequest> findOpenWithinRadius(double latitude, double longitude, double radiusKm) {
         return repository.findAll(SearchCriteria.defaultAll()).content().stream()
                 .filter(e -> e.getStatus() == EmergencyStatus.OPEN)
-                .filter(e -> {
-                    if (e.getLatitude() == null || e.getLongitude() == null) return false;
-                    double dist = haversine(latitude, longitude, e.getLatitude(), e.getLongitude());
-                    return dist <= radiusKm;
-                })
                 .toList();
     }
 
@@ -225,16 +257,5 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         return repository.findResponseById(id)
                 .orElseThrow(() -> new NotFoundException("Response not found: " + id,
                         EmergencyErrorCode.RESPONSE_NOT_FOUND.name()));
-    }
-
-    private double haversine(double lat1, double lon1, double lat2, double lon2) {
-        double R = 6371;
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                   Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
     }
 }

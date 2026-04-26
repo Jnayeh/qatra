@@ -1,8 +1,10 @@
 package com.zayenha.qatra.emergency.infrastructure.persistence.entity;
 
 import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 import com.zayenha.qatra.emergency.domain.model.EmergencyUrgency;
+import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +23,13 @@ public class EmergencyRequestEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String patientName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "center_id", nullable = false)
+    private CenterEntity center;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_staff_id", nullable = false)
+    private UserEntity createdByStaff;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -35,16 +43,21 @@ public class EmergencyRequestEntity {
     private EmergencyUrgency urgency;
 
     @Column(nullable = false)
-    private String hospital;
+    private Integer matchRadius;
 
-    private String hospitalAddress;
-    private Double latitude;
-    private Double longitude;
+    @Column(nullable = false)
+    private Integer escalationLevel;
+
     private String contactPhone;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EmergencyStatus status;
+
+    private Instant resolvedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resolved_by_user_id")
+    private UserEntity resolvedBy;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

@@ -12,4 +12,5 @@ import java.util.List;
 public interface EmergencyJpaRepository extends JpaRepository<EmergencyRequestEntity, Long> {
     Page<EmergencyRequestEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
     List<EmergencyRequestEntity> findByBloodTypeAndStatus(BloodType bloodType, EmergencyStatus status);
+    List<EmergencyRequestEntity> findByStatus(EmergencyStatus status);
 }

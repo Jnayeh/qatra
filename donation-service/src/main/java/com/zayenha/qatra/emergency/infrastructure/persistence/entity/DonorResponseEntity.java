@@ -1,5 +1,7 @@
 package com.zayenha.qatra.emergency.infrastructure.persistence.entity;
 
+import com.zayenha.qatra.center.infrastructure.persistence.entity.SlotEntity;
+import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonorProfileEntity;
 import com.zayenha.qatra.emergency.domain.model.ResponseStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -19,17 +21,23 @@ public class DonorResponseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long emergencyId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "emergency_id", nullable = false)
+    private EmergencyRequestEntity emergency;
 
-    @Column(nullable = false)
-    private Long donorId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "donor_id", nullable = false)
+    private DonorProfileEntity donor;
 
-    private Long slotId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "slot_id")
+    private SlotEntity slot;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ResponseStatus status;
+
+    private String reason;
 
     private Instant respondedAt;
 

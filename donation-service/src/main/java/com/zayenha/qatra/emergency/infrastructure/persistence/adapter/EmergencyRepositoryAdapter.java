@@ -6,11 +6,15 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.emergency.domain.model.DonorResponse;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
+import com.zayenha.qatra.emergency.domain.model.MatchResult;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
 import com.zayenha.qatra.emergency.infrastructure.persistence.entity.DonorResponseEntity;
 import com.zayenha.qatra.emergency.infrastructure.persistence.entity.EmergencyRequestEntity;
+import com.zayenha.qatra.emergency.infrastructure.persistence.entity.MatchResultEntity;
+import com.zayenha.qatra.center.infrastructure.persistence.repository.SlotJpaRepository;
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.DonorResponseJpaRepository;
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.EmergencyJpaRepository;
+import com.zayenha.qatra.emergency.infrastructure.persistence.repository.MatchResultJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -24,31 +28,39 @@ public class EmergencyRepositoryAdapter implements EmergencyRepositoryPort {
 
     private final EmergencyJpaRepository emergencyJpaRepository;
     private final DonorResponseJpaRepository responseJpaRepository;
+    private final MatchResultJpaRepository matchResultJpaRepository;
+    private final SlotJpaRepository slotJpaRepository;
+    private final EmergencyMapper mapper;
 
     @Override
     public EmergencyRequest save(EmergencyRequest request) {
-        var entity = toEntity(request);
-        if (entity.getId() != null) {
-            var existing = emergencyJpaRepository.findById(entity.getId()).orElseThrow();
-            existing.setPatientName(entity.getPatientName());
-            existing.setBloodType(entity.getBloodType());
-            existing.setUnitsNeeded(entity.getUnitsNeeded());
-            existing.setUrgency(entity.getUrgency());
-            existing.setHospital(entity.getHospital());
-            existing.setHospitalAddress(entity.getHospitalAddress());
-            existing.setLatitude(entity.getLatitude());
-            existing.setLongitude(entity.getLongitude());
-            existing.setContactPhone(entity.getContactPhone());
-            existing.setStatus(entity.getStatus());
-            existing.setExpiresAt(entity.getExpiresAt());
-            return toDomain(emergencyJpaRepository.save(existing));
+        if (request.getId() != null) {
+            var existing = emergencyJpaRepository.findById(request.getId()).orElseThrow();
+            merge(existing, request);
+            return mapper.toDomain(emergencyJpaRepository.save(existing));
         }
-        return toDomain(emergencyJpaRepository.save(entity));
+        return mapper.toDomain(emergencyJpaRepository.save(mapper.toEntity(request)));
+    }
+
+    private void merge(EmergencyRequestEntity existing, EmergencyRequest source) {
+        var updated = mapper.toEntity(source);
+        existing.setCenter(updated.getCenter());
+        existing.setCreatedByStaff(updated.getCreatedByStaff());
+        existing.setBloodType(updated.getBloodType());
+        existing.setUnitsNeeded(updated.getUnitsNeeded());
+        existing.setUrgency(updated.getUrgency());
+        existing.setMatchRadius(updated.getMatchRadius());
+        existing.setContactPhone(updated.getContactPhone());
+        existing.setStatus(updated.getStatus());
+        existing.setExpiresAt(updated.getExpiresAt());
+        existing.setEscalationLevel(updated.getEscalationLevel());
+        existing.setResolvedAt(updated.getResolvedAt());
+        existing.setResolvedBy(updated.getResolvedBy());
     }
 
     @Override
     public Optional<EmergencyRequest> findById(Long id) {
-        return emergencyJpaRepository.findById(id).map(this::toDomain);
+        return emergencyJpaRepository.findById(id).map(mapper::toDomain);
     }
 
     @Override
@@ -56,7 +68,7 @@ public class EmergencyRepositoryAdapter implements EmergencyRepositoryPort {
         var pageable = PageRequest.of(criteria.page(), criteria.size());
         var page = emergencyJpaRepository.findAllByOrderByCreatedAtDesc(pageable);
         return new PageResult<>(
-            page.getContent().stream().map(this::toDomain).toList(),
+            page.getContent().stream().map(mapper::toDomain).toList(),
             page.getNumber(), page.getSize(),
             page.getTotalElements(), page.getTotalPages()
         );
@@ -65,100 +77,78 @@ public class EmergencyRepositoryAdapter implements EmergencyRepositoryPort {
     @Override
     public List<EmergencyRequest> findByBloodTypeAndStatus(BloodType bloodType, EmergencyStatus status) {
         return emergencyJpaRepository.findByBloodTypeAndStatus(bloodType, status)
-                .stream().map(this::toDomain).toList();
+                .stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<EmergencyRequest> findByStatus(EmergencyStatus status) {
+        return emergencyJpaRepository.findByStatus(status)
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public DonorResponse saveResponse(DonorResponse response) {
-        var entity = toResponseEntity(response);
-        if (entity.getId() != null) {
-            var existing = responseJpaRepository.findById(entity.getId()).orElseThrow();
-            existing.setSlotId(entity.getSlotId());
-            existing.setStatus(entity.getStatus());
-            existing.setRespondedAt(entity.getRespondedAt());
-            return toResponseDomain(responseJpaRepository.save(existing));
+        if (response.getId() != null) {
+            var existing = responseJpaRepository.findById(response.getId()).orElseThrow();
+            existing.setSlot(response.getSlotId() != null ? slotJpaRepository.getReferenceById(response.getSlotId()) : null);
+            existing.setStatus(response.getStatus());
+            existing.setRespondedAt(response.getRespondedAt());
+            return mapper.toResponseDomain(responseJpaRepository.save(existing));
         }
-        return toResponseDomain(responseJpaRepository.save(entity));
+        return mapper.toResponseDomain(responseJpaRepository.save(mapper.toResponseEntity(response)));
     }
 
     @Override
     public Optional<DonorResponse> findResponseById(Long id) {
-        return responseJpaRepository.findById(id).map(this::toResponseDomain);
+        return responseJpaRepository.findById(id).map(mapper::toResponseDomain);
     }
 
     @Override
     public List<DonorResponse> findResponsesByEmergencyId(Long emergencyId) {
-        return responseJpaRepository.findByEmergencyIdOrderByCreatedAtAsc(emergencyId)
-                .stream().map(this::toResponseDomain).toList();
+        return responseJpaRepository.findByEmergency_IdOrderByCreatedAtAsc(emergencyId)
+                .stream().map(mapper::toResponseDomain).toList();
     }
 
     @Override
     public List<DonorResponse> findResponsesByDonorId(Long donorId) {
-        return responseJpaRepository.findByDonorIdOrderByCreatedAtDesc(donorId)
-                .stream().map(this::toResponseDomain).toList();
+        return responseJpaRepository.findByDonor_IdOrderByCreatedAtDesc(donorId)
+                .stream().map(mapper::toResponseDomain).toList();
     }
 
     @Override
     public boolean existsByEmergencyIdAndDonorId(Long emergencyId, Long donorId) {
-        return responseJpaRepository.existsByEmergencyIdAndDonorId(emergencyId, donorId);
+        return responseJpaRepository.existsByEmergency_IdAndDonor_Id(emergencyId, donorId);
     }
 
-    private EmergencyRequestEntity toEntity(EmergencyRequest domain) {
-        var entity = new EmergencyRequestEntity();
-        entity.setId(domain.getId());
-        entity.setPatientName(domain.getPatientName());
-        entity.setBloodType(domain.getBloodType());
-        entity.setUnitsNeeded(domain.getUnitsNeeded());
-        entity.setUrgency(domain.getUrgency());
-        entity.setHospital(domain.getHospital());
-        entity.setHospitalAddress(domain.getHospitalAddress());
-        entity.setLatitude(domain.getLatitude());
-        entity.setLongitude(domain.getLongitude());
-        entity.setContactPhone(domain.getContactPhone());
-        entity.setStatus(domain.getStatus());
-        entity.setExpiresAt(domain.getExpiresAt());
-        return entity;
+    @Override
+    public MatchResult saveMatchResult(MatchResult matchResult) {
+        if (matchResult.getId() != null) {
+            var existing = matchResultJpaRepository.findById(matchResult.getId()).orElseThrow();
+            existing.setRadius(matchResult.getRadius());
+            existing.setBloodType(matchResult.getBloodType());
+            existing.setEscalationLevel(matchResult.getEscalationLevel());
+            existing.setStatus(matchResult.getStatus());
+            existing.setRespondedAt(matchResult.getRespondedAt());
+            return mapper.toMatchResultDomain(matchResultJpaRepository.save(existing));
+        }
+        return mapper.toMatchResultDomain(matchResultJpaRepository.save(mapper.toMatchResultEntity(matchResult)));
     }
 
-    private EmergencyRequest toDomain(EmergencyRequestEntity entity) {
-        var domain = new EmergencyRequest();
-        domain.setId(entity.getId());
-        domain.setPatientName(entity.getPatientName());
-        domain.setBloodType(entity.getBloodType());
-        domain.setUnitsNeeded(entity.getUnitsNeeded());
-        domain.setUrgency(entity.getUrgency());
-        domain.setHospital(entity.getHospital());
-        domain.setHospitalAddress(entity.getHospitalAddress());
-        domain.setLatitude(entity.getLatitude());
-        domain.setLongitude(entity.getLongitude());
-        domain.setContactPhone(entity.getContactPhone());
-        domain.setStatus(entity.getStatus());
-        domain.setCreatedAt(entity.getCreatedAt());
-        domain.setUpdatedAt(entity.getUpdatedAt());
-        domain.setExpiresAt(entity.getExpiresAt());
-        return domain;
+    @Override
+    public Optional<MatchResult> findMatchResultByEmergencyIdAndDonorId(Long emergencyId, Long donorId) {
+        return matchResultJpaRepository.findByEmergency_IdAndDonor_Id(emergencyId, donorId)
+                .map(mapper::toMatchResultDomain);
     }
 
-    private DonorResponseEntity toResponseEntity(DonorResponse domain) {
-        var entity = new DonorResponseEntity();
-        entity.setId(domain.getId());
-        entity.setEmergencyId(domain.getEmergencyId());
-        entity.setDonorId(domain.getDonorId());
-        entity.setSlotId(domain.getSlotId());
-        entity.setStatus(domain.getStatus());
-        entity.setRespondedAt(domain.getRespondedAt());
-        return entity;
+    @Override
+    public List<MatchResult> findMatchResultsByEmergencyId(Long emergencyId) {
+        return matchResultJpaRepository.findByEmergency_Id(emergencyId)
+                .stream().map(mapper::toMatchResultDomain).toList();
     }
 
-    private DonorResponse toResponseDomain(DonorResponseEntity entity) {
-        var domain = new DonorResponse();
-        domain.setId(entity.getId());
-        domain.setEmergencyId(entity.getEmergencyId());
-        domain.setDonorId(entity.getDonorId());
-        domain.setSlotId(entity.getSlotId());
-        domain.setStatus(entity.getStatus());
-        domain.setRespondedAt(entity.getRespondedAt());
-        domain.setCreatedAt(entity.getCreatedAt());
-        return domain;
+    @Override
+    public List<MatchResult> findMatchResultsByDonorId(Long donorId) {
+        return matchResultJpaRepository.findByDonor_Id(donorId)
+                .stream().map(mapper::toMatchResultDomain).toList();
     }
 }

@@ -12,7 +12,7 @@ import com.zayenha.qatra.emergency.infrastructure.web.dto.request.CreateEmergenc
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.UpdateEmergencyRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.response.DonorResponseResponse;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.response.EmergencyResponse;
-import com.zayenha.qatra.emergency.infrastructure.web.mapper.EmergencyMapper;
+import com.zayenha.qatra.emergency.infrastructure.mapper.EmergencyMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,16 +29,16 @@ public class EmergencyController {
 
     private final EmergencyCommandUseCases commandUseCases;
     private final EmergencyQueryUseCases queryUseCases;
+    private final EmergencyMapper mapper;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<EmergencyResponse>> create(@Valid @RequestBody CreateEmergencyRequest request) {
         var emergency = commandUseCases.create(
-            request.patientName(), request.bloodType(), request.unitsNeeded(),
-            request.urgency(), request.hospital(), request.latitude(), request.longitude(),
-            request.contactPhone());
+            request.centerId(), AuditUtils.currentUserId(), request.bloodType(), request.unitsNeeded(),
+            request.urgency(), request.matchRadius(), request.contactPhone());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(EmergencyMapper.toResponse(emergency)));
+                .body(ApiResponse.success(mapper.toResponse(emergency)));
     }
 
     @PutMapping("/{id}")
@@ -46,24 +46,23 @@ public class EmergencyController {
     public ResponseEntity<ApiResponse<EmergencyResponse>> update(
             @PathVariable Long id, @Valid @RequestBody UpdateEmergencyRequest request) {
         var emergency = commandUseCases.update(
-            id, request.patientName(), request.bloodType(), request.unitsNeeded(),
-            request.urgency(), request.hospital(), request.latitude(), request.longitude(),
-            request.contactPhone());
-        return ResponseEntity.ok(ApiResponse.success(EmergencyMapper.toResponse(emergency)));
+            id, request.centerId(), request.bloodType(), request.unitsNeeded(),
+            request.urgency(), request.matchRadius(), request.contactPhone());
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(emergency)));
     }
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<EmergencyResponse>> cancel(@PathVariable Long id) {
         var emergency = commandUseCases.cancel(id);
-        return ResponseEntity.ok(ApiResponse.success(EmergencyMapper.toResponse(emergency)));
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(emergency)));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<EmergencyResponse>> getById(@PathVariable Long id) {
         return queryUseCases.findById(id)
-                .map(e -> ResponseEntity.ok(ApiResponse.success(EmergencyMapper.toResponse(e))))
+                .map(e -> ResponseEntity.ok(ApiResponse.success(mapper.toResponse(e))))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -74,7 +73,7 @@ public class EmergencyController {
             @RequestParam(defaultValue = "20") int size) {
         var criteria = new SearchCriteria(null, "id", "asc", page, size);
         var result = queryUseCases.findAll(criteria);
-        var emergencies = result.content().stream().map(EmergencyMapper::toResponse).toList();
+        var emergencies = result.content().stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok(ApiResponse.success(emergencies, PageHelper.fromDomain(result)));
     }
 
@@ -83,7 +82,7 @@ public class EmergencyController {
     public ResponseEntity<ApiResponse<List<EmergencyResponse>>> getOpenByBloodType(@PathVariable BloodType bloodType) {
         var emergencies = queryUseCases.findOpenByBloodType(bloodType);
         return ResponseEntity.ok(ApiResponse.success(
-            emergencies.stream().map(EmergencyMapper::toResponse).toList()));
+            emergencies.stream().map(mapper::toResponse).toList()));
     }
 
     @GetMapping("/nearby")
@@ -94,7 +93,7 @@ public class EmergencyController {
             @RequestParam(defaultValue = "50") double radiusKm) {
         var emergencies = queryUseCases.findOpenWithinRadius(latitude, longitude, radiusKm);
         return ResponseEntity.ok(ApiResponse.success(
-            emergencies.stream().map(EmergencyMapper::toResponse).toList()));
+            emergencies.stream().map(mapper::toResponse).toList()));
     }
 
     @PostMapping("/{id}/respond")
@@ -104,7 +103,7 @@ public class EmergencyController {
         var donorId = AuditUtils.currentUserId(); // ponytail: SUPER_ADMIN cannot respond on behalf of others
         var response = commandUseCases.respond(id, donorId);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(EmergencyMapper.toResponse(response)));
+                .body(ApiResponse.success(mapper.toResponse(response)));
     }
 
     @PostMapping("/responses/{responseId}/accept")
@@ -112,14 +111,14 @@ public class EmergencyController {
     public ResponseEntity<ApiResponse<DonorResponseResponse>> acceptResponse(
             @PathVariable Long responseId, @Valid @RequestBody AcceptResponseRequest request) {
         var response = commandUseCases.acceptResponse(responseId, request.slotId());
-        return ResponseEntity.ok(ApiResponse.success(EmergencyMapper.toResponse(response)));
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(response)));
     }
 
     @PostMapping("/responses/{responseId}/decline")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<DonorResponseResponse>> declineResponse(@PathVariable Long responseId) {
         var response = commandUseCases.declineResponse(responseId);
-        return ResponseEntity.ok(ApiResponse.success(EmergencyMapper.toResponse(response)));
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(response)));
     }
 
     @GetMapping("/{id}/responses")
@@ -127,7 +126,7 @@ public class EmergencyController {
     public ResponseEntity<ApiResponse<List<DonorResponseResponse>>> getResponses(@PathVariable Long id) {
         var responses = queryUseCases.findResponsesByEmergencyId(id);
         return ResponseEntity.ok(ApiResponse.success(
-            responses.stream().map(EmergencyMapper::toResponse).toList()));
+            responses.stream().map(mapper::toResponse).toList()));
     }
 
     @GetMapping("/responses/donor/{donorId}")
@@ -135,6 +134,6 @@ public class EmergencyController {
     public ResponseEntity<ApiResponse<List<DonorResponseResponse>>> getDonorResponses(@PathVariable Long donorId) {
         var responses = queryUseCases.findResponsesByDonorId(donorId);
         return ResponseEntity.ok(ApiResponse.success(
-            responses.stream().map(EmergencyMapper::toResponse).toList()));
+            responses.stream().map(mapper::toResponse).toList()));
     }
 }
