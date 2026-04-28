@@ -3,16 +3,16 @@ package com.zayenha.qatra.notification.application.service;
 import com.zayenha.qatra.notification.application.dto.NotificationResponse;
 import com.zayenha.qatra.notification.domain.exception.NotificationNotFoundException;
 import com.zayenha.qatra.notification.domain.model.Notification;
-import com.zayenha.qatra.notification.domain.model.NotificationStatus;
+import com.zayenha.qatra.notification.domain.model.NotificationType;
+import com.zayenha.qatra.notification.domain.port.in.NotificationQueryUseCases;
 import com.zayenha.qatra.notification.domain.port.out.NotificationRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
-public class NotificationQueryService {
+public class NotificationQueryService implements NotificationQueryUseCases {
 
     private final NotificationRepositoryPort notificationRepository;
 
@@ -21,15 +21,17 @@ public class NotificationQueryService {
     }
 
     public List<NotificationResponse> getUserNotifications(Long userId, String type, Boolean read,
-                                                            int page, int size) {
-        return notificationRepository.findByUserId(userId, type, read, page, size)
+                                                             int page, int size) {
+        var notificationType = type != null ? NotificationType.valueOf(type.toUpperCase()) : null;
+        return notificationRepository.findByUserId(userId, notificationType, read, page, size)
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     public long countUserNotifications(Long userId, String type, Boolean read) {
-        return notificationRepository.countByUserId(userId, type, read);
+        var notificationType = type != null ? NotificationType.valueOf(type.toUpperCase()) : null;
+        return notificationRepository.countByUserId(userId, notificationType, read);
     }
 
     public long countUnread(Long userId) {
@@ -52,8 +54,9 @@ public class NotificationQueryService {
 
     private NotificationResponse toResponse(Notification n) {
         return new NotificationResponse(
-                n.getId(), n.getUserId(), n.getType(), n.getTitle(),
-                n.getBody(), n.getData(), n.getStatus().name(),
-                n.getCreatedAt(), n.getReadAt());
+                n.getId(), n.getUserId(), n.getEmergencyId(), n.getAppointmentId(),
+                n.getType(), n.getChannel(),
+                n.getTitle(), n.getBody(), n.getData(), n.getStatus().name(),
+                n.getCreatedAt(), n.getSentAt(), n.getReadAt());
     }
 }

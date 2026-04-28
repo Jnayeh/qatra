@@ -2,12 +2,15 @@ package com.zayenha.qatra.notification.application.service;
 
 import com.zayenha.qatra.notification.domain.exception.NotificationDeliveryException;
 import com.zayenha.qatra.notification.domain.model.Notification;
-import com.zayenha.qatra.notification.domain.model.NotificationChannelType;
+import com.zayenha.qatra.notification.domain.model.NotificationChannel;
 import com.zayenha.qatra.notification.domain.model.NotificationPayload;
+import com.zayenha.qatra.notification.domain.port.in.NotificationCommandUseCases;
 import com.zayenha.qatra.notification.domain.port.out.NotificationRepositoryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -16,18 +19,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class NotificationDispatchService {
+public class NotificationDispatchService implements NotificationCommandUseCases {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationDispatchService.class);
 
     private final NotificationRepositoryPort notificationRepository;
-    private final List<NotificationChannel> channels;
+    private final List<ChannelHandler> channels;
     private final int maxRetryAttempts;
     private final long backoffBaseMs;
 
     public NotificationDispatchService(
             NotificationRepositoryPort notificationRepository,
-            List<NotificationChannel> channels,
+            List<ChannelHandler> channels,
             @Value("${notification.retry.max-attempts:3}") int maxRetryAttempts,
             @Value("${notification.retry.backoff-base-ms:2000}") long backoffBaseMs) {
         this.notificationRepository = notificationRepository;
@@ -44,53 +47,36 @@ public class NotificationDispatchService {
 
         var channelsToUse = resolveChannels(channelConfig);
         var notification = notificationRepository.save(
-                new Notification(payload.userId(), payload.type(), payload.title(),
-                        payload.body(), payload.data(), payload.correlationId()));
+                new Notification(payload.userId(), payload.email(), payload.emergencyId(), payload.appointmentId(),
+                        payload.type(), payload.title(), payload.body(), payload.data(),
+                        payload.correlationId(), payload.channel()));
 
         for (var channel : channels) {
             if (!channelsToUse.contains(channel.type())) {
                 continue;
             }
-            deliverWithRetry(channel, payload, notification, 1);
+            deliverWithRetry(channel, payload, notification);
         }
     }
 
-    private Set<NotificationChannelType> resolveChannels(String channelConfig) {
+    private Set<NotificationChannel> resolveChannels(String channelConfig) {
         return Arrays.stream(channelConfig.split(","))
                 .map(String::trim)
                 .map(String::toUpperCase)
                 .filter(c -> !c.isEmpty())
-                .map(NotificationChannelType::valueOf)
+                .map(NotificationChannel::valueOf)
                 .collect(Collectors.toSet());
     }
 
-    private void deliverWithRetry(NotificationChannel channel, NotificationPayload payload,
-                                   Notification notification, int attempt) {
-        try {
-            channel.deliver(payload);
-            notification.markSent();
-            notificationRepository.save(notification);
-        } catch (NotificationDeliveryException e) {
-            log.warn("Delivery attempt {} failed for channel {}: {}",
-                    attempt, channel.type(), e.getMessage());
-            if (attempt < maxRetryAttempts) {
-                sleep(backoffBaseMs * (1L << (attempt - 1)));
-                deliverWithRetry(channel, payload, notification, attempt + 1);
-            } else {
-                log.error("All {} retry attempts exhausted for channel {} on correlationId {}",
-                        maxRetryAttempts, channel.type(), payload.correlationId());
-                notification.markFailed();
-                notificationRepository.save(notification);
-                // ponytail: publish to DLQ topic would go here
-            }
-        }
-    }
-
-    private void sleep(long ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+    @Retryable(
+        retryFor = NotificationDeliveryException.class,
+        maxAttemptsExpression = "${notification.retry.max-attempts:3}",
+        backoff = @Backoff(delayExpression = "${notification.retry.backoff-base-ms:2000}",
+                           multiplierExpression = "2"))
+    private void deliverWithRetry(ChannelHandler channel, NotificationPayload payload,
+                                   Notification notification) {
+        channel.deliver(payload);
+        notification.markSent();
+        notificationRepository.save(notification);
     }
 }

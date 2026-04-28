@@ -1,5 +1,6 @@
 package com.zayenha.qatra.notification.infrastructure.adapter.persistence;
 
+import com.zayenha.qatra.notification.domain.model.NotificationType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,7 +13,7 @@ public interface JpaNotificationRepository extends JpaRepository<NotificationEnt
 
     List<NotificationEntity> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
-    List<NotificationEntity> findByUserIdAndTypeOrderByCreatedAtDesc(Long userId, String type, Pageable pageable);
+    List<NotificationEntity> findByUserIdAndTypeOrderByCreatedAtDesc(Long userId, NotificationType type, Pageable pageable);
 
     @Query("SELECT n FROM NotificationEntity n WHERE n.userId = :userId AND n.readAt IS NULL ORDER BY n.createdAt DESC")
     List<NotificationEntity> findUnreadByUserId(@Param("userId") Long userId, Pageable pageable);
@@ -22,13 +23,13 @@ public interface JpaNotificationRepository extends JpaRepository<NotificationEnt
 
     long countByUserId(Long userId);
 
-    long countByUserIdAndType(Long userId, String type);
+    long countByUserIdAndType(Long userId, NotificationType type);
 
     @Query("SELECT COUNT(n) FROM NotificationEntity n WHERE n.userId = :userId AND n.readAt IS NULL")
     long countUnreadByUserId(@Param("userId") Long userId);
 
     @Query("SELECT COUNT(n) FROM NotificationEntity n WHERE n.userId = :userId AND n.type = :type AND n.readAt IS NULL")
-    long countUnreadByUserIdAndType(@Param("userId") Long userId, @Param("type") String type);
+    long countUnreadByUserIdAndType(@Param("userId") Long userId, @Param("type") NotificationType type);
 
     @Modifying
     @Query("UPDATE NotificationEntity n SET n.readAt = CURRENT_TIMESTAMP, n.status = 'READ' WHERE n.userId = :userId AND n.readAt IS NULL")

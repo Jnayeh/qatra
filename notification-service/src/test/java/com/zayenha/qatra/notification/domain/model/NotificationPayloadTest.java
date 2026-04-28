@@ -1,9 +1,9 @@
-package com.zayenha.qatra.notification.domain.model;
+﻿package com.zayenha.qatra.notification.domain.model;
 
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-
+        var payload = new NotificationPayload(1L, null, null, null, NotificationType.GENERAL, null, "Title", "Body", null, "corr-123", now);
 import static org.junit.jupiter.api.Assertions.*;
 
 class NotificationPayloadTest {
@@ -11,9 +11,9 @@ class NotificationPayloadTest {
     @Test
     void shouldCreatePayload() {
         var now = Instant.now();
-        var payload = new NotificationPayload(1L, "TEST", "Title", "Body", null, "corr-123", now);
+        var payload = new NotificationPayload(1L, null, null, NotificationType.GENERAL, null, "Title", "Body", null, "corr-123", now);
         assertEquals(1L, payload.userId());
-        assertEquals("TEST", payload.type());
+        assertEquals(NotificationType.GENERAL, payload.type());
         assertEquals("corr-123", payload.correlationId());
     }
 }

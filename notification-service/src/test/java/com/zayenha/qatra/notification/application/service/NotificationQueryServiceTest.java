@@ -2,6 +2,8 @@ package com.zayenha.qatra.notification.application.service;
 
 import com.zayenha.qatra.notification.domain.exception.NotificationNotFoundException;
 import com.zayenha.qatra.notification.domain.model.Notification;
+import com.zayenha.qatra.notification.domain.model.NotificationChannel;
+import com.zayenha.qatra.notification.domain.model.NotificationType;
 import com.zayenha.qatra.notification.domain.port.out.NotificationRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +34,8 @@ class NotificationQueryServiceTest {
     @Test
     void shouldReturnUserNotifications() {
         when(notificationRepository.findByUserId(eq(1L), isNull(), isNull(), eq(0), eq(20)))
-                .thenReturn(List.of(new Notification(1L, "TEST", "T", "B", null, "c1")));
+                .thenReturn(List.of(new Notification(1L, null, null,
+                        NotificationType.GENERAL, "T", "B", null, "c1", NotificationChannel.EMAIL)));
 
         var result = queryService.getUserNotifications(1L, null, null, 0, 20);
         assertEquals(1, result.size());
@@ -48,7 +51,8 @@ class NotificationQueryServiceTest {
 
     @Test
     void shouldMarkAsRead() {
-        var notification = new Notification(1L, "TEST", "T", "B", null, "c1");
+        var notification = new Notification(1L, null, null,
+                NotificationType.GENERAL, "T", "B", null, "c1", NotificationChannel.EMAIL);
         when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
         when(notificationRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 

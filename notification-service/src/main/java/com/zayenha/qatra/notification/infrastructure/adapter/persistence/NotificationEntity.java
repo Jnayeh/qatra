@@ -1,19 +1,23 @@
 package com.zayenha.qatra.notification.infrastructure.adapter.persistence;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.zayenha.qatra.notification.domain.model.NotificationChannel;
 import com.zayenha.qatra.notification.domain.model.NotificationStatus;
+import com.zayenha.qatra.notification.domain.model.NotificationType;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Entity
 @Table(name = "notifications")
+@Getter
+@Setter
+@NoArgsConstructor
 public class NotificationEntity {
 
     @Id
@@ -23,8 +27,15 @@ public class NotificationEntity {
     @Column(nullable = false)
     private Long userId;
 
+    private String email;
+
+    private Long emergencyId;
+
+    private Long appointmentId;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String type;
+    private NotificationType type;
 
     @Column(nullable = false)
     private String title;
@@ -32,10 +43,14 @@ public class NotificationEntity {
     @Column(columnDefinition = "TEXT")
     private String body;
 
-    @Column(columnDefinition = "TEXT")
-    private String data;
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Map<String, Object> data;
 
     private String correlationId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private NotificationChannel channel;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -44,28 +59,7 @@ public class NotificationEntity {
     @Column(nullable = false)
     private Instant createdAt;
 
+    private Instant sentAt;
+
     private Instant readAt;
-
-    public NotificationEntity() {}
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getBody() { return body; }
-    public void setBody(String body) { this.body = body; }
-    public String getData() { return data; }
-    public void setData(String data) { this.data = data; }
-    public String getCorrelationId() { return correlationId; }
-    public void setCorrelationId(String correlationId) { this.correlationId = correlationId; }
-    public NotificationStatus getStatus() { return status; }
-    public void setStatus(NotificationStatus status) { this.status = status; }
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-    public Instant getReadAt() { return readAt; }
-    public void setReadAt(Instant readAt) { this.readAt = readAt; }
 }

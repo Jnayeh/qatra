@@ -1,7 +1,9 @@
 package com.zayenha.qatra.notification.infrastructure.adapter.persistence;
 
 import com.zayenha.qatra.notification.domain.model.Notification;
+import com.zayenha.qatra.notification.domain.model.NotificationType;
 import com.zayenha.qatra.notification.domain.port.out.NotificationRepositoryPort;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
@@ -9,52 +11,47 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class NotificationRepositoryAdapter implements NotificationRepositoryPort {
 
     private final JpaNotificationRepository jpaRepository;
-
-    public NotificationRepositoryAdapter(JpaNotificationRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
-    }
+    private final NotificationMapper mapper;
 
     @Override
     public Notification save(Notification notification) {
-        var entity = toEntity(notification);
-        var saved = jpaRepository.save(entity);
-        return toDomain(saved);
+        return mapper.toDomain(jpaRepository.save(mapper.toEntity(notification)));
     }
 
     @Override
     public Optional<Notification> findById(Long id) {
-        return jpaRepository.findById(id).map(this::toDomain);
+        return jpaRepository.findById(id).map(mapper::toDomain);
     }
 
     @Override
-    public List<Notification> findByUserId(Long userId, String type, Boolean read, int page, int size) {
+    public List<Notification> findByUserId(Long userId, NotificationType type, Boolean read, int page, int size) {
         var pageable = PageRequest.of(page, size);
         if (type != null && read != null) {
-            // ponytail: combined type+read filter not directly supported; falls back to type filter
             return jpaRepository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, type, pageable)
-                    .stream().map(this::toDomain).toList();
+                    .stream().map(mapper::toDomain).toList();
         }
         if (type != null) {
             return jpaRepository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, type, pageable)
-                    .stream().map(this::toDomain).toList();
+                    .stream().map(mapper::toDomain).toList();
         }
         if (read != null && read) {
             return jpaRepository.findReadByUserId(userId, pageable)
-                    .stream().map(this::toDomain).toList();
+                    .stream().map(mapper::toDomain).toList();
         }
         if (read != null && !read) {
             return jpaRepository.findUnreadByUserId(userId, pageable)
-                    .stream().map(this::toDomain).toList();
+                    .stream().map(mapper::toDomain).toList();
         }
         return jpaRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
-                .stream().map(this::toDomain).toList();
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
-    public long countByUserId(Long userId, String type, Boolean read) {
+    public long countByUserId(Long userId, NotificationType type, Boolean read) {
         if (type != null && read != null) {
             if (read) {
                 return jpaRepository.countByUserId(userId) - jpaRepository.countUnreadByUserIdAndType(userId, type);
@@ -86,34 +83,5 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
     @Override
     public boolean existsByCorrelationId(String correlationId) {
         return jpaRepository.existsByCorrelationId(correlationId);
-    }
-
-    private NotificationEntity toEntity(Notification domain) {
-        var entity = new NotificationEntity();
-        entity.setId(domain.getId());
-        entity.setUserId(domain.getUserId());
-        entity.setType(domain.getType());
-        entity.setTitle(domain.getTitle());
-        entity.setBody(domain.getBody());
-        entity.setData(domain.getData());
-        entity.setCorrelationId(domain.getCorrelationId());
-        entity.setStatus(domain.getStatus());
-        entity.setCreatedAt(domain.getCreatedAt());
-        entity.setReadAt(domain.getReadAt());
-        return entity;
-    }
-
-    private Notification toDomain(NotificationEntity entity) {
-        var n = new Notification();
-        n.setId(entity.getId());
-        n.setUserId(entity.getUserId());
-        n.setTitle(entity.getTitle());
-        n.setBody(entity.getBody());
-        n.setData(entity.getData());
-        n.setCorrelationId(entity.getCorrelationId());
-        n.setStatus(entity.getStatus());
-        n.setCreatedAt(entity.getCreatedAt());
-        n.setReadAt(entity.getReadAt());
-        return n;
     }
 }

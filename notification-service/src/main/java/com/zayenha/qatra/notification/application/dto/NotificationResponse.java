@@ -1,15 +1,23 @@
 package com.zayenha.qatra.notification.application.dto;
 
+import com.zayenha.qatra.notification.domain.model.NotificationChannel;
+import com.zayenha.qatra.notification.domain.model.NotificationType;
+
 import java.time.Instant;
+import java.util.Map;
 
 public record NotificationResponse(
     Long id,
     Long userId,
-    String type,
+    Long emergencyId,
+    Long appointmentId,
+    NotificationType type,
+    NotificationChannel channel,
     String title,
     String body,
-    String data,
+    Map<String, Object> data,
     String status,
     Instant createdAt,
+    Instant sentAt,
     Instant readAt
 ) {}
