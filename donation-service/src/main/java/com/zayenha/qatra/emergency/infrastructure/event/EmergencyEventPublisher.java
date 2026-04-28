@@ -1,7 +1,7 @@
 package com.zayenha.qatra.emergency.infrastructure.event;
 
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
-import com.zayenha.qatra.infrastructure.kafka.EventPublisher;
+import com.zayenha.qatra._config.kafka.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

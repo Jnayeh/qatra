@@ -6,7 +6,6 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.exception.ConflictException;
-import com.zayenha.qatra.infrastructure.kafka.NotificationEventPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
@@ -35,11 +34,10 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
     private final EmergencyRepositoryPort repository;
     private final DonorRepositoryPort donorRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final NotificationEventPublisher notificationEventPublisher;
     private final CacheService cacheService;
     private final MatchingService matchingService;
 
-    @Value("${emergency.expiration-hours:48}")
+    @Value("${emergency.expiration-minutes:180}")
     private long expirationHours;
     private final AuditPublisher auditPublisher;
 
@@ -47,7 +45,7 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
     @Transactional
     public EmergencyRequest create(Long centerId, Long createdByStaffId, BloodType bloodType, Integer unitsNeeded,
                                     EmergencyUrgency urgency, Integer matchRadius, String contactPhone) {
-        var request = new EmergencyRequest(centerId, createdByStaffId, bloodType, unitsNeeded, urgency, contactPhone, matchRadius, Instant.now().plus(expirationHours, ChronoUnit.HOURS));
+        var request = new EmergencyRequest(centerId, createdByStaffId, bloodType, unitsNeeded, urgency, contactPhone, matchRadius, Instant.now().plus(expirationHours, ChronoUnit.MINUTES));
         var saved = repository.save(request);
         cacheService.evictByPattern("emergencies:*");
         auditPublisher.publish("EMERGENCY_CREATED", saved.getId(), "EmergencyRequest", null,

@@ -2,9 +2,6 @@ package com.zayenha.qatra.emergency.application;
 
 import com.zayenha.qatra._shared.event.AuditEvent;
 import com.zayenha.qatra._shared.event.AuditUtils;
-import com.zayenha.qatra.appointment.domain.model.Appointment;
-import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
-import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
@@ -20,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -58,7 +56,8 @@ public class EmergencyMonitoringService {
     }
 
     private boolean shouldEscalate(EmergencyRequest emergency, Instant now) {
-        var threshold = emergency.getUpdatedAt().plus(escalateAfterMinutes, ChronoUnit.MINUTES);
+        var threshold = Optional.ofNullable(emergency.getUpdatedAt()).orElse(emergency.getCreatedAt())
+                .plus(escalateAfterMinutes, ChronoUnit.MINUTES);
         return now.isAfter(threshold);
     }
 
@@ -75,12 +74,7 @@ public class EmergencyMonitoringService {
     }
 
     private void escalateIfNeeded(EmergencyRequest emergency) {
-        var appointments = appointmentRepository.findByEmergencyId(emergency.getId());
-        var totalMl = appointments.stream()
-                .filter(a -> a.getOutcome() == DonationOutcome.COMPLETED && a.getStatus() == AppointmentStatus.COMPLETED)
-                .mapToInt(Appointment::getMlCollected)
-                .sum();
-        var unitsCollected = totalMl / ML_PER_UNIT;
+        var unitsCollected = appointmentRepository.countCompletedByEmergencyId(emergency.getId());
         if (unitsCollected >= emergency.getUnitsNeeded()) {
             emergency.fulfill();
             emergencyRepository.save(emergency);

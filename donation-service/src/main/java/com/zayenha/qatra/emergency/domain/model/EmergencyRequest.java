@@ -41,25 +41,30 @@ public class EmergencyRequest {
         this.status = EmergencyStatus.OPEN;
         this.escalationLevel = 0;
         this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     public void matchDonors() {}
 
     public void updateStatus(EmergencyStatus status) {
         this.status = status;
+        this.updatedAt = Instant.now();
     }
 
     public void resolve(Long resolvedByUserId) {
         this.status = EmergencyStatus.FULFILLED;
         this.resolvedAt = Instant.now();
         this.resolvedByUserId = resolvedByUserId;
+        this.updatedAt = Instant.now();
     }
 
     public void cancel() {
         this.status = EmergencyStatus.CANCELLED;
+        this.updatedAt = Instant.now();
     }
 
     public void fulfill() {
         this.status = EmergencyStatus.FULFILLED;
+        this.updatedAt = Instant.now();
     }
 }
