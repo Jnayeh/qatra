@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -13,15 +14,15 @@ public class AuditLog {
     private String action;
     private String entityType;
     private Long entityId;
-    private String oldValue;
-    private String newValue;
+    private Map<String, Object> oldValue;
+    private Map<String, Object> newValue;
     private String ipAddress;
-    private String userAgent;
     private Instant timestamp;
 
     public AuditLog() {}
 
-    public AuditLog(Long userId, String action, String entityType, Long entityId, String oldValue, String newValue, String ipAddress, String userAgent) {
+    public AuditLog(Long userId, String action, String entityType, Long entityId,
+                    Map<String, Object> oldValue, Map<String, Object> newValue, String ipAddress) {
         this.userId = userId;
         this.action = action;
         this.entityType = entityType;
@@ -29,7 +30,6 @@ public class AuditLog {
         this.oldValue = oldValue;
         this.newValue = newValue;
         this.ipAddress = ipAddress;
-        this.userAgent = userAgent;
         this.timestamp = Instant.now();
     }
 }

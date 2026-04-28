@@ -1,11 +1,15 @@
 package com.zayenha.qatra.analytics.infrastructure.persistence.entity;
 
+import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Entity
 @Table(name = "audit_logs")
@@ -18,7 +22,9 @@ public class AuditLogEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
 
     @Column(nullable = false)
     private String action;
@@ -26,14 +32,13 @@ public class AuditLogEntity {
     private String entityType;
     private Long entityId;
 
-    @Column(columnDefinition = "TEXT")
-    private String oldValue;
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Map<String, Object> oldValue;
 
-    @Column(columnDefinition = "TEXT")
-    private String newValue;
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Map<String, Object> newValue;
 
     private String ipAddress;
-    private String userAgent;
 
     @Column(nullable = false, updatable = false)
     private Instant timestamp;

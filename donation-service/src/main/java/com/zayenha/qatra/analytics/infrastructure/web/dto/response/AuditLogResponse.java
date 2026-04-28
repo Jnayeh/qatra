@@ -1,6 +1,7 @@
 package com.zayenha.qatra.analytics.infrastructure.web.dto.response;
 
 import java.time.Instant;
+import java.util.Map;
 
 public record AuditLogResponse(
     Long id,
@@ -8,9 +9,8 @@ public record AuditLogResponse(
     String action,
     String entityType,
     Long entityId,
-    String oldValue,
-    String newValue,
+    Map<String, Object> oldValue,
+    Map<String, Object> newValue,
     String ipAddress,
-    String userAgent,
     Instant timestamp
 ) {}

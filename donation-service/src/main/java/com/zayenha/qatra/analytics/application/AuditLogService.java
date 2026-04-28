@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -19,8 +20,9 @@ public class AuditLogService {
 
     @Async
     @Transactional
-    public void record(Long userId, String action, String entityType, Long entityId, String oldValue, String newValue, String ipAddress, String userAgent) {
-        var log = new AuditLog(userId, action, entityType, entityId, oldValue, newValue, ipAddress, userAgent);
+    public void record(Long userId, String action, String entityType, Long entityId,
+                       Map<String, Object> oldValue, Map<String, Object> newValue, String ipAddress) {
+        var log = new AuditLog(userId, action, entityType, entityId, oldValue, newValue, ipAddress);
         repository.save(log);
     }
 

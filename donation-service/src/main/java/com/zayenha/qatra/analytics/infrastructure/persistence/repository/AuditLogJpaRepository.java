@@ -11,7 +11,7 @@ import java.util.List;
 public interface AuditLogJpaRepository extends JpaRepository<AuditLogEntity, Long> {
     Page<AuditLogEntity> findAllByOrderByTimestampDesc(Pageable pageable);
     List<AuditLogEntity> findByActionOrderByTimestampDesc(String action);
-    List<AuditLogEntity> findByUserIdOrderByTimestampDesc(Long userId);
+    List<AuditLogEntity> findByUser_IdOrderByTimestampDesc(Long userId);
     List<AuditLogEntity> findByTimestampBetweenOrderByTimestampDesc(Instant from, Instant to);
     long countByAction(String action);
 }

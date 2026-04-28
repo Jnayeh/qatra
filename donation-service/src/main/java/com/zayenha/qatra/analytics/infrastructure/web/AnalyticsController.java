@@ -6,7 +6,7 @@ import com.zayenha.qatra._shared.web.PageHelper;
 import com.zayenha.qatra.analytics.application.AuditLogService;
 import com.zayenha.qatra.analytics.infrastructure.web.dto.response.AuditLogResponse;
 import com.zayenha.qatra.analytics.infrastructure.web.dto.response.MetricsResponse;
-import com.zayenha.qatra.analytics.infrastructure.web.mapper.AnalyticsMapper;
+import com.zayenha.qatra.analytics.infrastructure.mapper.AnalyticsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +21,7 @@ import java.util.List;
 public class AnalyticsController {
 
     private final AuditLogService auditLogService;
+    private final AnalyticsMapper mapper;
 
     @GetMapping("/audit-logs")
     public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getAuditLogs(
@@ -29,7 +30,7 @@ public class AnalyticsController {
         var criteria = new SearchCriteria(null, "timestamp", "desc", page, size);
         var result = auditLogService.findAll(criteria);
         return ResponseEntity.ok(ApiResponse.success(
-            result.content().stream().map(AnalyticsMapper::toResponse).toList(),
+            result.content().stream().map(mapper::toResponse).toList(),
             PageHelper.fromDomain(result)
         ));
     }
@@ -38,14 +39,14 @@ public class AnalyticsController {
     public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getByAction(@PathVariable String action) {
         var logs = auditLogService.findByAction(action);
         return ResponseEntity.ok(ApiResponse.success(
-            logs.stream().map(AnalyticsMapper::toResponse).toList()));
+            logs.stream().map(mapper::toResponse).toList()));
     }
 
     @GetMapping("/audit-logs/by-user/{userId}")
     public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getByUser(@PathVariable Long userId) {
         var logs = auditLogService.findByUserId(userId);
         return ResponseEntity.ok(ApiResponse.success(
-            logs.stream().map(AnalyticsMapper::toResponse).toList()));
+            logs.stream().map(mapper::toResponse).toList()));
     }
 
     @GetMapping("/metrics")
