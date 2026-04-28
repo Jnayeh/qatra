@@ -24,7 +24,6 @@ public class GDPRRepositoryAdapter implements GDPRRepositoryPort {
             var existing = jpaRepository.findById(entity.getId()).orElseThrow();
             existing.setStatus(entity.getStatus());
             existing.setProcessedAt(entity.getProcessedAt());
-            existing.setProcessedBy(entity.getProcessedBy());
             return toDomain(jpaRepository.save(existing));
         }
         return toDomain(jpaRepository.save(entity));
@@ -37,7 +36,7 @@ public class GDPRRepositoryAdapter implements GDPRRepositoryPort {
 
     @Override
     public Optional<GDPRDeletionRequest> findByUserId(Long userId) {
-        return jpaRepository.findByUserId(userId).map(this::toDomain);
+        return jpaRepository.findByUser_Id(userId).map(this::toDomain);
     }
 
     @Override
@@ -53,23 +52,21 @@ public class GDPRRepositoryAdapter implements GDPRRepositoryPort {
     private GDPRDeletionRequestEntity toEntity(GDPRDeletionRequest domain) {
         var entity = new GDPRDeletionRequestEntity();
         entity.setId(domain.getId());
-        entity.setUserId(domain.getUserId());
+        entity.setUser(new com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity(domain.getUserId()));
         entity.setReason(domain.getReason());
         entity.setStatus(domain.getStatus());
         entity.setProcessedAt(domain.getProcessedAt());
-        entity.setProcessedBy(domain.getProcessedBy());
         return entity;
     }
 
     private GDPRDeletionRequest toDomain(GDPRDeletionRequestEntity entity) {
         var domain = new GDPRDeletionRequest();
         domain.setId(entity.getId());
-        domain.setUserId(entity.getUserId());
+        domain.setUserId(entity.getUser().getId());
         domain.setReason(entity.getReason());
         domain.setStatus(entity.getStatus());
         domain.setRequestedAt(entity.getRequestedAt());
         domain.setProcessedAt(entity.getProcessedAt());
-        domain.setProcessedBy(entity.getProcessedBy());
         return domain;
     }
 }

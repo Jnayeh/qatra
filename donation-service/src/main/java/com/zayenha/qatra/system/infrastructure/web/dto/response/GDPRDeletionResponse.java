@@ -10,6 +10,5 @@ public record GDPRDeletionResponse(
     String reason,
     GDPRDeletionStatus status,
     Instant requestedAt,
-    Instant processedAt,
-    String processedBy
+    Instant processedAt
 ) {}

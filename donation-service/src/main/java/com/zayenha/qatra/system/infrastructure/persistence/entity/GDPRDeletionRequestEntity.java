@@ -1,6 +1,7 @@
 package com.zayenha.qatra.system.infrastructure.persistence.entity;
 
 import com.zayenha.qatra.system.domain.model.GDPRDeletionStatus;
+import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,8 +20,9 @@ public class GDPRDeletionRequestEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @Column(columnDefinition = "TEXT")
     private String reason;
@@ -33,7 +35,6 @@ public class GDPRDeletionRequestEntity {
     private Instant requestedAt;
 
     private Instant processedAt;
-    private String processedBy;
 
     @PrePersist
     void onCreate() {

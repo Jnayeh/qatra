@@ -14,30 +14,23 @@ public class GDPRDeletionRequest {
     private GDPRDeletionStatus status;
     private Instant requestedAt;
     private Instant processedAt;
-    private String processedBy;
 
     public GDPRDeletionRequest() {}
 
     public GDPRDeletionRequest(Long userId, String reason) {
         this.userId = userId;
         this.reason = reason;
-        this.status = GDPRDeletionStatus.PENDING;
+        this.status = GDPRDeletionStatus.IN_PROGRESS;
         this.requestedAt = Instant.now();
-    }
-
-    public void approve(String processedBy) {
-        this.status = GDPRDeletionStatus.APPROVED;
-        this.processedAt = Instant.now();
-        this.processedBy = processedBy;
-    }
-
-    public void reject(String processedBy) {
-        this.status = GDPRDeletionStatus.REJECTED;
-        this.processedAt = Instant.now();
-        this.processedBy = processedBy;
     }
 
     public void complete() {
         this.status = GDPRDeletionStatus.COMPLETED;
+        this.processedAt = Instant.now();
+    }
+
+    public void cancel() {
+        this.status = GDPRDeletionStatus.CANCELED;
+        this.processedAt = Instant.now();
     }
 }

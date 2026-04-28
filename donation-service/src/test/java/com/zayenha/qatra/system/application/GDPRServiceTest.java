@@ -34,37 +34,25 @@ class GDPRServiceTest {
     }
 
     @Test
-    void requestDeletionCreatesPendingRequest() {
+    void requestDeletionCreatesInProgressRequest() {
         when(repository.findByUserId(1L)).thenReturn(Optional.empty());
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         var result = service.requestDeletion(1L, "User request");
 
         assertThat(result.getUserId()).isEqualTo(1L);
-        assertThat(result.getStatus()).isEqualTo(GDPRDeletionStatus.PENDING);
+        assertThat(result.getStatus()).isEqualTo(GDPRDeletionStatus.IN_PROGRESS);
     }
 
     @Test
-    void approveUpdatesStatus() {
+    void completeUpdatesStatus() {
         var request = new GDPRDeletionRequest(1L, "User request");
         when(repository.findById(1L)).thenReturn(Optional.of(request));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        var result = service.approve(1L, "admin@test.com");
+        var result = service.complete(1L);
 
-        assertThat(result.getStatus()).isEqualTo(GDPRDeletionStatus.APPROVED);
-        assertThat(result.getProcessedBy()).isEqualTo("admin@test.com");
-    }
-
-    @Test
-    void rejectUpdatesStatus() {
-        var request = new GDPRDeletionRequest(1L, "User request");
-        when(repository.findById(1L)).thenReturn(Optional.of(request));
-        when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
-
-        var result = service.reject(1L, "admin@test.com");
-
-        assertThat(result.getStatus()).isEqualTo(GDPRDeletionStatus.REJECTED);
+        assertThat(result.getStatus()).isEqualTo(GDPRDeletionStatus.COMPLETED);
     }
 
     @Test
