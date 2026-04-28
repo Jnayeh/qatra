@@ -1,4 +1,4 @@
-package com.zayenha.qatra.infrastructure.tracing;
+package com.zayenha.qatra._config.tracing;
 
 import io.opentelemetry.api.trace.Span;
 import jakarta.servlet.http.HttpServletRequest;

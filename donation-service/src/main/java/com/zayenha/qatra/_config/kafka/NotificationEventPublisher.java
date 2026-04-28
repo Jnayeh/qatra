@@ -1,5 +1,6 @@
-package com.zayenha.qatra.infrastructure.kafka;
+package com.zayenha.qatra._config.kafka;
 
+import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AppointmentReminderEvent;
 import com.zayenha.qatra._shared.event.EligibilityRestoredEvent;
 import com.zayenha.qatra._shared.event.EmergencyCreatedEvent;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class NotificationEventPublisher {
+public class NotificationEventPublisher implements EventPublisherPort {
 
     private final EventPublisher eventPublisher;
 
@@ -52,9 +53,9 @@ public class NotificationEventPublisher {
         eventPublisher.publish(eligibilityRestoredTopic, "elig-" + donorId, event);
     }
 
-    public void publishNotificationDispatch(Long userId, String type, String title, String body, Map<String, Object> data) {
+    public void publishNotificationDispatch(Long userId, String email, String type, String title, String body, Map<String, Object> data) {
         var event = new NotificationDispatchEvent(
-            userId, null, type, title, body, data,
+            userId, email, type, title, body, data,
             UUID.randomUUID().toString(), Instant.now());
         eventPublisher.publish(notificationDispatchTopic, "notif-" + userId, event);
     }

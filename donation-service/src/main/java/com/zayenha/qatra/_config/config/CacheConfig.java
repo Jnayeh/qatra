@@ -1,4 +1,4 @@
-package com.zayenha.qatra.infrastructure.config;
+package com.zayenha.qatra._config.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

@@ -1,4 +1,4 @@
-package com.zayenha.qatra.infrastructure.kafka;
+package com.zayenha.qatra._config.kafka;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Value;

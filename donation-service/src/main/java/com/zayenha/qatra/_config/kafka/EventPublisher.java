@@ -1,4 +1,4 @@
-package com.zayenha.qatra.infrastructure.kafka;
+package com.zayenha.qatra._config.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
