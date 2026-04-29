@@ -1,7 +1,8 @@
 package com.zayenha.qatra.system.infrastructure.web;
 
 import com.zayenha.qatra._shared.web.ApiResponse;
-import com.zayenha.qatra.system.application.GDPRService;
+import com.zayenha.qatra.system.domain.port.in.GDPRCommandUseCases;
+import com.zayenha.qatra.system.domain.port.in.GDPRQueryUseCases;
 import com.zayenha.qatra.system.infrastructure.web.dto.request.GDPRRequestDeletionRequest;
 import com.zayenha.qatra.system.infrastructure.web.dto.response.GDPRDeletionResponse;
 import com.zayenha.qatra.system.infrastructure.mapper.SystemMapper;
@@ -19,37 +20,38 @@ import java.util.List;
 @PreAuthorize("hasRole('SUPER_ADMIN')")
 public class SystemController {
 
-    private final GDPRService gdprService;
+    private final GDPRCommandUseCases gdprCommandUseCases;
+    private final GDPRQueryUseCases gdprQueryUseCases;
     private final SystemMapper mapper;
 
     @PostMapping("/gdpr/request")
     public ResponseEntity<ApiResponse<GDPRDeletionResponse>> requestDeletion(@Valid @RequestBody GDPRRequestDeletionRequest request) {
-        var gdpr = gdprService.requestDeletion(request.userId(), request.reason());
+        var gdpr = gdprCommandUseCases.requestDeletion(request.userId(), request.reason());
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(gdpr)));
     }
 
     @PostMapping("/gdpr/{id}/complete")
     public ResponseEntity<ApiResponse<GDPRDeletionResponse>> completeDeletion(@PathVariable Long id) {
-        var gdpr = gdprService.complete(id);
+        var gdpr = gdprCommandUseCases.complete(id);
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(gdpr)));
     }
 
     @PostMapping("/gdpr/{id}/cancel")
     public ResponseEntity<ApiResponse<GDPRDeletionResponse>> cancelDeletion(@PathVariable Long id) {
-        var gdpr = gdprService.cancel(id);
+        var gdpr = gdprCommandUseCases.cancel(id);
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(gdpr)));
     }
 
     @GetMapping("/gdpr")
     public ResponseEntity<ApiResponse<List<GDPRDeletionResponse>>> getAllDeletionRequests() {
-        var requests = gdprService.findAll();
+        var requests = gdprQueryUseCases.findAll();
         return ResponseEntity.ok(ApiResponse.success(
             requests.stream().map(mapper::toResponse).toList()));
     }
 
     @GetMapping("/gdpr/{id}")
     public ResponseEntity<ApiResponse<GDPRDeletionResponse>> getDeletionRequest(@PathVariable Long id) {
-        var request = gdprService.findById(id);
+        var request = gdprQueryUseCases.findById(id);
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(request)));
     }
 }

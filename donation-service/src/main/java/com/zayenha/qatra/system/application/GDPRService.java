@@ -4,6 +4,8 @@ import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionRequest;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionStatus;
+import com.zayenha.qatra.system.domain.port.in.GDPRCommandUseCases;
+import com.zayenha.qatra.system.domain.port.in.GDPRQueryUseCases;
 import com.zayenha.qatra.system.domain.port.out.GDPRRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -15,7 +17,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class GDPRService {
+public class GDPRService implements GDPRCommandUseCases, GDPRQueryUseCases {
 
     private final GDPRRepositoryPort repository;
     private final ApplicationEventPublisher eventPublisher;

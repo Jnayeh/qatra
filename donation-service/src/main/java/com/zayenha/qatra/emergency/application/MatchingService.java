@@ -1,13 +1,13 @@
 package com.zayenha.qatra.emergency.application;
 
 import com.zayenha.qatra._shared.domain.GeoUtils;
+import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.MatchResult;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
-import com.zayenha.qatra.infrastructure.kafka.NotificationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +27,7 @@ public class MatchingService {
     private final DonorRepositoryPort donorRepository;
     private final EmergencyRepositoryPort emergencyRepository;
     private final CenterRepositoryPort centerRepository;
-    private final NotificationEventPublisher notificationEventPublisher;
+    private final EventPublisherPort eventPublisherPort;
 
     @Value("${emergency.escalation-radius-increment:10}")
     private int radiusIncrementKm;
@@ -104,8 +104,8 @@ public class MatchingService {
             );
             emergencyRepository.saveMatchResult(matchResult);
 
-            notificationEventPublisher.publishNotificationDispatch(
-                    md.donor().getUserId(), "EMERGENCY_ALERT",
+            eventPublisherPort.publishNotificationDispatch(
+                    md.donor().getUserId(), null, "EMERGENCY_ALERT",
                     "Urgent: Blood Donation Needed",
                     "An emergency blood request has been created at a nearby center. Please respond.",
                     Map.of("emergencyId", emergency.getId())

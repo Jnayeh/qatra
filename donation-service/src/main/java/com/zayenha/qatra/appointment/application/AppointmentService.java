@@ -3,9 +3,9 @@ package com.zayenha.qatra.appointment.application;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.ConflictException;
-import com.zayenha.qatra.infrastructure.kafka.NotificationEventPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.appointment.domain.exception.AppointmentErrorCode;
@@ -34,7 +34,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
     private final DonorRepositoryPort donorRepository;
     private final SlotRepositoryPort slotRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final NotificationEventPublisher notificationEventPublisher;
+    private final EventPublisherPort eventPublisherPort;
     private final CacheService cacheService;
     private final AuditPublisher auditPublisher;
 
@@ -51,7 +51,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         auditPublisher.publish("APPOINTMENT_BOOKED", saved.getId(), "Appointment", null,
             Map.of("donorId", donorId, "slotId", slotId, "appointmentType",
                    saved.getAppointmentType() != null ? saved.getAppointmentType().name() : null));
-        notificationEventPublisher.publishAppointmentReminder(saved.getId(), donorId, null);
+        eventPublisherPort.publishAppointmentReminder(saved.getId(), donorId, null);
         return saved;
     }
 
@@ -198,9 +198,9 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
                 });
             }
             cacheService.evictByPattern("appointments:*");
-            notificationEventPublisher.publishEligibilityRestored(appointment.getDonorId(), "deferred");
+            eventPublisherPort.publishEligibilityRestored(appointment.getDonorId(), "deferred");
         } else {
-            notificationEventPublisher.publishEligibilityRestored(appointment.getDonorId(), "now");
+            eventPublisherPort.publishEligibilityRestored(appointment.getDonorId(), "now");
         }
         return saved;
     }

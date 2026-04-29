@@ -3,6 +3,7 @@ package com.zayenha.qatra.analytics.application;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.analytics.domain.model.AuditLog;
+import com.zayenha.qatra.analytics.domain.port.in.AuditLogQueryUseCases;
 import com.zayenha.qatra.analytics.domain.port.out.AuditLogRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -14,7 +15,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class AuditLogService {
+public class AuditLogService implements AuditLogQueryUseCases {
 
     private final AuditLogRepositoryPort repository;
 
