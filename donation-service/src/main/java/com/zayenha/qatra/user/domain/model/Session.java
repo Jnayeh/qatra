@@ -55,4 +55,10 @@ public class Session {
     public void revoke() {
         this.expiresAt = Instant.now();
     }
+
+    public void rotateTokens(String newAccessTokenHash, String newRefreshTokenHash, Instant newExpiresAt) {
+        this.accessTokenHash = newAccessTokenHash;
+        this.refreshTokenHash = newRefreshTokenHash;
+        this.expiresAt = newExpiresAt;
+    }
 }
