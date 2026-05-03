@@ -19,4 +19,6 @@ public interface AppointmentRepositoryPort {
     HealthScreening saveScreening(HealthScreening screening);
     Optional<HealthScreening> findScreeningByAppointmentId(Long appointmentId);
     List<Appointment> findByEmergencyId(Long emergencyId);
+
+    long countCompletedByEmergencyId(Long emergencyId);
 }

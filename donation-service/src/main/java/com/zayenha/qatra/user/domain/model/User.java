@@ -89,6 +89,10 @@ public class User {
         this.deletedAt = Instant.now();
     }
 
+    public void changePassword(String newEncodedPassword) {
+        this.hashedPassword = newEncodedPassword;
+    }
+
     public void verifyEmail() { this.emailVerified = true; }
 
     public boolean isActive() { return status == UserStatus.ACTIVE; }

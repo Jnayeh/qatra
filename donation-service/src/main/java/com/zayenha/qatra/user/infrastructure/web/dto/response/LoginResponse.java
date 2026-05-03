@@ -7,12 +7,13 @@ import java.util.List;
 public record LoginResponse(
     String token,
     String tokenType,
+    String refreshToken,
     Long userId,
     String email,
     String displayName,
     List<Role> roles
 ) {
-    public LoginResponse(String token, Long userId, String email, String displayName, List<Role> roles) {
-        this(token, "Bearer", userId, email, displayName, roles);
+    public LoginResponse(String token, String refreshToken, Long userId, String email, String displayName, List<Role> roles) {
+        this(token, "Bearer", refreshToken, userId, email, displayName, roles);
     }
 }

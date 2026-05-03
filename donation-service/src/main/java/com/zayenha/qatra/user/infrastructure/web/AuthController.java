@@ -1,21 +1,39 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
+import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.web.ApiResponse;
-import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
-import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
+import com.zayenha.qatra.user.domain.exception.UserErrorCode;
+import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra.user.domain.model.Session;
+import com.zayenha.qatra.user.domain.model.VerificationToken;
+import com.zayenha.qatra.user.domain.model.VerificationTokenType;
+import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
+import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
+import com.zayenha.qatra.user.domain.port.out.SessionRepositoryPort;
+import com.zayenha.qatra.user.domain.port.out.VerificationTokenRepositoryPort;
 import com.zayenha.qatra.user.infrastructure.security.JwtTokenProvider;
 import com.zayenha.qatra.user.infrastructure.security.UserDetailsAdapter;
-import com.zayenha.qatra.user.infrastructure.web.dto.request.LoginRequest;
+import com.zayenha.qatra.user.infrastructure.web.dto.request.*;
 import com.zayenha.qatra.user.infrastructure.web.dto.response.LoginResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,24 +42,160 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
-    private final UserRoleRepositoryPort userRoleRepository;
-    private final UserRepositoryPort userRepository;
+    private final UserQueryUseCases userQueryUseCases;
+    private final UserCommandUseCases userCommandUseCases;
+    private final SessionRepositoryPort sessionRepository;
+    private final VerificationTokenRepositoryPort verificationTokenRepository;
+    private final EventPublisherPort eventPublisherPort;
+    private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request,
+            @RequestHeader(name = HttpHeaders.USER_AGENT, required = false) String userAgent,
+            @RequestHeader(name = "X-Forwarded-For", required = false) String ipAddress) {
         var auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
         var principal = (UserDetailsAdapter) auth.getPrincipal();
         var user = principal.user();
-        var roles = userRoleRepository.findByUserId(user.getId()).stream()
-                .map(ur -> ur.getRole())
-                .toList();
+        var roles = userQueryUseCases.getUserRoles(user.getId());
+        var roleNameStrings = roles.stream().map(Enum::name).toList();
 
-        var roleNames = roles.stream().map(Enum::name).toList();
-        var token = tokenProvider.generateToken(user.getId(), user.getEmail(), roleNames);
+        var accessToken = tokenProvider.generateToken(user.getId(), user.getEmail(), roleNameStrings);
+        var refreshToken = UUID.randomUUID().toString();
+        var session = new Session(user.getId(), sha256(accessToken), sha256(refreshToken),
+                sanitizeIp(ipAddress), userAgent, Instant.now().plus(Duration.ofDays(30)));
+        sessionRepository.save(session);
 
         return ResponseEntity.ok(ApiResponse.success(
-                new LoginResponse(token, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
+                new LoginResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<ApiResponse<LoginResponse>> signup(
+            @Valid @RequestBody SignupRequest request,
+            @RequestHeader(name = HttpHeaders.USER_AGENT, required = false) String userAgent,
+            @RequestHeader(name = "X-Forwarded-For", required = false) String ipAddress) {
+        var user = userCommandUseCases.create(request.email(), request.phone(), request.password(), request.displayName());
+        userCommandUseCases.assignRole(user.getId(), Role.DONOR);
+        var roles = userQueryUseCases.getUserRoles(user.getId());
+        var roleNameStrings = roles.stream().map(Enum::name).toList();
+
+        var accessToken = tokenProvider.generateToken(user.getId(), user.getEmail(), roleNameStrings);
+        var refreshToken = UUID.randomUUID().toString();
+        var session = new Session(user.getId(), sha256(accessToken), sha256(refreshToken),
+                sanitizeIp(ipAddress), userAgent, Instant.now().plus(Duration.ofDays(30)));
+        sessionRepository.save(session);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                new LoginResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        var token = extractToken(authHeader);
+        var tokenHash = sha256(token);
+        sessionRepository.findByAccessTokenHash(tokenHash).ifPresent(s -> {
+            s.revoke();
+            sessionRepository.save(s);
+        });
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<LoginResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        var tokenHash = sha256(request.refreshToken());
+        var session = sessionRepository.findByRefreshTokenHash(tokenHash)
+                .orElseThrow(() -> new NotFoundException("Invalid refresh token", "INVALID_REFRESH_TOKEN"));
+
+        if (!session.validate()) {
+            throw new NotFoundException("Refresh token expired", "REFRESH_TOKEN_EXPIRED");
+        }
+
+        var user = userQueryUseCases.findById(session.getUserId())
+                .orElseThrow(() -> new NotFoundException("User not found", UserErrorCode.USER_NOT_FOUND.name()));
+
+        var roles = userQueryUseCases.getUserRoles(user.getId());
+        var roleNameStrings = roles.stream().map(Enum::name).toList();
+        var newAccessToken = tokenProvider.generateToken(user.getId(), user.getEmail(), roleNameStrings);
+        var newRefreshToken = UUID.randomUUID().toString();
+
+        session.rotateTokens(sha256(newAccessToken), sha256(newRefreshToken), Instant.now().plus(Duration.ofDays(30)));
+        sessionRepository.save(session);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                new LoginResponse(newAccessToken, newRefreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        var userOpt = userQueryUseCases.findByEmail(request.email());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.success(null));
+        }
+        var user = userOpt.get();
+        var rawToken = UUID.randomUUID().toString();
+        var token = new VerificationToken(user.getId(), sha256(rawToken), VerificationTokenType.PASSWORD_RESET,
+                Instant.now().plus(Duration.ofHours(1)));
+        verificationTokenRepository.save(token);
+
+        var resetLink = baseUrl + "/reset-password?token=" + rawToken;
+        eventPublisherPort.publishNotificationDispatch(
+                user.getId(), user.getEmail(), "PASSWORD_RESET", "Password Reset Request",
+                "Click the link to reset your password: " + resetLink,
+                Map.of("resetToken", rawToken, "email", user.getEmail()));
+
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        var tokenHash = sha256(request.token());
+        var token = verificationTokenRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new NotFoundException("Invalid or expired reset token", "INVALID_RESET_TOKEN"));
+
+        if (!token.validate()) {
+            throw new NotFoundException("Reset token expired", "RESET_TOKEN_EXPIRED");
+        }
+
+        userCommandUseCases.updatePassword(token.getUserId(), passwordEncoder.encode(request.newPassword()));
+
+        token.consume();
+        verificationTokenRepository.save(token);
+
+        sessionRepository.findActiveByUserId(token.getUserId()).ifPresent(s -> {
+            s.revoke();
+            sessionRepository.save(s);
+        });
+
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    private static String sha256(String value) {
+        try {
+            var digest = MessageDigest.getInstance("SHA-256");
+            var hash = digest.digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 not available", e);
+        }
+    }
+
+    private static String extractToken(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return authHeader;
+    }
+
+    private static String sanitizeIp(String ip) {
+        if (ip != null && ip.contains(",")) {
+            return ip.split(",")[0].trim();
+        }
+        return ip;
     }
 }

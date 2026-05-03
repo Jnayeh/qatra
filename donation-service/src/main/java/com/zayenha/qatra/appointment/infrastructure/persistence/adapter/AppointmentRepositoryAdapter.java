@@ -2,7 +2,10 @@ package com.zayenha.qatra.appointment.infrastructure.persistence.adapter;
 
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
-import com.zayenha.qatra.appointment.domain.model.*;
+import com.zayenha.qatra.appointment.domain.model.Appointment;
+import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
+import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.zayenha.qatra.appointment.infrastructure.persistence.entity.AppointmentEntity;
 import com.zayenha.qatra.appointment.infrastructure.persistence.repository.AppointmentJpaRepository;
@@ -67,6 +70,11 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     @Override
     public List<Appointment> findByEmergencyId(Long emergencyId) {
         return jpaRepository.findByEmergency_Id(emergencyId).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public long countCompletedByEmergencyId(Long emergencyId) {
+        return jpaRepository.countCompletedByEmergencyId(emergencyId, DonationOutcome.COMPLETED, AppointmentStatus.COMPLETED);
     }
 
     @Override

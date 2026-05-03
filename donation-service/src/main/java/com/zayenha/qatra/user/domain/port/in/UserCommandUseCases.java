@@ -10,6 +10,7 @@ public interface UserCommandUseCases {
     void updateStatus(Long id, UserStatus status);
     void assignRole(Long userId, Role role);
     void revokeRole(Long userId, Role role);
+    void updatePassword(Long userId, String newEncodedPassword);
     void delete(Long id);
     void seedSuperAdminIfAbsent();
 }

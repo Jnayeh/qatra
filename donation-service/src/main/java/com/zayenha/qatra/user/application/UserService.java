@@ -104,6 +104,17 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
     @Override
     @Transactional
+    public void updatePassword(Long userId, String newEncodedPassword) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        user.changePassword(newEncodedPassword);
+        userRepository.save(user);
+        cacheService.evictByPattern("users:*");
+        auditPublisher.publish("USER_PASSWORD_CHANGED", userId, "User", null, null);
+    }
+
+    @Override
+    @Transactional
     public void assignRole(Long userId, Role role) {
         var user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         if (!user.isActive()) {
