@@ -3,6 +3,7 @@ package com.zayenha.qatra.donor.infrastructure.persistence.adapter;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
+import com.zayenha.qatra.donor.infrastructure.mapper.DonorMapper;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonorJpaRepository;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.HealthQuestionnaireJpaRepository;
 import lombok.RequiredArgsConstructor;

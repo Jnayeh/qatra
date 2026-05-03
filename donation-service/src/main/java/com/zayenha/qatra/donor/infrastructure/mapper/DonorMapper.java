@@ -3,28 +3,40 @@ package com.zayenha.qatra.donor.infrastructure.mapper;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
+import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonorProfileEntity;
+import com.zayenha.qatra.donor.infrastructure.persistence.entity.HealthQuestionnaireEntity;
+import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonorJpaRepository;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorDetailResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorHealthResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorProfileResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityDetailResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.ImpactResponse;
+import com.zayenha.qatra.user.infrastructure.persistence.repository.UserJpaRepository;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface DonorMapper {
+public abstract class DonorMapper {
 
-    DonorProfileResponse toProfileResponse(DonorProfile profile);
+    @Autowired
+    protected UserJpaRepository userJpaRepository;
 
-    DonorHealthResponse toHealthResponse(HealthQuestionnaire questionnaire);
+    @Autowired
+    protected DonorJpaRepository donorJpaRepository;
 
-    ImpactResponse toImpactResponse(DonorQueryUseCases.ImpactResult result);
+    public abstract DonorProfileResponse toProfileResponse(DonorProfile profile);
 
-    default EligibilityResponse toEligibilityResponse(DonorProfile profile) {
+    public abstract DonorHealthResponse toHealthResponse(HealthQuestionnaire questionnaire);
+
+    public abstract ImpactResponse toImpactResponse(DonorQueryUseCases.ImpactResult result);
+
+    public EligibilityResponse toEligibilityResponse(DonorProfile profile) {
         var now = Instant.now();
         var eligible = profile.getEligibleFromDate() == null
             || !now.isBefore(profile.getEligibleFromDate().atStartOfDay(ZoneOffset.UTC).toInstant());
@@ -39,7 +51,7 @@ public interface DonorMapper {
         return new EligibilityResponse(eligible, profile.getEligibleFromDate(), reason);
     }
 
-    default EligibilityDetailResponse toEligibilityDetailResponse(DonorProfile profile) {
+    public EligibilityDetailResponse toEligibilityDetailResponse(DonorProfile profile) {
         var now = Instant.now();
         var eligible = profile.getEligibleFromDate() == null
             || !now.isBefore(profile.getEligibleFromDate().atStartOfDay(ZoneOffset.UTC).toInstant());
@@ -50,7 +62,7 @@ public interface DonorMapper {
             profile.getPermanentlyRestricted(), profile.getRestrictionReason());
     }
 
-    default DonorDetailResponse toDetailResponse(DonorProfile profile) {
+    public DonorDetailResponse toDetailResponse(DonorProfile profile) {
         return new DonorDetailResponse(
             profile.getId(), profile.getUserId(),
             profile.getBloodType(), profile.getBloodTypeVerified(),
@@ -64,4 +76,18 @@ public interface DonorMapper {
             profile.getCreatedAt(), profile.getUpdatedAt()
         );
     }
+
+    @Mapping(target = "user", expression = "java(userJpaRepository.getReferenceById(profile.getUserId()))")
+    public abstract DonorProfileEntity toEntity(DonorProfile profile);
+
+    @Mapping(target = "userId", source = "user.id")
+    public abstract DonorProfile toDomain(DonorProfileEntity entity);
+
+    @Mapping(target = "donor", expression = "java(donorJpaRepository.getReferenceById(questionnaire.getDonorId()))")
+    @Mapping(target = "hasChronicIllness", source = "hasChronicIllness")
+    @Mapping(target = "onMedication", source = "onMedication")
+    public abstract HealthQuestionnaireEntity toQuestionnaireEntity(HealthQuestionnaire questionnaire);
+
+    @Mapping(target = "donorId", source = "donor.id")
+    public abstract HealthQuestionnaire toQuestionnaireDomain(HealthQuestionnaireEntity entity);
 }

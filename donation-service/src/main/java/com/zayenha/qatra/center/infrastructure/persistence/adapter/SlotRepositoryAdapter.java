@@ -2,6 +2,7 @@ package com.zayenha.qatra.center.infrastructure.persistence.adapter;
 
 import com.zayenha.qatra.center.domain.model.Slot;
 import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
+import com.zayenha.qatra.center.infrastructure.mapper.CenterMapper;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaRepository;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.SlotJpaRepository;
 import com.zayenha.qatra._shared.exception.NotFoundException;

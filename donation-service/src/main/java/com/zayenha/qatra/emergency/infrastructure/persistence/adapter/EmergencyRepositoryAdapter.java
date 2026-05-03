@@ -12,6 +12,7 @@ import com.zayenha.qatra.emergency.infrastructure.persistence.entity.DonorRespon
 import com.zayenha.qatra.emergency.infrastructure.persistence.entity.EmergencyRequestEntity;
 import com.zayenha.qatra.emergency.infrastructure.persistence.entity.MatchResultEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.SlotJpaRepository;
+import com.zayenha.qatra.emergency.infrastructure.mapper.EmergencyMapper;
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.DonorResponseJpaRepository;
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.EmergencyJpaRepository;
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.MatchResultJpaRepository;

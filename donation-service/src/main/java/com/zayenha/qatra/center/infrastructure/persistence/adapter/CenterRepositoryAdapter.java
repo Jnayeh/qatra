@@ -8,6 +8,7 @@ import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterAdminProfileEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterStaffProfileEntity;
+import com.zayenha.qatra.center.infrastructure.mapper.CenterMapper;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterAdminJpaRepository;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaRepository;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterStaffJpaRepository;

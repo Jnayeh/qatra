@@ -9,6 +9,7 @@ import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.zayenha.qatra.appointment.infrastructure.persistence.entity.AppointmentEntity;
 import com.zayenha.qatra.appointment.infrastructure.persistence.repository.AppointmentJpaRepository;
+import com.zayenha.qatra.appointment.infrastructure.mapper.AppointmentMapper;
 import com.zayenha.qatra.appointment.infrastructure.persistence.repository.HealthScreeningJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

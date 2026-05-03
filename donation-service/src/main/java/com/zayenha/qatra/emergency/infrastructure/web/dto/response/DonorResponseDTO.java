@@ -4,7 +4,7 @@ import com.zayenha.qatra.emergency.domain.model.ResponseStatus;
 
 import java.time.Instant;
 
-public record DonorResponseResponse(
+public record DonorResponseDTO(
     Long id,
     Long emergencyId,
     Long donorId,

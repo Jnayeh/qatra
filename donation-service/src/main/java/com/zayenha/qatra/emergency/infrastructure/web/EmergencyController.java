@@ -10,7 +10,7 @@ import com.zayenha.qatra.emergency.domain.port.in.EmergencyQueryUseCases;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.AcceptResponseRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.CreateEmergencyRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.UpdateEmergencyRequest;
-import com.zayenha.qatra.emergency.infrastructure.web.dto.response.DonorResponseResponse;
+import com.zayenha.qatra.emergency.infrastructure.web.dto.response.DonorResponseDTO;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.response.EmergencyResponse;
 import com.zayenha.qatra.emergency.infrastructure.mapper.EmergencyMapper;
 import jakarta.validation.Valid;
@@ -98,9 +98,9 @@ public class EmergencyController {
 
     @PostMapping("/{id}/respond")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
-    public ResponseEntity<ApiResponse<DonorResponseResponse>> respond(
+    public ResponseEntity<ApiResponse<DonorResponseDTO>> respond(
             @PathVariable Long id) {
-        var donorId = AuditUtils.currentUserId(); // ponytail: SUPER_ADMIN cannot respond on behalf of others
+        var donorId = AuditUtils.currentUserId();
         var response = commandUseCases.respond(id, donorId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(mapper.toResponse(response)));
@@ -108,7 +108,7 @@ public class EmergencyController {
 
     @PostMapping("/responses/{responseId}/accept")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
-    public ResponseEntity<ApiResponse<DonorResponseResponse>> acceptResponse(
+    public ResponseEntity<ApiResponse<DonorResponseDTO>> acceptResponse(
             @PathVariable Long responseId, @Valid @RequestBody AcceptResponseRequest request) {
         var response = commandUseCases.acceptResponse(responseId, request.slotId());
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(response)));
@@ -116,14 +116,14 @@ public class EmergencyController {
 
     @PostMapping("/responses/{responseId}/decline")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
-    public ResponseEntity<ApiResponse<DonorResponseResponse>> declineResponse(@PathVariable Long responseId) {
+    public ResponseEntity<ApiResponse<DonorResponseDTO>> declineResponse(@PathVariable Long responseId) {
         var response = commandUseCases.declineResponse(responseId);
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(response)));
     }
 
     @GetMapping("/{id}/responses")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<DonorResponseResponse>>> getResponses(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<List<DonorResponseDTO>>> getResponses(@PathVariable Long id) {
         var responses = queryUseCases.findResponsesByEmergencyId(id);
         return ResponseEntity.ok(ApiResponse.success(
             responses.stream().map(mapper::toResponse).toList()));
@@ -131,7 +131,7 @@ public class EmergencyController {
 
     @GetMapping("/responses/donor/{donorId}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
-    public ResponseEntity<ApiResponse<List<DonorResponseResponse>>> getDonorResponses(@PathVariable Long donorId) {
+    public ResponseEntity<ApiResponse<List<DonorResponseDTO>>> getDonorResponses(@PathVariable Long donorId) {
         var responses = queryUseCases.findResponsesByDonorId(donorId);
         return ResponseEntity.ok(ApiResponse.success(
             responses.stream().map(mapper::toResponse).toList()));
