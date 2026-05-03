@@ -6,7 +6,7 @@ import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
-import com.zayenha.qatra.infrastructure.kafka.NotificationEventPublisher;
+import com.zayenha.qatra._config.kafka.NotificationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,7 +1,7 @@
 package com.zayenha.qatra.appointment.infrastructure.event;
 
 import com.zayenha.qatra.appointment.domain.model.Appointment;
-import com.zayenha.qatra.infrastructure.kafka.EventPublisher;
+import com.zayenha.qatra._config.kafka.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
