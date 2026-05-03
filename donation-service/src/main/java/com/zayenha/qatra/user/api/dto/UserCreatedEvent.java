@@ -1,7 +1,9 @@
 package com.zayenha.qatra.user.api.dto;
 
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
+@Getter
 public class UserCreatedEvent extends ApplicationEvent {
     private final Long userId;
     private final String email;
@@ -12,6 +14,4 @@ public class UserCreatedEvent extends ApplicationEvent {
         this.email = email;
     }
 
-    public Long getUserId() { return userId; }
-    public String getEmail() { return email; }
 }
