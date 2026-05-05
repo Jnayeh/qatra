@@ -3,15 +3,13 @@ package com.zayenha.qatra.emergency.infrastructure.persistence.adapter;
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra.emergency.application.proxy.EmergencyCenterProxy;
 import com.zayenha.qatra.emergency.domain.model.DonorResponse;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 import com.zayenha.qatra.emergency.domain.model.MatchResult;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
-import com.zayenha.qatra.emergency.infrastructure.persistence.entity.DonorResponseEntity;
 import com.zayenha.qatra.emergency.infrastructure.persistence.entity.EmergencyRequestEntity;
-import com.zayenha.qatra.emergency.infrastructure.persistence.entity.MatchResultEntity;
-import com.zayenha.qatra.center.infrastructure.persistence.repository.SlotJpaRepository;
 import com.zayenha.qatra.emergency.infrastructure.mapper.EmergencyMapper;
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.DonorResponseJpaRepository;
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.EmergencyJpaRepository;
@@ -30,7 +28,7 @@ public class EmergencyRepositoryAdapter implements EmergencyRepositoryPort {
     private final EmergencyJpaRepository emergencyJpaRepository;
     private final DonorResponseJpaRepository responseJpaRepository;
     private final MatchResultJpaRepository matchResultJpaRepository;
-    private final SlotJpaRepository slotJpaRepository;
+    private final EmergencyCenterProxy centerProxy;
     private final EmergencyMapper mapper;
 
     @Override
@@ -91,7 +89,7 @@ public class EmergencyRepositoryAdapter implements EmergencyRepositoryPort {
     public DonorResponse saveResponse(DonorResponse response) {
         if (response.getId() != null) {
             var existing = responseJpaRepository.findById(response.getId()).orElseThrow();
-            existing.setSlot(response.getSlotId() != null ? slotJpaRepository.getReferenceById(response.getSlotId()) : null);
+            existing.setSlot(response.getSlotId() != null ? centerProxy.getSlotReference(response.getSlotId()) : null);
             existing.setStatus(response.getStatus());
             existing.setRespondedAt(response.getRespondedAt());
             return mapper.toResponseDomain(responseJpaRepository.save(existing));

@@ -1,8 +1,8 @@
 package com.zayenha.qatra.emergency.infrastructure.mapper;
 
-import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaRepository;
-import com.zayenha.qatra.center.infrastructure.persistence.repository.SlotJpaRepository;
-import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonorJpaRepository;
+import com.zayenha.qatra.emergency.application.proxy.EmergencyCenterProxy;
+import com.zayenha.qatra.emergency.application.proxy.EmergencyDonorProxy;
+import com.zayenha.qatra.emergency.application.proxy.EmergencyUserProxy;
 import com.zayenha.qatra.emergency.domain.model.DonorResponse;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.MatchResult;
@@ -12,7 +12,6 @@ import com.zayenha.qatra.emergency.infrastructure.persistence.entity.MatchResult
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.EmergencyJpaRepository;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.response.DonorResponseDTO;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.response.EmergencyResponse;
-import com.zayenha.qatra.user.infrastructure.persistence.repository.UserJpaRepository;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -22,16 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class EmergencyMapper {
 
     @Autowired
-    protected CenterJpaRepository centerJpaRepository;
+    protected EmergencyCenterProxy centerProxy;
 
     @Autowired
-    protected UserJpaRepository userJpaRepository;
+    protected EmergencyUserProxy userProxy;
 
     @Autowired
-    protected DonorJpaRepository donorJpaRepository;
-
-    @Autowired
-    protected SlotJpaRepository slotJpaRepository;
+    protected EmergencyDonorProxy donorProxy;
 
     @Autowired
     protected EmergencyJpaRepository emergencyJpaRepository;
@@ -40,9 +36,9 @@ public abstract class EmergencyMapper {
 
     public abstract DonorResponseDTO toResponse(DonorResponse response);
 
-    @Mapping(target = "center", expression = "java(centerJpaRepository.getReferenceById(request.getCenterId()))")
-    @Mapping(target = "createdByStaff", expression = "java(userJpaRepository.getReferenceById(request.getCreatedByStaffId()))")
-    @Mapping(target = "resolvedBy", expression = "java(request.getResolvedByUserId() != null ? userJpaRepository.getReferenceById(request.getResolvedByUserId()) : null)")
+    @Mapping(target = "center", expression = "java(centerProxy.getCenterReference(request.getCenterId()))")
+    @Mapping(target = "createdByStaff", expression = "java(userProxy.getUserReference(request.getCreatedByStaffId()))")
+    @Mapping(target = "resolvedBy", expression = "java(request.getResolvedByUserId() != null ? userProxy.getUserReference(request.getResolvedByUserId()) : null)")
     public abstract EmergencyRequestEntity toEntity(EmergencyRequest request);
 
     @Mapping(target = "centerId", source = "center.id")
@@ -51,8 +47,8 @@ public abstract class EmergencyMapper {
     public abstract EmergencyRequest toDomain(EmergencyRequestEntity entity);
 
     @Mapping(target = "emergency", expression = "java(emergencyJpaRepository.getReferenceById(response.getEmergencyId()))")
-    @Mapping(target = "donor", expression = "java(donorJpaRepository.getReferenceById(response.getDonorId()))")
-    @Mapping(target = "slot", expression = "java(response.getSlotId() != null ? slotJpaRepository.getReferenceById(response.getSlotId()) : null)")
+    @Mapping(target = "donor", expression = "java(donorProxy.getDonorReference(response.getDonorId()))")
+    @Mapping(target = "slot", expression = "java(response.getSlotId() != null ? centerProxy.getSlotReference(response.getSlotId()) : null)")
     public abstract DonorResponseEntity toResponseEntity(DonorResponse response);
 
     @Mapping(target = "emergencyId", source = "emergency.id")
@@ -61,8 +57,8 @@ public abstract class EmergencyMapper {
     public abstract DonorResponse toResponseDomain(DonorResponseEntity entity);
 
     @Mapping(target = "emergency", expression = "java(emergencyJpaRepository.getReferenceById(result.getEmergencyId()))")
-    @Mapping(target = "center", expression = "java(centerJpaRepository.getReferenceById(result.getCenterId()))")
-    @Mapping(target = "donor", expression = "java(donorJpaRepository.getReferenceById(result.getDonorId()))")
+    @Mapping(target = "center", expression = "java(centerProxy.getCenterReference(result.getCenterId()))")
+    @Mapping(target = "donor", expression = "java(donorProxy.getDonorReference(result.getDonorId()))")
     public abstract MatchResultEntity toMatchResultEntity(MatchResult result);
 
     @Mapping(target = "emergencyId", source = "emergency.id")

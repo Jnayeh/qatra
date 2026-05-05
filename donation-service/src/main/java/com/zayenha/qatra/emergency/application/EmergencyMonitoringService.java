@@ -1,8 +1,8 @@
 package com.zayenha.qatra.emergency.application;
 
+import com.zayenha.qatra._shared.domain.port.out.AppointmentCountProvider;
 import com.zayenha.qatra._shared.event.AuditEvent;
 import com.zayenha.qatra._shared.event.AuditUtils;
-import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
@@ -25,7 +25,7 @@ import java.util.Optional;
 public class EmergencyMonitoringService {
 
     private final EmergencyRepositoryPort emergencyRepository;
-    private final AppointmentRepositoryPort appointmentRepository;
+    private final AppointmentCountProvider appointmentCountProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final MatchingService matchingService;
 
@@ -74,7 +74,7 @@ public class EmergencyMonitoringService {
     }
 
     private void escalateIfNeeded(EmergencyRequest emergency) {
-        var unitsCollected = appointmentRepository.countCompletedByEmergencyId(emergency.getId());
+        var unitsCollected = appointmentCountProvider.countCompletedByEmergencyId(emergency.getId());
         if (unitsCollected >= emergency.getUnitsNeeded()) {
             emergency.fulfill();
             emergencyRepository.save(emergency);

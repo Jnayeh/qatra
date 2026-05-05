@@ -8,7 +8,7 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
-import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
+import com.zayenha.qatra.emergency.application.proxy.EmergencyDonorProxy;
 import com.zayenha.qatra.emergency.domain.exception.EmergencyErrorCode;
 import com.zayenha.qatra.emergency.domain.model.*;
 import com.zayenha.qatra.emergency.domain.port.in.EmergencyCommandUseCases;
@@ -32,7 +32,7 @@ import java.util.Optional;
 public class EmergencyService implements EmergencyCommandUseCases, EmergencyQueryUseCases {
 
     private final EmergencyRepositoryPort repository;
-    private final DonorRepositoryPort donorRepository;
+    private final EmergencyDonorProxy donorProxy;
     private final ApplicationEventPublisher eventPublisher;
     private final CacheService cacheService;
     private final MatchingService matchingService;
@@ -138,9 +138,10 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         });
 
         // Reset consecutive declines on accept
-        donorRepository.findByUserId(response.getDonorId()).ifPresent(profile -> {
-            profile.resetConsecutiveDeclinesOnAccept();
-            donorRepository.save(profile);
+        donorProxy.findByUserId(response.getDonorId()).ifPresent(dto -> {
+            dto.setConsecutiveEmergencyDeclines(0);
+            dto.setUpdatedAt(Instant.now());
+            donorProxy.saveDonor(dto);
             cacheService.evictByPattern("donorProfiles:*");
         });
 
@@ -172,14 +173,14 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         });
 
         // Track consecutive declines
-        donorRepository.findByUserId(response.getDonorId()).ifPresent(profile -> {
+        donorProxy.findByUserId(response.getDonorId()).ifPresent(profile -> {
             var declines = profile.getConsecutiveEmergencyDeclines() != null
                 ? profile.getConsecutiveEmergencyDeclines() + 1 : 1;
             profile.setConsecutiveEmergencyDeclines(declines);
             if (declines >= 3) {
                 profile.setFlaggedForManualReview(true);
             }
-            donorRepository.save(profile);
+            donorProxy.saveDonor(profile);
             cacheService.evictByPattern("donorProfiles:*");
         });
 

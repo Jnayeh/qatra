@@ -2,9 +2,9 @@ package com.zayenha.qatra.emergency.application;
 
 import com.zayenha.qatra._shared.domain.GeoUtils;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
-import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
-import com.zayenha.qatra.donor.domain.model.DonorProfile;
-import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
+import com.zayenha.qatra.donor.application.api.dto.DonorProfileDTO;
+import com.zayenha.qatra.emergency.application.proxy.EmergencyCenterProxy;
+import com.zayenha.qatra.emergency.application.proxy.EmergencyDonorProxy;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.MatchResult;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -24,9 +23,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MatchingService {
 
-    private final DonorRepositoryPort donorRepository;
+    private final EmergencyDonorProxy donorProxy;
     private final EmergencyRepositoryPort emergencyRepository;
-    private final CenterRepositoryPort centerRepository;
+    private final EmergencyCenterProxy centerProxy;
     private final EventPublisherPort eventPublisherPort;
 
     @Value("${emergency.escalation-radius-increment:10}")
@@ -34,13 +33,13 @@ public class MatchingService {
 
     @Transactional
     public void matchDonors(EmergencyRequest emergency) {
-        var center = centerRepository.findById(emergency.getCenterId()).orElse(null);
+        var center = centerProxy.findCenterById(emergency.getCenterId()).orElse(null);
         if (center == null || center.getLatitude() == null || center.getLongitude() == null) {
             log.warn("Cannot match donors for emergency {}: center has no location", emergency.getId());
             return;
         }
 
-        var candidates = donorRepository.findEligibleForEmergency().stream()
+        var candidates = donorProxy.findEligibleForEmergency().stream()
                 .filter(d -> d.getBloodType().canDonateTo(emergency.getBloodType()))
                 .filter(d -> !d.getUserId().equals(emergency.getCreatedByStaffId()))
                 .toList();
@@ -103,7 +102,6 @@ public class MatchingService {
                     emergency.getEscalationLevel()
             );
             emergencyRepository.saveMatchResult(matchResult);
-
             eventPublisherPort.publishNotificationDispatch(
                     md.donor().getUserId(), null, "EMERGENCY_ALERT",
                     "Urgent: Blood Donation Needed",
@@ -121,5 +119,5 @@ public class MatchingService {
                 emergency.getId(), selected.size(), radius);
     }
 
-    private record MatchedDonor(DonorProfile donor, double distance) {}
+    private record MatchedDonor(DonorProfileDTO donor, double distance) {}
 }
