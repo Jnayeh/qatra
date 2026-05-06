@@ -2,7 +2,6 @@ package com.zayenha.qatra.system.infrastructure.web;
 
 import com.zayenha.qatra.system.application.GDPRService;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionRequest;
-import com.zayenha.qatra.system.infrastructure.web.dto.request.GDPRActionRequest;
 import com.zayenha.qatra.system.infrastructure.web.dto.request.GDPRRequestDeletionRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
