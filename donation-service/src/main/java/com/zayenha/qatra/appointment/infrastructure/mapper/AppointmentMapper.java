@@ -1,5 +1,9 @@
 package com.zayenha.qatra.appointment.infrastructure.mapper;
 
+import com.zayenha.qatra.appointment.application.proxy.AptCenterProxy;
+import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
+import com.zayenha.qatra.appointment.application.proxy.AptEmergencyProxy;
+import com.zayenha.qatra.appointment.application.proxy.AptUserProxy;
 import com.zayenha.qatra.appointment.domain.model.Appointment;
 import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
 import com.zayenha.qatra.appointment.domain.model.HealthScreening;
@@ -8,16 +12,6 @@ import com.zayenha.qatra.appointment.infrastructure.persistence.entity.HealthScr
 import com.zayenha.qatra.appointment.infrastructure.persistence.repository.AppointmentJpaRepository;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.response.AppointmentResponse;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.response.HealthScreeningResponse;
-import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
-import com.zayenha.qatra.center.infrastructure.persistence.entity.SlotEntity;
-import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaRepository;
-import com.zayenha.qatra.center.infrastructure.persistence.repository.SlotJpaRepository;
-import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonorProfileEntity;
-import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonorJpaRepository;
-import com.zayenha.qatra.emergency.infrastructure.persistence.entity.EmergencyRequestEntity;
-import com.zayenha.qatra.emergency.infrastructure.persistence.repository.EmergencyJpaRepository;
-import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
-import com.zayenha.qatra.user.infrastructure.persistence.repository.UserJpaRepository;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -27,19 +21,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class AppointmentMapper {
 
     @Autowired
-    protected DonorJpaRepository donorJpaRepository;
+    protected AptCenterProxy centerProxy;
 
     @Autowired
-    protected SlotJpaRepository slotJpaRepository;
+    protected AptDonorProxy donorProxy;
 
     @Autowired
-    protected CenterJpaRepository centerJpaRepository;
+    protected AptUserProxy userProxy;
 
     @Autowired
-    protected EmergencyJpaRepository emergencyJpaRepository;
-
-    @Autowired
-    protected UserJpaRepository userJpaRepository;
+    protected AptEmergencyProxy emergencyProxy;
 
     @Autowired
     protected AppointmentJpaRepository appointmentJpaRepository;
@@ -52,11 +43,11 @@ public abstract class AppointmentMapper {
         return DonationOutcome.valueOf(value);
     }
 
-    @Mapping(target = "donor", expression = "java(donorJpaRepository.getReferenceById(appointment.getDonorId()))")
-    @Mapping(target = "slot", expression = "java(slotJpaRepository.getReferenceById(appointment.getSlotId()))")
-    @Mapping(target = "center", expression = "java(centerJpaRepository.getReferenceById(appointment.getCenterId()))")
-    @Mapping(target = "emergency", expression = "java(appointment.getEmergencyId() != null ? emergencyJpaRepository.getReferenceById(appointment.getEmergencyId()) : null)")
-    @Mapping(target = "completedByStaff", expression = "java(appointment.getCompletedByStaffId() != null ? userJpaRepository.getReferenceById(appointment.getCompletedByStaffId()) : null)")
+    @Mapping(target = "donor", expression = "java(donorProxy.getDonorReference(appointment.getDonorId()))")
+    @Mapping(target = "slot", expression = "java(centerProxy.getSlotReference(appointment.getSlotId()))")
+    @Mapping(target = "center", expression = "java(centerProxy.getCenterReference(appointment.getCenterId()))")
+    @Mapping(target = "emergency", expression = "java(appointment.getEmergencyId() != null ? emergencyProxy.getEmergencyReference(appointment.getEmergencyId()) : null)")
+    @Mapping(target = "completedByStaff", expression = "java(appointment.getCompletedByStaffId() != null ? userProxy.getUserReference(appointment.getCompletedByStaffId()) : null)")
     public abstract AppointmentEntity toEntity(Appointment appointment);
 
     @Mapping(target = "donorId", source = "donor.id")
@@ -67,8 +58,8 @@ public abstract class AppointmentMapper {
     public abstract Appointment toDomain(AppointmentEntity entity);
 
     @Mapping(target = "appointment", expression = "java(appointmentJpaRepository.getReferenceById(screening.getAppointmentId()))")
-    @Mapping(target = "donor", expression = "java(donorJpaRepository.getReferenceById(screening.getDonorId()))")
-    @Mapping(target = "screenedByStaff", expression = "java(userJpaRepository.getReferenceById(screening.getScreenedByStaffId()))")
+    @Mapping(target = "donor", expression = "java(donorProxy.getDonorReference(screening.getDonorId()))")
+    @Mapping(target = "screenedByStaff", expression = "java(userProxy.getUserReference(screening.getScreenedByStaffId()))")
     public abstract HealthScreeningEntity toScreeningEntity(HealthScreening screening);
 
     @Mapping(target = "appointmentId", source = "appointment.id")

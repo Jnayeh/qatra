@@ -1,5 +1,6 @@
 package com.zayenha.qatra.center.infrastructure.mapper;
 
+import com.zayenha.qatra.center.application.proxy.CenterUserProxy;
 import com.zayenha.qatra.center.domain.model.CenterAdminProfile;
 import com.zayenha.qatra.center.domain.model.CenterStaffProfile;
 import com.zayenha.qatra.center.domain.model.DonationCenter;
@@ -12,7 +13,6 @@ import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaR
 import com.zayenha.qatra.center.infrastructure.web.dto.response.CenterResponse;
 import com.zayenha.qatra.center.infrastructure.web.dto.response.SlotResponse;
 import com.zayenha.qatra.center.infrastructure.web.dto.response.StaffSummaryResponse;
-import com.zayenha.qatra.user.infrastructure.persistence.repository.UserJpaRepository;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -25,7 +25,7 @@ public abstract class CenterMapper {
     protected CenterJpaRepository centerJpaRepository;
 
     @Autowired
-    protected UserJpaRepository userJpaRepository;
+    protected CenterUserProxy userProxy;
 
     public abstract CenterResponse toResponse(DonationCenter center);
 
@@ -33,14 +33,14 @@ public abstract class CenterMapper {
 
     public abstract StaffSummaryResponse toStaffResponse(CenterStaffProfile staff);
 
-    @Mapping(target = "createdBy", expression = "java(center.getCreatedByUserId() != null ? userJpaRepository.getReferenceById(center.getCreatedByUserId()) : null)")
+    @Mapping(target = "createdBy", expression = "java(center.getCreatedByUserId() != null ? userProxy.getUserReference(center.getCreatedByUserId()) : null)")
     public abstract CenterEntity toEntity(DonationCenter center);
 
     @Mapping(target = "createdByUserId", source = "createdBy.id")
     public abstract DonationCenter toDomain(CenterEntity entity);
 
     @Mapping(target = "center", expression = "java(centerJpaRepository.getReferenceById(staff.getCenterId()))")
-    @Mapping(target = "user", expression = "java(userJpaRepository.getReferenceById(staff.getUserId()))")
+    @Mapping(target = "user", expression = "java(userProxy.getUserReference(staff.getUserId()))")
     public abstract CenterStaffProfileEntity toStaffEntity(CenterStaffProfile staff);
 
     @Mapping(target = "centerId", source = "center.id")
@@ -48,7 +48,7 @@ public abstract class CenterMapper {
     public abstract CenterStaffProfile toStaffDomain(CenterStaffProfileEntity entity);
 
     @Mapping(target = "center", expression = "java(centerJpaRepository.getReferenceById(admin.getCenterId()))")
-    @Mapping(target = "user", expression = "java(userJpaRepository.getReferenceById(admin.getUserId()))")
+    @Mapping(target = "user", expression = "java(userProxy.getUserReference(admin.getUserId()))")
     public abstract CenterAdminProfileEntity toAdminEntity(CenterAdminProfile admin);
 
     @Mapping(target = "centerId", source = "center.id")

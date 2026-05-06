@@ -79,12 +79,8 @@ public class Appointment {
         this.cancellationReason = reason;
     }
 
-    public void reschedule(Long newSlotId, Long newCenterId,
-                           AppointmentType newType, BloodType newBloodType) {
+    public void reschedule(Long newSlotId) {
         this.slotId = newSlotId;
-        this.centerId = newCenterId;
-        this.appointmentType = newType;
-        this.bloodType = newBloodType;
         this.status = AppointmentStatus.RESCHEDULED;
         this.updatedAt = Instant.now();
     }

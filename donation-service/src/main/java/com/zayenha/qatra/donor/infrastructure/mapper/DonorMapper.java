@@ -1,5 +1,6 @@
 package com.zayenha.qatra.donor.infrastructure.mapper;
 
+import com.zayenha.qatra.donor.application.proxy.DonorUserProxy;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
@@ -12,7 +13,6 @@ import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorProfileRespo
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityDetailResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.ImpactResponse;
-import com.zayenha.qatra.user.infrastructure.persistence.repository.UserJpaRepository;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -25,7 +25,7 @@ import java.time.ZoneOffset;
 public abstract class DonorMapper {
 
     @Autowired
-    protected UserJpaRepository userJpaRepository;
+    protected DonorUserProxy userProxy;
 
     @Autowired
     protected DonorJpaRepository donorJpaRepository;
@@ -77,7 +77,7 @@ public abstract class DonorMapper {
         );
     }
 
-    @Mapping(target = "user", expression = "java(userJpaRepository.getReferenceById(profile.getUserId()))")
+    @Mapping(target = "user", expression = "java(userProxy.getUserReference(profile.getUserId()))")
     public abstract DonorProfileEntity toEntity(DonorProfile profile);
 
     @Mapping(target = "userId", source = "user.id")

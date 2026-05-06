@@ -1,8 +1,8 @@
 package com.zayenha.qatra.analytics.infrastructure.persistence.adapter;
 
+import com.zayenha.qatra.analytics.application.proxy.AnalyticsUserProxy;
 import com.zayenha.qatra.analytics.domain.model.AuditLog;
 import com.zayenha.qatra.analytics.infrastructure.persistence.entity.AuditLogEntity;
-import com.zayenha.qatra.user.infrastructure.persistence.repository.UserJpaRepository;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class AuditLogMapper {
 
     @Autowired
-    protected UserJpaRepository userJpaRepository;
+    protected AnalyticsUserProxy userProxy;
 
-    @Mapping(target = "user", expression = "java(domain.getUserId() != null ? userJpaRepository.getReferenceById(domain.getUserId()) : null)")
+    @Mapping(target = "user", expression = "java(domain.getUserId() != null ? userProxy.getUserReference(domain.getUserId()) : null)")
     public abstract AuditLogEntity toEntity(AuditLog domain);
 
     @Mapping(target = "userId", source = "user.id")

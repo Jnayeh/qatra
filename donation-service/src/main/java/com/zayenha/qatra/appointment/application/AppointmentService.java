@@ -5,16 +5,14 @@ import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
-import com.zayenha.qatra._shared.exception.ConflictException;
-import com.zayenha.qatra._shared.exception.NotFoundException;
-import com.zayenha.qatra._shared.exception.ValidationException;
+import com.zayenha.qatra._shared.exception.*;
+import com.zayenha.qatra.appointment.application.proxy.AptCenterProxy;
+import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
 import com.zayenha.qatra.appointment.domain.exception.AppointmentErrorCode;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentQueryUseCases;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
-import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
-import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,8 +29,8 @@ import java.util.Optional;
 public class AppointmentService implements AppointmentCommandUseCases, AppointmentQueryUseCases {
 
     private final AppointmentRepositoryPort repository;
-    private final DonorRepositoryPort donorRepository;
-    private final SlotRepositoryPort slotRepository;
+    private final AptCenterProxy centerProxy;
+    private final AptDonorProxy donorProxy;
     private final ApplicationEventPublisher eventPublisher;
     private final EventPublisherPort eventPublisherPort;
     private final CacheService cacheService;
@@ -105,16 +103,16 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         cacheService.evictByPattern("appointments:*");
 
         // Update donor profile stats
-        donorRepository.findByUserId(saved.getDonorId()).ifPresent(profile -> {
+        donorProxy.findDonorByUserId(saved.getDonorId()).ifPresent(dto -> {
             if (outcome == DonationOutcome.COMPLETED) {
-                profile.setTotalDonations(profile.getTotalDonations() + 1);
-                profile.setLastDonationDate(LocalDate.now());
-                profile.setEligibleFromDate(LocalDate.now().plusDays(56));
-                profile.setReliabilityScore(Math.min(100.0, (profile.getReliabilityScore() != null ? profile.getReliabilityScore() : 50.0) + 2.0));
-                profile.resetConsecutiveDeclinesOnAccept();
+                dto.setTotalDonations(dto.getTotalDonations() + 1);
+                dto.setLastDonationDate(LocalDate.now());
+                dto.setEligibleFromDate(LocalDate.now().plusDays(56));
+                dto.setReliabilityScore(Math.min(100.0, (dto.getReliabilityScore() != null ? dto.getReliabilityScore() : 50.0) + 2.0));
+                dto.setConsecutiveEmergencyDeclines(0);
             }
-            profile.setUpdatedAt(java.time.Instant.now());
-            donorRepository.save(profile);
+            dto.setUpdatedAt(java.time.Instant.now());
+            donorProxy.saveDonor(dto);
             cacheService.evictByPattern("donorProfiles:*");
         });
 
@@ -140,12 +138,12 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
         // Release slot capacity
         if (saved.getSlotId() != null) {
-            slotRepository.findById(saved.getSlotId()).ifPresent(slot -> {
+            centerProxy.findSlotById(saved.getSlotId()).ifPresent(slot -> {
                 slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
                 if (saved.getAppointmentType() == AppointmentType.REGULAR) {
                     slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
                 }
-                slotRepository.update(slot);
+                centerProxy.updateSlot(slot);
             });
         }
 
@@ -189,12 +187,12 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
             appointment.cancel("Failed health screening");
             repository.save(appointment);
             if (appointment.getSlotId() != null) {
-                slotRepository.findById(appointment.getSlotId()).ifPresent(slot -> {
+                centerProxy.findSlotById(appointment.getSlotId()).ifPresent(slot -> {
                     slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
                     if (appointment.getAppointmentType() == AppointmentType.REGULAR) {
                         slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
                     }
-                    slotRepository.update(slot);
+                    centerProxy.updateSlot(slot);
                 });
             }
             cacheService.evictByPattern("appointments:*");

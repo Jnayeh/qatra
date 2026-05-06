@@ -4,9 +4,10 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
+import com.zayenha.qatra.appointment.application.proxy.AptCenterProxy;
+import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
-import com.zayenha.qatra._config.kafka.NotificationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,17 +29,19 @@ class AppointmentServiceTest {
     @Mock
     private AppointmentRepositoryPort repository;
     @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private AptCenterProxy centerProxy;
     @Mock
-    private NotificationEventPublisher notificationEventPublisher;
+    private AptDonorProxy donorProxy;
     @Mock
     private CacheService cacheService;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     private AppointmentService service;
 
     @BeforeEach
     void setUp() {
-        service = new AppointmentService(repository, eventPublisher, notificationEventPublisher, cacheService);
+        service = new AppointmentService(repository, centerProxy, donorProxy, cacheService, eventPublisher);
     }
 
     @Test
@@ -74,7 +77,7 @@ class AppointmentServiceTest {
         var result = service.checkIn(1L);
 
         assertThat(result.getStatus()).isEqualTo(AppointmentStatus.CHECKED_IN);
-        assertThat(result.getCheckInTime()).isNotNull();
+        assertThat(result.getCheckedInAt()).isNotNull();
     }
 
     @Test
@@ -96,10 +99,10 @@ class AppointmentServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(appointment));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        var result = service.complete(1L, DonationOutcome.FULL_DONATION, "Good");
+        var result = service.complete(1L, DonationOutcome.COMPLETED, "Good");
 
         assertThat(result.getStatus()).isEqualTo(AppointmentStatus.COMPLETED);
-        assertThat(result.getOutcome()).isEqualTo(DonationOutcome.FULL_DONATION);
+        assertThat(result.getOutcome()).isEqualTo(DonationOutcome.COMPLETED);
         assertThat(result.getCompletedAt()).isNotNull();
     }
 

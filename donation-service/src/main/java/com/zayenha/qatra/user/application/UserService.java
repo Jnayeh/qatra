@@ -167,9 +167,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         if (superAdminEmail == null || superAdminEmail.isBlank()
                 || superAdminPhone == null || superAdminPhone.isBlank()
                 || superAdminPassword == null || superAdminPassword.isBlank()) return;
-        if (userRepository.existsByEmail(superAdminEmail)) {
-            return;
-        }
+        if (userRepository.existsByEmail(superAdminEmail)) return;
         var user = create(superAdminEmail, superAdminPhone, superAdminPassword, "Super Admin");
         userRoleRepository.save(new UserRole(user.getId(), Role.SUPER_ADMIN));
     }
