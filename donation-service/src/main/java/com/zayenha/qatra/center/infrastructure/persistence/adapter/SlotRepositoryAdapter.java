@@ -2,10 +2,8 @@ package com.zayenha.qatra.center.infrastructure.persistence.adapter;
 
 import com.zayenha.qatra.center.domain.model.Slot;
 import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
-import com.zayenha.qatra.center.infrastructure.mapper.CenterMapper;
-import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaRepository;
+import com.zayenha.qatra.center.infrastructure.mapper.SlotMapper;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.SlotJpaRepository;
-import com.zayenha.qatra._shared.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,8 +18,7 @@ import java.util.Optional;
 public class SlotRepositoryAdapter implements SlotRepositoryPort {
 
     private final SlotJpaRepository slotJpaRepository;
-    private final CenterJpaRepository centerJpaRepository;
-    private final CenterMapper mapper;
+    private final SlotMapper mapper;
 
     public Slot save(Slot slot, Long centerId) {
         slot.setCenterId(centerId);

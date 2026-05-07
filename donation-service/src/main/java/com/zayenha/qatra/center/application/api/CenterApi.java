@@ -8,6 +8,7 @@ import com.zayenha.qatra.center.domain.model.DonationCenter;
 import com.zayenha.qatra.center.domain.model.Slot;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
+import com.zayenha.qatra.center.infrastructure.mapper.SlotMapper;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.SlotEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaRepository;
@@ -25,6 +26,7 @@ public class CenterApi implements EntityApi<CenterEntity> {
     private final SlotJpaRepository slotJpaRepository;
     private final CenterRepositoryPort centerRepositoryPort;
     private final SlotRepositoryPort slotRepositoryPort;
+    private final SlotMapper slotMapper;
 
     public CenterEntity getCenterReference(Long id) {
         return centerJpaRepository.getReferenceById(id);
@@ -50,8 +52,7 @@ public class CenterApi implements EntityApi<CenterEntity> {
     }
 
     public Optional<SlotDTO> findSlotById(Long slotId) {
-        return slotRepositoryPort.findById(slotId).map(s ->
-            new SlotDTO(s.getId(), s.getBookedCount(), s.getRegularBookedCount()));
+        return slotRepositoryPort.findById(slotId).map(slotMapper::toSlotDto);
     }
 
     public SlotDTO updateSlot(SlotDTO dto) {
@@ -59,7 +60,8 @@ public class CenterApi implements EntityApi<CenterEntity> {
             .orElseThrow(() -> new NotFoundException("Slot not found: " + dto.getId(), "SLOT_NOT_FOUND"));
         slot.setBookedCount(dto.getBookedCount());
         slot.setRegularBookedCount(dto.getRegularBookedCount());
+        slot.validateCounts();
         var saved = slotRepositoryPort.update(slot);
-        return new SlotDTO(saved.getId(), saved.getBookedCount(), saved.getRegularBookedCount());
+        return slotMapper.toSlotDto(saved);
     }
 }

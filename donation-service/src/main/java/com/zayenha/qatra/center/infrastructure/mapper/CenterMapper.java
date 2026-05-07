@@ -54,10 +54,4 @@ public abstract class CenterMapper {
     @Mapping(target = "centerId", source = "center.id")
     @Mapping(target = "userId", source = "user.id")
     public abstract CenterAdminProfile toAdminDomain(CenterAdminProfileEntity entity);
-
-    @Mapping(target = "center", expression = "java(centerJpaRepository.getReferenceById(slot.getCenterId()))")
-    public abstract SlotEntity toSlotEntity(Slot slot);
-
-    @Mapping(target = "centerId", source = "center.id")
-    public abstract Slot toSlotDomain(SlotEntity entity);
 }

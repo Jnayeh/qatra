@@ -45,4 +45,40 @@ public class Slot {
     public boolean isAvailableForRegular() {
         return isAvailable() && regularBookedCount < maxRegularBookings;
     }
+
+    public void bookRegular() {
+        if (!isAvailableForRegular()) {
+            throw new IllegalStateException("Slot is not available for regular booking");
+        }
+        this.bookedCount++;
+        this.regularBookedCount++;
+    }
+
+    public void book() {
+        if (!isAvailable()) {
+            throw new IllegalStateException("Slot is not available");
+        }
+        this.bookedCount++;
+    }
+
+    public void release() {
+        this.bookedCount = Math.max(0, this.bookedCount - 1);
+    }
+
+    public void releaseRegular() {
+        release();
+        this.regularBookedCount = Math.max(0, this.regularBookedCount - 1);
+    }
+
+    public void validateCounts() {
+        if (bookedCount < 0 || bookedCount > maxBookings) {
+            throw new IllegalStateException("bookedCount (%d) out of range [0, %d]".formatted(bookedCount, maxBookings));
+        }
+        if (regularBookedCount < 0 || regularBookedCount > maxRegularBookings) {
+            throw new IllegalStateException("regularBookedCount (%d) out of range [0, %d]".formatted(regularBookedCount, maxRegularBookings));
+        }
+        if (regularBookedCount > bookedCount) {
+            throw new IllegalStateException("regularBookedCount (%d) exceeds bookedCount (%d)".formatted(regularBookedCount, bookedCount));
+        }
+    }
 }

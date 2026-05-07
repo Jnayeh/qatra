@@ -11,6 +11,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SlotDTO {
     private Long id;
+    private Long centerId;
     private int bookedCount;
     private int regularBookedCount;
+    private int maxBookings;
+    private int maxRegularBookings;
+    private boolean isBlocked;
 }
