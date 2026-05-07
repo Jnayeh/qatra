@@ -69,6 +69,11 @@ public class Appointment {
         this.completedByStaffId = staffId;
     }
 
+    public void markNoShow() {
+        this.status = AppointmentStatus.NO_SHOW;
+        this.cancelledAt = Instant.now();
+    }
+
     public void cancel() {
         this.status = AppointmentStatus.CANCELLED;
         this.cancelledAt = Instant.now();

@@ -62,6 +62,13 @@ public class AppointmentController {
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(appointment)));
     }
 
+    @PostMapping("/{id}/no-show")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
+    public ResponseEntity<ApiResponse<AppointmentResponse>> markNoShow(@PathVariable Long id) {
+        var appointment = commandUseCases.markNoShow(id);
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(appointment)));
+    }
+
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> cancel(@PathVariable Long id) {

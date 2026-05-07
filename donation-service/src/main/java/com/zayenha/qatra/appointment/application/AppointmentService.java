@@ -108,7 +108,8 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
                 dto.setTotalDonations(dto.getTotalDonations() + 1);
                 dto.setLastDonationDate(LocalDate.now());
                 dto.setEligibleFromDate(LocalDate.now().plusDays(56));
-                dto.setReliabilityScore(Math.min(100.0, (dto.getReliabilityScore() != null ? dto.getReliabilityScore() : 50.0) + 2.0));
+                var rate = dto.getReliabilityScore() != null && dto.getReliabilityScore() < 50.0 ? 0.10 : 0.05;
+                dto.setReliabilityScore(Math.min(100.0, (dto.getReliabilityScore() != null ? dto.getReliabilityScore() : 100.0) * (1.0 + rate)));
                 dto.setConsecutiveEmergencyDeclines(0);
             }
             dto.setUpdatedAt(java.time.Instant.now());
@@ -120,6 +121,46 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
             Map.of("status", oldStatus.name()),
             Map.of("status", AppointmentStatus.COMPLETED.name(), "outcome", outcome.name(),
                    "donorId", saved.getDonorId(), "mlCollected", saved.getMlCollected()));
+        return saved;
+    }
+
+    @Override
+    @Transactional
+    public Appointment markNoShow(Long appointmentId) {
+        var appointment = findOrThrow(appointmentId);
+        if (appointment.getStatus() != AppointmentStatus.SCHEDULED) {
+            throw new ValidationException("Only scheduled appointments can be marked as no-show",
+                    AppointmentErrorCode.INVALID_APPOINTMENT_STATUS.name());
+        }
+        var oldStatus = appointment.getStatus();
+        appointment.markNoShow();
+        var saved = repository.save(appointment);
+        cacheService.evictByPattern("appointments:*");
+
+        // Deduct reliability score
+        donorProxy.findDonorByUserId(saved.getDonorId()).ifPresent(dto -> {
+            var score = dto.getReliabilityScore() != null ? dto.getReliabilityScore() : 100.0;
+            var rate = score > 50.0 ? 0.05 : 0.10;
+            dto.setReliabilityScore(Math.max(0.0, score - score * rate));
+            dto.setUpdatedAt(java.time.Instant.now());
+            donorProxy.saveDonor(dto);
+            cacheService.evictByPattern("donorProfiles:*");
+        });
+
+        // Release slot capacity
+        if (saved.getSlotId() != null) {
+            centerProxy.findSlotById(saved.getSlotId()).ifPresent(slot -> {
+                slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
+                if (saved.getAppointmentType() == AppointmentType.REGULAR) {
+                    slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
+                }
+                centerProxy.updateSlot(slot);
+            });
+        }
+
+        auditPublisher.publish("APPOINTMENT_NO_SHOW", saved.getId(), "Appointment",
+            Map.of("status", oldStatus.name()),
+            Map.of("status", AppointmentStatus.NO_SHOW.name(), "donorId", saved.getDonorId()));
         return saved;
     }
 

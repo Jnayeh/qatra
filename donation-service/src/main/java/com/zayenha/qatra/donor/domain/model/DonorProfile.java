@@ -50,7 +50,7 @@ public class DonorProfile {
         this.consecutiveEmergencyDeclines = 0;
         this.flaggedForManualReview = false;
         this.permanentlyRestricted = false;
-        this.reliabilityScore = 50.0;
+        this.reliabilityScore = 100.0;
         this.totalDonations = 0;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
