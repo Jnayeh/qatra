@@ -1,8 +1,10 @@
 package com.zayenha.qatra.emergency.application;
 
+import com.zayenha.qatra._shared.domain.AppointmentType;
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.port.out.AppointmentServiceProvider;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.exception.ConflictException;
@@ -17,7 +19,6 @@ import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +32,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class EmergencyService implements EmergencyCommandUseCases, EmergencyQueryUseCases {
 
+    private final AppointmentServiceProvider appointmentApi;
     private final EmergencyRepositoryPort repository;
     private final EmergencyDonorProxy donorProxy;
-    private final ApplicationEventPublisher eventPublisher;
     private final CacheService cacheService;
     private final MatchingService matchingService;
 
@@ -97,39 +98,18 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
 
     @Override
     @Transactional
-    public DonorResponse respond(Long emergencyId, Long donorId) {
-        var request = findOrThrow(emergencyId);
-        if (request.getStatus() != EmergencyStatus.OPEN) {
-            throw new ValidationException("Emergency is no longer open",
-                    EmergencyErrorCode.EMERGENCY_ALREADY_FULFILLED.name());
-        }
-        if (repository.existsByEmergencyIdAndDonorId(emergencyId, donorId)) {
-            throw new ConflictException("Donor already responded to this emergency",
-                    EmergencyErrorCode.RESPONSE_ALREADY_EXISTS.name());
+    public DonorResponse acceptResponse(Long emergencyId, Long donorId, Long slotId) {
+        var emergency = validateEmergency(emergencyId, donorId);
+        var acceptedResponses = findResponsesByEmergencyId(emergencyId)
+                .stream().filter(r -> ResponseStatus.ACCEPTED.equals(r.getStatus())).count();
+        if (emergency.getUnitsNeeded() <= acceptedResponses) {
+            fulfillEmergency(emergency);
+            return null;
         }
         var response = new DonorResponse(emergencyId, donorId);
-        var saved = repository.saveResponse(response);
-        cacheService.evictByPattern("responses:*");
-
-        // Sync MatchResult status to RESPONDED
-        repository.findMatchResultByEmergencyIdAndDonorId(emergencyId, donorId).ifPresent(mr -> {
-            mr.setStatus(MatchStatus.RESPONDED);
-            repository.saveMatchResult(mr);
-        });
-
-        auditPublisher.publish("DONOR_RESPONDED", saved.getId(), "EmergencyRequest", null,
-            Map.of("emergencyId", emergencyId, "donorId", donorId));
-        return saved;
-    }
-
-    @Override
-    @Transactional
-    public DonorResponse acceptResponse(Long responseId, Long slotId) {
-        var response = findResponseOrThrow(responseId);
-        var oldStatus = response.getStatus();
         response.accept(slotId);
         var saved = repository.saveResponse(response);
-
+        var newAcceptedCount = acceptedResponses +1;
         // Update MatchResult status
         repository.findMatchResultByEmergencyIdAndDonorId(
             response.getEmergencyId(), response.getDonorId()).ifPresent(mr -> {
@@ -138,31 +118,27 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         });
 
         // Reset consecutive declines on accept
-        donorProxy.findByUserId(response.getDonorId()).ifPresent(dto -> {
+        donorProxy.findByDonorId(response.getDonorId()).ifPresent(dto -> {
             dto.setConsecutiveEmergencyDeclines(0);
             dto.setUpdatedAt(Instant.now());
             donorProxy.saveDonor(dto);
             cacheService.evictByPattern("donorProfiles:*");
         });
-
-        // Accept on DonorResponse triggers emergency fulfillment check
-        var emergency = findOrThrow(response.getEmergencyId());
-        emergency.fulfill();
-        repository.save(emergency);
-        cacheService.evictByPattern("emergencies:*");
+        appointmentApi.book(donorId, slotId, emergencyId, AppointmentType.EMERGENCY);
+        if (emergency.getUnitsNeeded() == newAcceptedCount) fulfillEmergency(emergency);
         cacheService.evictByPattern("responses:*");
-        auditPublisher.publish("RESPONSE_ACCEPTED", responseId, "EmergencyRequest",
-            Map.of("status", oldStatus != null ? oldStatus.name() : null),
-            Map.of("status", "ACCEPTED", "slotId", slotId));
+        auditPublisher.publish("RESPONSE_ACCEPTED", response.getId(), "EmergencyRequest",
+            null,
+            Map.of("emergencyId", emergencyId, "donorId", donorId, "status", "ACCEPTED", "slotId", slotId));
         return saved;
     }
 
     @Override
     @Transactional
-    public DonorResponse declineResponse(Long responseId) {
-        var response = findResponseOrThrow(responseId);
-        var oldStatus = response.getStatus();
-        response.decline(null);
+    public DonorResponse declineResponse(Long emergencyId, Long donorId, String reason) {
+        validateEmergency(emergencyId, donorId);
+        var response = new DonorResponse(emergencyId, donorId);
+        response.decline(reason);
         var saved = repository.saveResponse(response);
 
         // Update MatchResult status
@@ -173,7 +149,7 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         });
 
         // Track consecutive declines
-        donorProxy.findByUserId(response.getDonorId()).ifPresent(profile -> {
+        donorProxy.findByDonorId(response.getDonorId()).ifPresent(profile -> {
             var declines = profile.getConsecutiveEmergencyDeclines() != null
                 ? profile.getConsecutiveEmergencyDeclines() + 1 : 1;
             profile.setConsecutiveEmergencyDeclines(declines);
@@ -185,9 +161,9 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         });
 
         cacheService.evictByPattern("responses:*");
-        auditPublisher.publish("RESPONSE_DECLINED", responseId, "EmergencyRequest",
-            Map.of("status", oldStatus != null ? oldStatus.name() : null),
-            Map.of("status", "DECLINED"));
+        auditPublisher.publish("RESPONSE_DECLINED", emergencyId, "EmergencyRequest",
+            null,
+            Map.of("emergencyId", emergencyId, "donorId", donorId, "status", "DECLINED", "reason", reason));
         return saved;
     }
 
@@ -244,6 +220,25 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
                     cacheService.put(key, result);
                     return result;
                 });
+    }
+
+    private EmergencyRequest validateEmergency(Long emergencyId, Long donorId) {
+        var emergency = findOrThrow(emergencyId);
+        if (emergency.getStatus() != EmergencyStatus.OPEN) {
+            throw new ValidationException("Emergency is no longer open",
+                    EmergencyErrorCode.EMERGENCY_ALREADY_FULFILLED.name());
+        }
+        if (repository.existsByEmergencyIdAndDonorId(emergencyId, donorId)) {
+            throw new ConflictException("Donor already responded to this emergency",
+                    EmergencyErrorCode.RESPONSE_ALREADY_EXISTS.name());
+        }
+        return emergency;
+    }
+
+    private void fulfillEmergency(EmergencyRequest emergency) {
+        cacheService.evictByPattern("emergencies:*");
+        emergency.fulfill();
+        repository.save(emergency);
     }
 
     private EmergencyRequest findOrThrow(Long id) {
