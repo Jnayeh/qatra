@@ -1,6 +1,7 @@
 package com.zayenha.qatra.appointment.application;
 
 import com.zayenha.qatra._shared.cache.CacheService;
+import com.zayenha.qatra._shared.domain.AppointmentType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
@@ -14,6 +15,7 @@ import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentQueryUseCases;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.zayenha.qatra.center.application.api.dto.SlotDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -38,19 +40,37 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
     @Override
     @Transactional
-    public Appointment book(Long donorId, Long slotId) {
+    public Appointment book(Long donorId, Long slotId, Long emergencyId, AppointmentType type) {
         if (repository.existsByDonorIdAndStatusIn(donorId,
                 List.of(AppointmentStatus.SCHEDULED, AppointmentStatus.CHECKED_IN, AppointmentStatus.IN_SCREENING))) {
             throw new ConflictException("Donor already has an active appointment", AppointmentErrorCode.DONOR_ALREADY_BOOKED.name());
         }
-        var appointment = new Appointment(donorId, slotId, null, null, null, null);
+
+        // Validate slot capacity and increment counts
+        var slot = centerProxy.findSlotById(slotId)
+            .orElseThrow(() -> new NotFoundException("Slot not found: " + slotId, AppointmentErrorCode.APPOINTMENT_NOT_FOUND.name()));
+        validateSlot(slot, type);
+        slot.setBookedCount(slot.getBookedCount() + 1);
+        if (AppointmentType.REGULAR.equals(type)) slot.setRegularBookedCount(slot.getRegularBookedCount() + 1);
+        centerProxy.updateSlot(slot);
+
+        var appointment = new Appointment(donorId, slotId, slot.getCenterId(), emergencyId, type, null);
         var saved = repository.save(appointment);
         cacheService.evictByPattern("appointments:*");
         auditPublisher.publish("APPOINTMENT_BOOKED", saved.getId(), "Appointment", null,
-            Map.of("donorId", donorId, "slotId", slotId, "appointmentType",
-                   saved.getAppointmentType() != null ? saved.getAppointmentType().name() : null));
+            Map.of("donorId", donorId, "slotId", slotId,"centerId", slot.getCenterId(), "appointmentType", saved.getAppointmentType()));
         eventPublisherPort.publishAppointmentReminder(saved.getId(), donorId, null);
         return saved;
+    }
+
+    private static void validateSlot(SlotDTO slot, AppointmentType type) {
+        if (slot.isBlocked() || slot.getBookedCount() >= slot.getMaxBookings()) {
+            throw new ConflictException("Slot is full or blocked", AppointmentErrorCode.SLOT_NOT_AVAILABLE.name());
+        }
+        var reachedMaxRegular = slot.getRegularBookedCount() >= slot.getMaxRegularBookings() || slot.getRegularBookedCount() >= slot.getBookedCount();
+        if (AppointmentType.REGULAR.equals(type) && reachedMaxRegular) {
+            throw new ConflictException("Slot has no capacity for regular bookings", AppointmentErrorCode.SLOT_NOT_AVAILABLE.name());
+        }
     }
 
     @Override
