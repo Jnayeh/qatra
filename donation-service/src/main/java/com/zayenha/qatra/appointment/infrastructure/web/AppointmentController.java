@@ -34,7 +34,7 @@ public class AppointmentController {
     @PostMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> book(@Valid @RequestBody CreateAppointmentRequest request) {
-        var appointment = commandUseCases.book(request.donorId(), request.slotId());
+        var appointment = commandUseCases.book(request.donorId(), request.slotId(), request.emergencyId(), request.type());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(mapper.toResponse(appointment)));
     }

@@ -18,6 +18,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleBadRequestException(BadRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getData(), ex.getErrorCode(), ex.getMessage()));
+    }
+
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ApiResponse<Map<String, Object>>> handleBase(BaseException ex) {
         HttpStatus status = HttpStatus.resolve(ex.getHttpStatus());

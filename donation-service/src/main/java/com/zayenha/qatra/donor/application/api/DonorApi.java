@@ -33,6 +33,10 @@ public class DonorApi implements EntityApi<DonorProfileEntity> {
         return donorRepositoryPort.findByUserId(userId).map(DonorApi::toDTO);
     }
 
+    public Optional<DonorProfileDTO> findByDonorId(Long donorId) {
+        return donorRepositoryPort.findById(donorId).map(DonorApi::toDTO);
+    }
+
     public List<DonorProfileDTO> findEligibleForEmergency() {
         return donorRepositoryPort.findEligibleForEmergency().stream()
             .map(DonorApi::toDTO).toList();

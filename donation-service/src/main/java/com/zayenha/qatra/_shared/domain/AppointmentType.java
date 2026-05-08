@@ -1,4 +1,4 @@
-package com.zayenha.qatra.appointment.domain.model;
+package com.zayenha.qatra._shared.domain;
 
 public enum AppointmentType {
     REGULAR, EMERGENCY

@@ -1,5 +1,6 @@
 package com.zayenha.qatra.appointment.domain.model;
 
+import com.zayenha.qatra._shared.domain.AppointmentType;
 import com.zayenha.qatra._shared.domain.BloodType;
 import lombok.Getter;
 import lombok.Setter;

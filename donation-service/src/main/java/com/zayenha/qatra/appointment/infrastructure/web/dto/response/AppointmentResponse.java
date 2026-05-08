@@ -2,7 +2,7 @@ package com.zayenha.qatra.appointment.infrastructure.web.dto.response;
 
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
-import com.zayenha.qatra.appointment.domain.model.AppointmentType;
+import com.zayenha.qatra._shared.domain.AppointmentType;
 import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
 
 import java.time.Instant;

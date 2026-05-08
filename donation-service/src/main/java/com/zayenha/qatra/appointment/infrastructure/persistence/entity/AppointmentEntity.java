@@ -2,7 +2,7 @@ package com.zayenha.qatra.appointment.infrastructure.persistence.entity;
 
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
-import com.zayenha.qatra.appointment.domain.model.AppointmentType;
+import com.zayenha.qatra._shared.domain.AppointmentType;
 import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.SlotEntity;
