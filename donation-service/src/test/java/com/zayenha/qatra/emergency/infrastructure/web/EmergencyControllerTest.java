@@ -8,7 +8,6 @@ import com.zayenha.qatra.emergency.domain.port.in.EmergencyCommandUseCases;
 import com.zayenha.qatra.emergency.domain.port.in.EmergencyQueryUseCases;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.AcceptResponseRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.CreateEmergencyRequest;
-import com.zayenha.qatra.emergency.infrastructure.web.dto.request.UpdateEmergencyRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,27 +110,12 @@ class EmergencyControllerTest {
     }
 
     @Test
-    void respondReturnsCreated() {
-        var donorResponse = new DonorResponse();
-        donorResponse.setId(1L);
-        donorResponse.setEmergencyId(1L);
-        donorResponse.setDonorId(10L);
-        donorResponse.setStatus(ResponseStatus.PENDING);
-        when(commandUseCases.respond(1L, 10L)).thenReturn(donorResponse);
-
-        var response = controller.respond(1L);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody().data().donorId()).isEqualTo(10L);
-    }
-
-    @Test
     void acceptResponseReturnsOk() {
         var donorResponse = new DonorResponse();
         donorResponse.setId(1L);
         donorResponse.setStatus(ResponseStatus.ACCEPTED);
         donorResponse.setSlotId(100L);
-        when(commandUseCases.acceptResponse(1L, 100L)).thenReturn(donorResponse);
+        when(commandUseCases.acceptResponse(1L, 10L, 100L)).thenReturn(donorResponse);
 
         var request = new AcceptResponseRequest(100L);
         var response = controller.acceptResponse(1L, request);

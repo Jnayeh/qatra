@@ -2,7 +2,6 @@ package com.zayenha.qatra.emergency.application;
 
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.BloodType;
-import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.emergency.domain.model.*;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
@@ -106,40 +105,12 @@ class EmergencyServiceTest {
     }
 
     @Test
-    void respondCreatesPendingResponse() {
-        var request = new EmergencyRequest();
-        request.setId(1L);
-        request.setStatus(EmergencyStatus.OPEN);
-        when(repository.findById(1L)).thenReturn(Optional.of(request));
-        when(repository.existsByEmergencyIdAndDonorId(1L, 10L)).thenReturn(false);
-        when(repository.saveResponse(any())).thenAnswer(i -> i.getArgument(0));
-
-        var result = service.respond(1L, 10L);
-
-        assertThat(result.getEmergencyId()).isEqualTo(1L);
-        assertThat(result.getDonorId()).isEqualTo(10L);
-        assertThat(result.getStatus()).isEqualTo(ResponseStatus.PENDING);
-    }
-
-    @Test
-    void respondThrowsWhenAlreadyResponded() {
-        var request = new EmergencyRequest();
-        request.setId(1L);
-        request.setStatus(EmergencyStatus.OPEN);
-        when(repository.findById(1L)).thenReturn(Optional.of(request));
-        when(repository.existsByEmergencyIdAndDonorId(1L, 10L)).thenReturn(true);
-
-        assertThatThrownBy(() -> service.respond(1L, 10L))
-                .isInstanceOf(ConflictException.class);
-    }
-
-    @Test
     void acceptResponseUpdatesAndFulfillsEmergency() {
         var response = new DonorResponse();
         response.setId(1L);
         response.setEmergencyId(1L);
         response.setDonorId(10L);
-        response.setStatus(ResponseStatus.PENDING);
+        response.setStatus(ResponseStatus.ACCEPTED);
         when(repository.findResponseById(1L)).thenReturn(Optional.of(response));
         when(repository.saveResponse(any())).thenAnswer(i -> i.getArgument(0));
 
@@ -149,7 +120,7 @@ class EmergencyServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(emergency));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        var result = service.acceptResponse(1L, 100L);
+        var result = service.acceptResponse(1L, 10L, 100L);
 
         assertThat(result.getStatus()).isEqualTo(ResponseStatus.ACCEPTED);
         assertThat(result.getSlotId()).isEqualTo(100L);
@@ -165,7 +136,7 @@ class EmergencyServiceTest {
         when(repository.findResponseById(1L)).thenReturn(Optional.of(response));
         when(repository.saveResponse(any())).thenAnswer(i -> i.getArgument(0));
 
-        var result = service.declineResponse(1L);
+        var result = service.declineResponse(1L, 10L, null);
 
         assertThat(result.getStatus()).isEqualTo(ResponseStatus.DECLINED);
         assertThat(result.getRespondedAt()).isNotNull();

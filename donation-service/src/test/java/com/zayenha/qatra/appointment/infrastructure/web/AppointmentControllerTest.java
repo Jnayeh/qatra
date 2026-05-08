@@ -1,5 +1,6 @@
 package com.zayenha.qatra.appointment.infrastructure.web;
 
+import com.zayenha.qatra._shared.domain.AppointmentType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.appointment.domain.model.*;
@@ -53,9 +54,9 @@ class AppointmentControllerTest {
     @Test
     void bookReturnsCreated() {
         var appointment = anAppointment();
-        when(commandUseCases.book(1L, 100L)).thenReturn(appointment);
+        when(commandUseCases.book(1L, 100L, null, AppointmentType.REGULAR)).thenReturn(appointment);
 
-        var request = new CreateAppointmentRequest(1L, 100L);
+        var request = new CreateAppointmentRequest( AppointmentType.REGULAR, 1L, 100L, null);
         var response = controller.book(request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -80,14 +81,14 @@ class AppointmentControllerTest {
     void completeReturnsOk() {
         var appointment = anAppointment();
         appointment.setStatus(AppointmentStatus.COMPLETED);
-        appointment.setOutcome(DonationOutcome.FULL_DONATION);
-        when(commandUseCases.complete(eq(1L), eq(DonationOutcome.FULL_DONATION), eq("Good"))).thenReturn(appointment);
+        appointment.setOutcome(DonationOutcome.COMPLETED);
+        when(commandUseCases.complete(eq(1L), eq(DonationOutcome.COMPLETED), eq("Good"))).thenReturn(appointment);
 
         var request = new CompleteAppointmentRequest("FULL_DONATION", "Good");
         var response = controller.complete(1L, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().data().outcome()).isEqualTo(DonationOutcome.FULL_DONATION);
+        assertThat(response.getBody().data().outcome()).isEqualTo(DonationOutcome.COMPLETED);
     }
 
     @Test

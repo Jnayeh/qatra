@@ -1,6 +1,7 @@
 package com.zayenha.qatra.appointment.application;
 
 import com.zayenha.qatra._shared.cache.CacheService;
+import com.zayenha.qatra._shared.domain.AppointmentType;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
@@ -49,7 +50,7 @@ class AppointmentServiceTest {
         when(repository.existsByDonorIdAndStatusIn(1L, List.of(AppointmentStatus.SCHEDULED, AppointmentStatus.CHECKED_IN, AppointmentStatus.IN_SCREENING))).thenReturn(false);
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        var result = service.book(1L, 100L);
+        var result = service.book(1L, 100L, null, AppointmentType.REGULAR);
 
         assertThat(result.getDonorId()).isEqualTo(1L);
         assertThat(result.getSlotId()).isEqualTo(100L);
@@ -61,7 +62,7 @@ class AppointmentServiceTest {
     void bookThrowsWhenDonorHasActiveAppointment() {
         when(repository.existsByDonorIdAndStatusIn(1L, List.of(AppointmentStatus.SCHEDULED, AppointmentStatus.CHECKED_IN, AppointmentStatus.IN_SCREENING))).thenReturn(true);
 
-        assertThatThrownBy(() -> service.book(1L, 100L))
+        assertThatThrownBy(() -> service.book(1L, 100L, null, AppointmentType.REGULAR))
                 .isInstanceOf(ConflictException.class);
         verify(repository, never()).save(any());
     }
