@@ -19,8 +19,8 @@ public class EmergencyDonorProxy {
         return donorApi.getDonorReference(id);
     }
 
-    public Optional<DonorProfileDTO> findByDonorId(Long userId) {
-        return donorApi.findByDonorId(userId);
+    public DonorProfileDTO findByUserId(Long userId) {
+        return donorApi.findByUserId(userId);
     }
 
     public List<DonorProfileDTO> findEligibleForEmergency() {

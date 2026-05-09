@@ -98,15 +98,16 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
 
     @Override
     @Transactional
-    public DonorResponse acceptResponse(Long emergencyId, Long donorId, Long slotId) {
-        var emergency = validateEmergency(emergencyId, donorId);
+    public DonorResponse acceptResponse(Long emergencyId, Long userId, Long slotId) {
+        var emergency = validateEmergency(emergencyId, userId);
         var acceptedResponses = findResponsesByEmergencyId(emergencyId)
                 .stream().filter(r -> ResponseStatus.ACCEPTED.equals(r.getStatus())).count();
         if (emergency.getUnitsNeeded() <= acceptedResponses) {
             fulfillEmergency(emergency);
             return null;
         }
-        var response = new DonorResponse(emergencyId, donorId);
+        var donor = donorProxy.findByUserId(userId);
+        var response = new DonorResponse(emergencyId, userId);
         response.accept(slotId);
         var saved = repository.saveResponse(response);
         var newAcceptedCount = acceptedResponses +1;
@@ -118,29 +119,28 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         });
 
         // Reset consecutive declines on accept
-        donorProxy.findByDonorId(response.getDonorId()).ifPresent(dto -> {
-            dto.setConsecutiveEmergencyDeclines(0);
-            dto.setUpdatedAt(Instant.now());
-            donorProxy.saveDonor(dto);
-            cacheService.evictByPattern("donorProfiles:*");
-        });
-        appointmentApi.book(donorId, slotId, emergencyId, AppointmentType.EMERGENCY);
+        donor.setConsecutiveEmergencyDeclines(0);
+        donor.setUpdatedAt(Instant.now());
+        donorProxy.saveDonor(donor);
+        cacheService.evictByPattern("donorProfiles:*");
+
+        appointmentApi.book(userId, slotId, emergencyId, AppointmentType.EMERGENCY);
         if (emergency.getUnitsNeeded() == newAcceptedCount) fulfillEmergency(emergency);
         cacheService.evictByPattern("responses:*");
         auditPublisher.publish("RESPONSE_ACCEPTED", response.getId(), "EmergencyRequest",
             null,
-            Map.of("emergencyId", emergencyId, "donorId", donorId, "status", "ACCEPTED", "slotId", slotId));
+            Map.of("emergencyId", emergencyId, "donorId", userId, "status", "ACCEPTED", "slotId", slotId));
         return saved;
     }
 
     @Override
     @Transactional
-    public DonorResponse declineResponse(Long emergencyId, Long donorId, String reason) {
-        validateEmergency(emergencyId, donorId);
-        var response = new DonorResponse(emergencyId, donorId);
+    public DonorResponse declineResponse(Long emergencyId, Long userId, String reason) {
+        validateEmergency(emergencyId, userId);
+        var response = new DonorResponse(emergencyId, userId);
         response.decline(reason);
         var saved = repository.saveResponse(response);
-
+        var profile = donorProxy.findByUserId(userId);
         // Update MatchResult status
         repository.findMatchResultByEmergencyIdAndDonorId(
             response.getEmergencyId(), response.getDonorId()).ifPresent(mr -> {
@@ -149,21 +149,20 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         });
 
         // Track consecutive declines
-        donorProxy.findByDonorId(response.getDonorId()).ifPresent(profile -> {
-            var declines = profile.getConsecutiveEmergencyDeclines() != null
-                ? profile.getConsecutiveEmergencyDeclines() + 1 : 1;
-            profile.setConsecutiveEmergencyDeclines(declines);
-            if (declines >= 3) {
-                profile.setFlaggedForManualReview(true);
-            }
-            donorProxy.saveDonor(profile);
-            cacheService.evictByPattern("donorProfiles:*");
-        });
+        var declines = profile.getConsecutiveEmergencyDeclines() != null
+            ? profile.getConsecutiveEmergencyDeclines() + 1 : 1;
+        profile.setConsecutiveEmergencyDeclines(declines);
+        if (declines >= 3) {
+            profile.setFlaggedForManualReview(true);
+        }
+        donorProxy.saveDonor(profile);
+        cacheService.evictByPattern("donorProfiles:*");
+
 
         cacheService.evictByPattern("responses:*");
         auditPublisher.publish("RESPONSE_DECLINED", emergencyId, "EmergencyRequest",
             null,
-            Map.of("emergencyId", emergencyId, "donorId", donorId, "status", "DECLINED", "reason", reason));
+            Map.of("emergencyId", emergencyId, "donorId", userId, "status", "DECLINED", "reason", reason));
         return saved;
     }
 

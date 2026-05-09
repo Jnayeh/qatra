@@ -11,6 +11,6 @@ public interface EmergencyCommandUseCases {
     EmergencyRequest update(Long id, Long centerId, BloodType bloodType, Integer unitsNeeded,
                             EmergencyUrgency urgency, Integer matchRadius, String contactPhone);
     EmergencyRequest cancel(Long id);
-    DonorResponse acceptResponse(Long emergencyId, Long donorId, Long slotId);
-    DonorResponse declineResponse(Long emergencyId, Long donorId, String reason);
+    DonorResponse acceptResponse(Long emergencyId, Long userId, Long slotId);
+    DonorResponse declineResponse(Long emergencyId, Long userId, String reason);
 }

@@ -98,7 +98,7 @@ public class EmergencyController {
     }
 
     @PostMapping("/{emergencyId}/responses/accept")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
     public ResponseEntity<ApiResponse<DonorResponseDTO>> acceptResponse(
             @PathVariable Long emergencyId, @Valid @RequestBody AcceptResponseRequest request) {
         var donorId = AuditUtils.currentUserId();
@@ -107,7 +107,7 @@ public class EmergencyController {
     }
 
     @PostMapping("/{emergencyId}/responses/decline")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
     public ResponseEntity<ApiResponse<DonorResponseDTO>> declineResponse(@PathVariable Long emergencyId, @Valid @RequestBody DeclineResponseRequest request) {
         var donorId = AuditUtils.currentUserId();
         var response = commandUseCases.declineResponse(emergencyId, null, request.reason());
