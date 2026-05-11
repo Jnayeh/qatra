@@ -3,11 +3,9 @@ package com.zayenha.qatra.user.infrastructure.web;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.web.ApiResponse;
+import com.zayenha.qatra.user.api.UserLoggedInEvent;
 import com.zayenha.qatra.user.domain.exception.UserErrorCode;
-import com.zayenha.qatra.user.domain.model.Role;
-import com.zayenha.qatra.user.domain.model.Session;
-import com.zayenha.qatra.user.domain.model.VerificationToken;
-import com.zayenha.qatra.user.domain.model.VerificationTokenType;
+import com.zayenha.qatra.user.domain.model.*;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import com.zayenha.qatra.user.domain.port.out.SessionRepositoryPort;
@@ -21,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,9 +30,9 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -47,6 +46,7 @@ public class AuthController {
     private final SessionRepositoryPort sessionRepository;
     private final VerificationTokenRepositoryPort verificationTokenRepository;
     private final EventPublisherPort eventPublisherPort;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.base-url:http://localhost:8080}")
@@ -63,14 +63,16 @@ public class AuthController {
         var principal = (UserDetailsAdapter) auth.getPrincipal();
         var user = principal.user();
         var roles = userQueryUseCases.getUserRoles(user.getId());
-        var roleNameStrings = roles.stream().map(Enum::name).toList();
+        var roleNameStrings = roles.stream().map(Enum::name).collect(Collectors.toSet());
 
-        var accessToken = tokenProvider.generateToken(user.getId(), user.getEmail(), roleNameStrings);
+        var accessToken = tokenProvider.generateToken(user.getId(), user.getEmail(), roleNameStrings.stream().toList());
         var refreshToken = UUID.randomUUID().toString();
         var session = new Session(user.getId(), sha256(accessToken), sha256(refreshToken),
                 sanitizeIp(ipAddress), userAgent, Instant.now().plus(Duration.ofDays(30)));
         sessionRepository.save(session);
-
+        if (UserStatus.PENDING_DELETION.equals(user.getStatus()) && roleNameStrings.contains(Role.DONOR.name())) {
+        applicationEventPublisher.publishEvent(new UserLoggedInEvent(this, user.getId(), user.getEmail()));
+        }
         return ResponseEntity.ok(ApiResponse.success(
                 new LoginResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
     }

@@ -4,7 +4,6 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditPublisher;
-import com.zayenha.qatra.user.api.dto.UserCreatedEvent;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
 import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
@@ -63,9 +62,6 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user = userRepository.save(user);
         cacheService.evictByPattern("users:*");
         cacheService.evictByPattern("userExists:*");
-        eventPublisher.publishEvent(
-                new UserCreatedEvent(this, user.getId(), user.getEmail())
-        );
         auditPublisher.publish("USER_CREATED", user.getId(), "User", null, Map.of("email", email, "phone", phone));
         return user;
     }

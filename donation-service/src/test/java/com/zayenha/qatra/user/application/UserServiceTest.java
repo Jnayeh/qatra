@@ -3,7 +3,6 @@ package com.zayenha.qatra.user.application;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
-import com.zayenha.qatra.user.api.dto.UserCreatedEvent;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
 import com.zayenha.qatra.user.domain.exception.EmailAlreadyExistsException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
@@ -85,7 +84,6 @@ class UserServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getEmail()).isEqualTo("new@example.com");
         assertThat(result.getHashedPassword()).isEqualTo("encodedPassword");
-        verify(eventPublisher).publishEvent(any(UserCreatedEvent.class));
     }
 
     @Test
