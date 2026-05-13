@@ -2,6 +2,8 @@ package com.zayenha.qatra.appointment.application;
 
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.AppointmentType;
+import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
+import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
@@ -9,6 +11,7 @@ import com.zayenha.qatra.appointment.application.proxy.AptCenterProxy;
 import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
+import com.zayenha.qatra.center.application.api.dto.SlotDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,19 +37,25 @@ class AppointmentServiceTest {
     @Mock
     private AptDonorProxy donorProxy;
     @Mock
+    private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private EventPublisherPort eventPublisherPort;
+    @Mock
     private CacheService cacheService;
     @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private AuditPublisher auditPublisher;
 
     private AppointmentService service;
 
     @BeforeEach
     void setUp() {
-        service = new AppointmentService(repository, centerProxy, donorProxy, cacheService, eventPublisher);
+        service = new AppointmentService(repository, centerProxy, donorProxy, eventPublisher, eventPublisherPort, cacheService, auditPublisher);
     }
 
     @Test
     void bookCreatesAppointment() {
+        var slot = new SlotDTO(100L, 1000L, 1, 0, 10, 5, false);
+        when(centerProxy.findSlotById(100L)).thenReturn(Optional.of(slot));
         when(repository.existsByDonorIdAndStatusIn(1L, List.of(AppointmentStatus.SCHEDULED, AppointmentStatus.CHECKED_IN, AppointmentStatus.IN_SCREENING))).thenReturn(false);
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
@@ -71,6 +80,7 @@ class AppointmentServiceTest {
     void checkInUpdatesStatus() {
         var appointment = new Appointment();
         appointment.setId(1L);
+        appointment.setDonorId(1L);
         appointment.setStatus(AppointmentStatus.SCHEDULED);
         when(repository.findById(1L)).thenReturn(Optional.of(appointment));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -96,6 +106,8 @@ class AppointmentServiceTest {
     void completeSetsOutcome() {
         var appointment = new Appointment();
         appointment.setId(1L);
+        appointment.setDonorId(1L);
+        appointment.setMlCollected(450);
         appointment.setStatus(AppointmentStatus.CHECKED_IN);
         when(repository.findById(1L)).thenReturn(Optional.of(appointment));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -111,6 +123,7 @@ class AppointmentServiceTest {
     void cancelChangesStatus() {
         var appointment = new Appointment();
         appointment.setId(1L);
+        appointment.setDonorId(1L);
         appointment.setStatus(AppointmentStatus.SCHEDULED);
         when(repository.findById(1L)).thenReturn(Optional.of(appointment));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));

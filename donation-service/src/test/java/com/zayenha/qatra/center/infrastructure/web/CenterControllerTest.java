@@ -3,7 +3,9 @@ package com.zayenha.qatra.center.infrastructure.web;
 import com.zayenha.qatra.center.domain.model.*;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases;
 import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
+import com.zayenha.qatra.center.infrastructure.mapper.CenterMapper;
 import com.zayenha.qatra.center.infrastructure.web.dto.request.*;
+import com.zayenha.qatra.center.infrastructure.web.dto.response.*;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.exception.GlobalExceptionHandler;
@@ -31,13 +33,15 @@ class CenterControllerTest {
     private CenterCommandUseCases commandUseCases;
     @Mock
     private CenterQueryUseCases queryUseCases;
+    @Mock
+    private CenterMapper mapper;
 
     private CenterController controller;
     private GlobalExceptionHandler exceptionHandler;
 
     @BeforeEach
     void setUp() {
-        controller = new CenterController(commandUseCases, queryUseCases);
+        controller = new CenterController(commandUseCases, queryUseCases, mapper);
         exceptionHandler = new GlobalExceptionHandler();
     }
 
@@ -49,7 +53,7 @@ class CenterControllerTest {
         var center = new DonationCenter("Main Center", "123 Street", "City", "Country",
                 "12345", "1234567890", "center@test.com",
                 40.7128, -74.0060, FacilityType.BLOOD_BANK, op,
-                100, 50, 30);
+                100, 50, 30, 0L);
         center.setId(1L);
         center.setStatus(CenterStatus.ACTIVE);
         center.setCreatedAt(Instant.now());
@@ -61,6 +65,14 @@ class CenterControllerTest {
     void createReturnsCreated() {
         var center = aCenter();
         when(commandUseCases.create(any())).thenReturn(center);
+        when(mapper.toResponse(center)).thenReturn(new CenterResponse(
+            1L, "Main Center", "123 Street", "City", "Country",
+            "12345", "1234567890", "center@test.com",
+            40.7128, -74.0060, FacilityType.BLOOD_BANK,
+            center.getOperatingHours(),
+            CenterStatus.ACTIVE, 100, 50, 30,
+            center.getCreatedAt(), center.getUpdatedAt()
+        ));
 
         var request = new CreateCenterRequest(
             "Main Center", "123 Street", "City", "Country",
@@ -85,6 +97,14 @@ class CenterControllerTest {
     void updateReturnsOk() {
         var center = aCenter();
         when(commandUseCases.update(eq(1L), any())).thenReturn(center);
+        when(mapper.toResponse(center)).thenReturn(new CenterResponse(
+            1L, "Main Center", "123 Street", "City", "Country",
+            "12345", "1234567890", "center@test.com",
+            40.7128, -74.0060, FacilityType.BLOOD_BANK,
+            center.getOperatingHours(),
+            CenterStatus.ACTIVE, 100, 50, 30,
+            center.getCreatedAt(), center.getUpdatedAt()
+        ));
 
         var request = new UpdateCenterRequest(
             "Main Center", "123 Street", "City", "Country",
@@ -128,6 +148,14 @@ class CenterControllerTest {
     void getByIdReturnsCenter() {
         var center = aCenter();
         when(queryUseCases.getById(1L, false)).thenReturn(center);
+        when(mapper.toResponse(center)).thenReturn(new CenterResponse(
+            1L, "Main Center", "123 Street", "City", "Country",
+            "12345", "1234567890", "center@test.com",
+            40.7128, -74.0060, FacilityType.BLOOD_BANK,
+            center.getOperatingHours(),
+            CenterStatus.ACTIVE, 100, 50, 30,
+            center.getCreatedAt(), center.getUpdatedAt()
+        ));
 
         var response = controller.getById(1L, false);
 
@@ -175,6 +203,12 @@ class CenterControllerTest {
         slot.setId(100L);
         slot.setBlocked(true);
         when(commandUseCases.blockSlot(1L, 100L, true)).thenReturn(slot);
+        when(mapper.toSlotResponse(slot)).thenReturn(new SlotResponse(
+            slot.getId(), slot.getCenterId(), slot.getDate(),
+            slot.getStartTime(), slot.getEndTime(),
+            slot.getMaxBookings(), slot.getMaxRegularBookings(),
+            slot.getBookedCount(), slot.getRegularBookedCount(), slot.isBlocked()
+        ));
 
         var request = new BlockSlotRequest(true);
         var response = controller.blockSlot(1L, 100L, request);
@@ -204,6 +238,10 @@ class CenterControllerTest {
         var staff = new CenterStaffProfile(10L, 1L);
         staff.setId(100L);
         when(commandUseCases.addStaff(1L, 10L)).thenReturn(staff);
+        when(mapper.toStaffResponse(staff)).thenReturn(new StaffSummaryResponse(
+            staff.getId(), staff.getUserId(), staff.getCenterId(),
+            staff.isVerified(), staff.getCreatedAt()
+        ));
 
         var request = new AddStaffRequest(10L);
         var response = controller.addStaff(1L, request);
@@ -244,6 +282,14 @@ class CenterControllerTest {
         var center = aCenter();
         center.setStatus(CenterStatus.ACTIVE);
         when(commandUseCases.approve(1L, true, "Approved")).thenReturn(center);
+        when(mapper.toResponse(center)).thenReturn(new CenterResponse(
+            1L, "Main Center", "123 Street", "City", "Country",
+            "12345", "1234567890", "center@test.com",
+            40.7128, -74.0060, FacilityType.BLOOD_BANK,
+            center.getOperatingHours(),
+            CenterStatus.ACTIVE, 100, 50, 30,
+            center.getCreatedAt(), center.getUpdatedAt()
+        ));
 
         var request = new ApproveCenterRequest(true, "Approved");
         var response = controller.approve(1L, request);

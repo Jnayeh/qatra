@@ -1,8 +1,12 @@
 package com.zayenha.qatra.system.infrastructure.web;
 
-import com.zayenha.qatra.system.application.GDPRService;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionRequest;
+import com.zayenha.qatra.system.domain.model.GDPRDeletionStatus;
+import com.zayenha.qatra.system.domain.port.in.GDPRCommandUseCases;
+import com.zayenha.qatra.system.domain.port.in.GDPRQueryUseCases;
+import com.zayenha.qatra.system.infrastructure.mapper.SystemMapper;
 import com.zayenha.qatra.system.infrastructure.web.dto.request.GDPRRequestDeletionRequest;
+import com.zayenha.qatra.system.infrastructure.web.dto.response.GDPRDeletionResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,19 +21,25 @@ import static org.mockito.Mockito.when;
 class SystemControllerTest {
 
     @Mock
-    private GDPRService gdprService;
+    private GDPRCommandUseCases gdprCommandUseCases;
+    @Mock
+    private GDPRQueryUseCases gdprQueryUseCases;
+    @Mock
+    private SystemMapper mapper;
 
     private SystemController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new SystemController(gdprService);
+        controller = new SystemController(gdprCommandUseCases, gdprQueryUseCases, mapper);
     }
 
     @Test
     void requestDeletionReturnsOk() {
         var gdpr = new GDPRDeletionRequest(1L, "Reason");
-        when(gdprService.requestDeletion(1L, "Reason")).thenReturn(gdpr);
+        var responseDto = new GDPRDeletionResponse(1L, 1L, "Reason", GDPRDeletionStatus.IN_PROGRESS, null, null);
+        when(gdprCommandUseCases.requestDeletion(1L, "Reason")).thenReturn(gdpr);
+        when(mapper.toResponse(gdpr)).thenReturn(responseDto);
 
         var request = new GDPRRequestDeletionRequest(1L, "Reason");
         var response = controller.requestDeletion(request);

@@ -62,7 +62,7 @@ class DonorControllerIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.userId").value(userId))
                 .andExpect(jsonPath("$.data.bloodType").value("UNKNOWN"))
-                .andExpect(jsonPath("$.data.availabilityStatus").value("AVAILABLE"))
+                .andExpect(jsonPath("$.data.availability").value("AVAILABLE"))
                 .andExpect(jsonPath("$.data.profileComplete").value(false));
     }
 
@@ -113,8 +113,7 @@ class DonorControllerIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.latitude").value(40.71))
                 .andExpect(jsonPath("$.data.longitude").value(-74.00))
-                .andExpect(jsonPath("$.data.city").value("NYC"))
-                .andExpect(jsonPath("$.data.country").value("USA"));
+                .andExpect(jsonPath("$.data.city").value("NYC"));
     }
 
     @Test
@@ -128,7 +127,7 @@ class DonorControllerIntegrationTest {
                 .content("{\"status\": \"TEMPORARILY_UNAVAILABLE\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.availabilityStatus").value("TEMPORARILY_UNAVAILABLE"));
+                .andExpect(jsonPath("$.data.availability").value("TEMPORARILY_UNAVAILABLE"));
     }
 
     @Test
@@ -139,16 +138,16 @@ class DonorControllerIntegrationTest {
         mockMvc.perform(put("/api/v1/donors/me/health-questionnaire")
                 .with(authentication(auth(userId)))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"hasChronicIllness\": false, \"onMedication\": false, \"recentSurgery\": false, \"recentTravel\": true, \"recentTattooOrPiercing\": false}"))
+                .content("{\"hasChronicIllness\": false, \"onMedication\": false, \"lastSurgeryAt\": null, \"lastTravelAt\": \"2025-06-01T00:00:00Z\", \"lastTattooOrPiercingAt\": null}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.recentTravel").value(true));
+                .andExpect(jsonPath("$.data.lastTravelAt").isNotEmpty());
 
         mockMvc.perform(get("/api/v1/donors/me/health-questionnaire")
                 .with(authentication(auth(userId))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.recentTravel").value(true));
+                .andExpect(jsonPath("$.data.lastTravelAt").isNotEmpty());
     }
 
     @Test
@@ -159,7 +158,7 @@ class DonorControllerIntegrationTest {
         mockMvc.perform(put("/api/v1/donors/me/health-questionnaire")
                 .with(authentication(auth(userId)))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"hasChronicIllness\": true, \"onMedication\": false, \"recentSurgery\": false, \"recentTravel\": false, \"recentTattooOrPiercing\": false}"))
+                .content("{\"hasChronicIllness\": true, \"onMedication\": false, \"lastSurgeryAt\": null, \"lastTravelAt\": null, \"lastTattooOrPiercingAt\": null}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/v1/donors/me")
@@ -192,18 +191,6 @@ class DonorControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.totalDonations").value(0))
                 .andExpect(jsonPath("$.data.estimatedLivesSaved").value(0))
                 .andExpect(jsonPath("$.data.milestones").isArray());
-    }
-
-    @Test
-    void requestDeletionSetsInactive() throws Exception {
-        var userId = ++counter;
-        createProfile(userId);
-
-        mockMvc.perform(delete("/api/v1/donors/me")
-                .with(authentication(auth(userId))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data").value("Deletion requested"));
     }
 
     @Test

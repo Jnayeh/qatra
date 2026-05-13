@@ -30,7 +30,7 @@ class AuditLogServiceTest {
     void recordSavesAuditLog() {
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        service.record(1L, "APPOINTMENT_CREATED", "Appointment", 10L, null, "{}", null, null);
+        service.record(1L, "APPOINTMENT_CREATED", "Appointment", 10L, null, null, null);
 
         verify(repository).save(any());
     }

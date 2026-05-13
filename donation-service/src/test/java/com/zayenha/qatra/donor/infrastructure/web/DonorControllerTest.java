@@ -5,7 +5,9 @@ import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireQueryUseCases;
+import com.zayenha.qatra.donor.infrastructure.mapper.DonorMapper;
 import com.zayenha.qatra.donor.infrastructure.web.dto.request.*;
+import com.zayenha.qatra.donor.infrastructure.web.dto.response.*;
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.exception.GlobalExceptionHandler;
 import com.zayenha.qatra._shared.exception.NotFoundException;
@@ -21,6 +23,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,13 +37,14 @@ class DonorControllerTest {
     @Mock private DonorQueryUseCases queryUseCases;
     @Mock private QuestionnaireCommandUseCases healthCommandUseCases;
     @Mock private QuestionnaireQueryUseCases healthQueryUseCases;
+    @Mock private DonorMapper mapper;
 
     private DonorController controller;
     private GlobalExceptionHandler exceptionHandler;
 
     @BeforeEach
     void setUp() {
-        controller = new DonorController(commandUseCases, queryUseCases, healthCommandUseCases, healthQueryUseCases);
+        controller = new DonorController(commandUseCases, queryUseCases, healthCommandUseCases, healthQueryUseCases, mapper);
         exceptionHandler = new GlobalExceptionHandler();
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(1L, null, java.util.List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN")))
@@ -57,7 +61,7 @@ class DonorControllerTest {
         profile.setId(10L);
         profile.setBloodType(BloodType.A_POSITIVE);
         profile.setBloodTypeVerified(true);
-        profile.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
+        profile.setAvailability(AvailabilityStatus.AVAILABLE);
         profile.setNotificationPreferences(new NotificationPreferences(
                 NotificationFrequency.IMMEDIATE, null, true, 25));
         profile.setCreatedAt(Instant.now());
@@ -69,6 +73,14 @@ class DonorControllerTest {
     void getMyProfileReturnsProfile() {
         var profile = aProfile();
         when(queryUseCases.getMyProfile(1L)).thenReturn(profile);
+        when(mapper.toProfileResponse(profile)).thenReturn(new DonorProfileResponse(
+                profile.getId(), profile.getUserId(), profile.getBloodType(),
+                profile.getBloodTypeVerified(), profile.getLatitude(), profile.getLongitude(),
+                profile.getCity(), profile.getAvailability(), profile.getNotificationPreferences(),
+                profile.getPermanentlyRestricted(), profile.getRestrictionReason(),
+                profile.getFlaggedForManualReview(), profile.getReliabilityScore(),
+                profile.getEligibleFromDate(), profile.getProfileComplete(),
+                profile.getTotalDonations(), profile.getCreatedAt(), profile.getUpdatedAt()));
 
         var response = controller.getMyProfile();
 
@@ -96,6 +108,14 @@ class DonorControllerTest {
     void updateBloodTypeReturnsProfile() {
         var profile = aProfile();
         when(commandUseCases.updateBloodType(eq(1L), any())).thenReturn(profile);
+        when(mapper.toProfileResponse(profile)).thenReturn(new DonorProfileResponse(
+                profile.getId(), profile.getUserId(), profile.getBloodType(),
+                profile.getBloodTypeVerified(), profile.getLatitude(), profile.getLongitude(),
+                profile.getCity(), profile.getAvailability(), profile.getNotificationPreferences(),
+                profile.getPermanentlyRestricted(), profile.getRestrictionReason(),
+                profile.getFlaggedForManualReview(), profile.getReliabilityScore(),
+                profile.getEligibleFromDate(), profile.getProfileComplete(),
+                profile.getTotalDonations(), profile.getCreatedAt(), profile.getUpdatedAt()));
 
         var request = new UpdateBloodTypeRequest(BloodType.A_POSITIVE);
         var response = controller.updateBloodType(request);
@@ -110,6 +130,14 @@ class DonorControllerTest {
     void updateLocationReturnsProfile() {
         var profile = aProfile();
         when(commandUseCases.updateLocation(eq(1L), any())).thenReturn(profile);
+        when(mapper.toProfileResponse(profile)).thenReturn(new DonorProfileResponse(
+                profile.getId(), profile.getUserId(), profile.getBloodType(),
+                profile.getBloodTypeVerified(), profile.getLatitude(), profile.getLongitude(),
+                profile.getCity(), profile.getAvailability(), profile.getNotificationPreferences(),
+                profile.getPermanentlyRestricted(), profile.getRestrictionReason(),
+                profile.getFlaggedForManualReview(), profile.getReliabilityScore(),
+                profile.getEligibleFromDate(), profile.getProfileComplete(),
+                profile.getTotalDonations(), profile.getCreatedAt(), profile.getUpdatedAt()));
 
         var request = new UpdateLocationRequest(40.71, -74.00, "NYC", "USA");
         var response = controller.updateLocation(request);
@@ -122,8 +150,16 @@ class DonorControllerTest {
     @Test
     void updateAvailabilityReturnsProfile() {
         var profile = aProfile();
-        profile.setAvailabilityStatus(AvailabilityStatus.TEMPORARILY_UNAVAILABLE);
+        profile.setAvailability(AvailabilityStatus.TEMPORARILY_UNAVAILABLE);
         when(commandUseCases.updateAvailability(eq(1L), any())).thenReturn(profile);
+        when(mapper.toProfileResponse(profile)).thenReturn(new DonorProfileResponse(
+                profile.getId(), profile.getUserId(), profile.getBloodType(),
+                profile.getBloodTypeVerified(), profile.getLatitude(), profile.getLongitude(),
+                profile.getCity(), profile.getAvailability(), profile.getNotificationPreferences(),
+                profile.getPermanentlyRestricted(), profile.getRestrictionReason(),
+                profile.getFlaggedForManualReview(), profile.getReliabilityScore(),
+                profile.getEligibleFromDate(), profile.getProfileComplete(),
+                profile.getTotalDonations(), profile.getCreatedAt(), profile.getUpdatedAt()));
 
         var request = new UpdateAvailabilityRequest(AvailabilityStatus.TEMPORARILY_UNAVAILABLE);
         var response = controller.updateAvailability(request);
@@ -131,7 +167,7 @@ class DonorControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().success()).isTrue();
-        assertThat(response.getBody().data().availabilityStatus())
+        assertThat(response.getBody().data().availability())
                 .isEqualTo(AvailabilityStatus.TEMPORARILY_UNAVAILABLE);
     }
 
@@ -144,6 +180,11 @@ class DonorControllerTest {
         q.setCreatedAt(Instant.now());
         q.setUpdatedAt(Instant.now());
         when(healthQueryUseCases.getHealthQuestionnaire(1L)).thenReturn(q);
+        when(mapper.toHealthResponse(q)).thenReturn(new DonorHealthResponse(
+                q.getId(), q.getDonorId(), q.getHasChronicIllness(),
+                q.getMedicalConditionsDetails(), q.getOnMedication(),
+                q.getMedicationDetails(), q.getLastSurgeryAt(), q.getLastTravelAt(),
+                q.getLastTattooOrPiercingAt(), q.getCreatedAt(), q.getUpdatedAt()));
 
         var response = controller.getHealthQuestionnaire();
 
@@ -162,9 +203,14 @@ class DonorControllerTest {
         q.setCreatedAt(Instant.now());
         q.setUpdatedAt(Instant.now());
         when(healthCommandUseCases.updateHealthQuestionnaire(eq(1L), any())).thenReturn(q);
+        when(mapper.toHealthResponse(q)).thenReturn(new DonorHealthResponse(
+                q.getId(), q.getDonorId(), q.getHasChronicIllness(),
+                q.getMedicalConditionsDetails(), q.getOnMedication(),
+                q.getMedicationDetails(), q.getLastSurgeryAt(), q.getLastTravelAt(),
+                q.getLastTattooOrPiercingAt(), q.getCreatedAt(), q.getUpdatedAt()));
 
         var request = new HealthQuestionnaireRequest(
-                false, null, false, null, false, false, false);
+                false, null, false, null, null, null, null);
         var response = controller.updateHealthQuestionnaire(request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -177,6 +223,8 @@ class DonorControllerTest {
     void getEligibilityReturnsEligibility() {
         var profile = aProfile();
         when(queryUseCases.getMyProfile(1L)).thenReturn(profile);
+        when(mapper.toEligibilityResponse(profile)).thenReturn(new EligibilityResponse(
+                true, profile.getEligibleFromDate(), null));
 
         var response = controller.getEligibility();
 
@@ -190,6 +238,8 @@ class DonorControllerTest {
     void getImpactReturnsImpactResponse() {
         var impact = new DonorQueryUseCases.ImpactResult(5, 15, List.of("First donation completed"));
         when(queryUseCases.getImpact(1L)).thenReturn(impact);
+        when(mapper.toImpactResponse(impact)).thenReturn(new ImpactResponse(
+                impact.totalDonations(), impact.estimatedLivesSaved(), impact.milestones()));
 
         var response = controller.getImpact();
 
@@ -205,6 +255,10 @@ class DonorControllerTest {
     void getDonorEligibilityReturnsEligibilityDetail() {
         var profile = aProfile();
         when(queryUseCases.getDonorById(10L)).thenReturn(profile);
+        when(mapper.toEligibilityDetailResponse(profile)).thenReturn(new EligibilityDetailResponse(
+                true, profile.getEligibleFromDate(),
+                Boolean.TRUE.equals(profile.getPermanentlyRestricted()),
+                profile.getRestrictionReason()));
 
         var response = controller.getDonorEligibility(10L);
 
@@ -215,20 +269,18 @@ class DonorControllerTest {
     }
 
     @Test
-    void requestDeletionReturnsSuccess() {
-        var response = controller.requestDeletion();
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().success()).isTrue();
-        assertThat(response.getBody().data()).isEqualTo("Deletion requested");
-        verify(commandUseCases).requestDeletion(1L);
-    }
-
-    @Test
     void getDonorByIdReturnsDetail() {
         var profile = aProfile();
         when(queryUseCases.getDonorById(10L)).thenReturn(profile);
+        when(mapper.toDetailResponse(profile)).thenReturn(new DonorDetailResponse(
+                profile.getId(), profile.getUserId(), profile.getBloodType(),
+                profile.getBloodTypeVerified(), profile.getLatitude(), profile.getLongitude(),
+                profile.getCity(), profile.getAvailability(), profile.getNotificationPreferences(),
+                profile.getPermanentlyRestricted(), profile.getRestrictionReason(),
+                profile.getFlaggedForManualReview(), profile.getReliabilityScore(),
+                profile.getEligibleFromDate(), profile.getProfileComplete(),
+                profile.getTotalDonations(), null, 0,
+                profile.getCreatedAt(), profile.getUpdatedAt()));
 
         var response = controller.getDonorById(10L);
 
@@ -242,6 +294,14 @@ class DonorControllerTest {
     void updateRestrictionReturnsProfile() {
         var profile = aProfile();
         when(commandUseCases.updateRestriction(eq(10L), anyBoolean(), any())).thenReturn(profile);
+        when(mapper.toProfileResponse(profile)).thenReturn(new DonorProfileResponse(
+                profile.getId(), profile.getUserId(), profile.getBloodType(),
+                profile.getBloodTypeVerified(), profile.getLatitude(), profile.getLongitude(),
+                profile.getCity(), profile.getAvailability(), profile.getNotificationPreferences(),
+                profile.getPermanentlyRestricted(), profile.getRestrictionReason(),
+                profile.getFlaggedForManualReview(), profile.getReliabilityScore(),
+                profile.getEligibleFromDate(), profile.getProfileComplete(),
+                profile.getTotalDonations(), profile.getCreatedAt(), profile.getUpdatedAt()));
 
         var request = new UpdateRestrictionRequest(true, "Cheating");
         var response = controller.updateRestriction(10L, request);
@@ -255,6 +315,14 @@ class DonorControllerTest {
     void updateFlagReturnsProfile() {
         var profile = aProfile();
         when(commandUseCases.updateFlag(eq(10L), anyBoolean())).thenReturn(profile);
+        when(mapper.toProfileResponse(profile)).thenReturn(new DonorProfileResponse(
+                profile.getId(), profile.getUserId(), profile.getBloodType(),
+                profile.getBloodTypeVerified(), profile.getLatitude(), profile.getLongitude(),
+                profile.getCity(), profile.getAvailability(), profile.getNotificationPreferences(),
+                profile.getPermanentlyRestricted(), profile.getRestrictionReason(),
+                profile.getFlaggedForManualReview(), profile.getReliabilityScore(),
+                profile.getEligibleFromDate(), profile.getProfileComplete(),
+                profile.getTotalDonations(), profile.getCreatedAt(), profile.getUpdatedAt()));
 
         var request = new UpdateFlagRequest(true);
         var response = controller.updateFlag(10L, request);

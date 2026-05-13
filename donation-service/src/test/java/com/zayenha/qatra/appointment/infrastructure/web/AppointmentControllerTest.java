@@ -6,9 +6,12 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentQueryUseCases;
+import com.zayenha.qatra.appointment.infrastructure.mapper.AppointmentMapper;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.request.CompleteAppointmentRequest;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.request.CreateAppointmentRequest;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.request.ScreeningRequest;
+import com.zayenha.qatra.appointment.infrastructure.web.dto.response.AppointmentResponse;
+import com.zayenha.qatra.appointment.infrastructure.web.dto.response.HealthScreeningResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,12 +35,14 @@ class AppointmentControllerTest {
     private AppointmentCommandUseCases commandUseCases;
     @Mock
     private AppointmentQueryUseCases queryUseCases;
+    @Mock
+    private AppointmentMapper mapper;
 
     private AppointmentController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new AppointmentController(commandUseCases, queryUseCases);
+        controller = new AppointmentController(commandUseCases, queryUseCases, mapper);
     }
 
     private Appointment anAppointment() {
@@ -51,10 +56,21 @@ class AppointmentControllerTest {
         return a;
     }
 
+    private AppointmentResponse aResponse() {
+        return new AppointmentResponse(1L, 1L, 100L, 1000L, null, null,
+            AppointmentType.REGULAR, AppointmentStatus.SCHEDULED, null, null,
+            null, null, null, null, null, null, null, null, Instant.now(), Instant.now());
+    }
+
+    private HealthScreeningResponse aScreeningResponse() {
+        return new HealthScreeningResponse(1L, 1L, null, null, null, null, null, null, true, null, null);
+    }
+
     @Test
     void bookReturnsCreated() {
         var appointment = anAppointment();
         when(commandUseCases.book(1L, 100L, null, AppointmentType.REGULAR)).thenReturn(appointment);
+        when(mapper.toResponse(appointment)).thenReturn(aResponse());
 
         var request = new CreateAppointmentRequest( AppointmentType.REGULAR, 1L, 100L, null);
         var response = controller.book(request);
@@ -70,6 +86,9 @@ class AppointmentControllerTest {
         var appointment = anAppointment();
         appointment.setStatus(AppointmentStatus.CHECKED_IN);
         when(commandUseCases.checkIn(1L)).thenReturn(appointment);
+        when(mapper.toResponse(appointment)).thenReturn(new AppointmentResponse(1L, 1L, 100L, 1000L, null, null,
+            AppointmentType.REGULAR, AppointmentStatus.CHECKED_IN, null, null,
+            null, null, null, null, null, null, null, null, Instant.now(), Instant.now()));
 
         var response = controller.checkIn(1L);
 
@@ -82,7 +101,11 @@ class AppointmentControllerTest {
         var appointment = anAppointment();
         appointment.setStatus(AppointmentStatus.COMPLETED);
         appointment.setOutcome(DonationOutcome.COMPLETED);
+        when(mapper.toOutcome("FULL_DONATION")).thenReturn(DonationOutcome.COMPLETED);
         when(commandUseCases.complete(eq(1L), eq(DonationOutcome.COMPLETED), eq("Good"))).thenReturn(appointment);
+        when(mapper.toResponse(appointment)).thenReturn(new AppointmentResponse(1L, 1L, 100L, 1000L, null, null,
+            AppointmentType.REGULAR, AppointmentStatus.COMPLETED, null, DonationOutcome.COMPLETED,
+            null, null, null, null, null, null, null, null, Instant.now(), Instant.now()));
 
         var request = new CompleteAppointmentRequest("FULL_DONATION", "Good");
         var response = controller.complete(1L, request);
@@ -96,6 +119,9 @@ class AppointmentControllerTest {
         var appointment = anAppointment();
         appointment.setStatus(AppointmentStatus.CANCELLED);
         when(commandUseCases.cancel(1L)).thenReturn(appointment);
+        when(mapper.toResponse(appointment)).thenReturn(new AppointmentResponse(1L, 1L, 100L, 1000L, null, null,
+            AppointmentType.REGULAR, AppointmentStatus.CANCELLED, null, null,
+            null, null, null, null, null, null, null, null, Instant.now(), Instant.now()));
 
         var response = controller.cancel(1L);
 
@@ -107,6 +133,7 @@ class AppointmentControllerTest {
     void getByIdReturnsAppointment() {
         var appointment = anAppointment();
         when(queryUseCases.findById(1L)).thenReturn(Optional.of(appointment));
+        when(mapper.toResponse(appointment)).thenReturn(aResponse());
 
         var response = controller.getById(1L);
 
@@ -154,6 +181,7 @@ class AppointmentControllerTest {
         screening.setEligible(true);
         when(commandUseCases.saveScreening(eq(1L), eq(70.0), eq("120/80"), eq(14.5), eq(36.6), eq(true), eq("Fit")))
                 .thenReturn(screening);
+        when(mapper.toScreeningResponse(screening)).thenReturn(aScreeningResponse());
 
         var request = new ScreeningRequest(70.0, "120/80", 14.5, 36.6, true, "Fit");
         var response = controller.saveScreening(1L, request);
@@ -168,6 +196,7 @@ class AppointmentControllerTest {
         screening.setId(1L);
         screening.setAppointmentId(1L);
         when(queryUseCases.findScreeningByAppointmentId(1L)).thenReturn(Optional.of(screening));
+        when(mapper.toScreeningResponse(screening)).thenReturn(aScreeningResponse());
 
         var response = controller.getScreening(1L);
 

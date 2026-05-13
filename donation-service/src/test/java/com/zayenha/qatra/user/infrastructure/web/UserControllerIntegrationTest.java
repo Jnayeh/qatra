@@ -44,7 +44,9 @@ class UserControllerIntegrationTest {
                 "email": "%s",
                 "phone": "%s",
                 "password": "password123",
-                "displayName": "Integration User"
+                "displayName": "Integration User",
+                "firstName": "Integration",
+                "familyName": "User"
             }
             """.formatted(email, phone);
     }

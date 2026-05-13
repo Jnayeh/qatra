@@ -3,6 +3,7 @@ package com.zayenha.qatra.user.application;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
 import com.zayenha.qatra.user.domain.exception.EmailAlreadyExistsException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
@@ -45,23 +46,34 @@ class UserServiceTest {
     @Mock
     private CacheService cacheService;
 
+    @Mock
+    private AuditPublisher auditPublisher;
+
     private UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, userRoleRepository, passwordEncoder, eventPublisher, cacheService);
+        userService = new UserService(userRepository, userRoleRepository, passwordEncoder, eventPublisher, cacheService, auditPublisher);
     }
 
     private User aUser() {
-        return User.reconstruct(1L, "test@example.com", "1234567890",
-                "encoded", "Test User", UserStatus.ACTIVE, false,
-                null, java.time.Instant.now(), null, List.of());
+        var user = new User("test@example.com", "1234567890", "encoded", "Test User", "John", "Doe");
+        user.setId(1L);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setEmailVerified(false);
+        user.setCreatedAt(java.time.Instant.now());
+        user.setRoles(List.of());
+        return user;
     }
 
     private User anInactiveUser() {
-        return User.reconstruct(2L, "inactive@example.com", "0987654321",
-                "encoded", "Inactive User", UserStatus.INACTIVE, false,
-                null, java.time.Instant.now(), null, List.of());
+        var user = new User("inactive@example.com", "0987654321", "encoded", "Inactive User", "Jane", "Smith");
+        user.setId(2L);
+        user.setStatus(UserStatus.INACTIVE);
+        user.setEmailVerified(false);
+        user.setCreatedAt(java.time.Instant.now());
+        user.setRoles(List.of());
+        return user;
     }
 
     // --- create ---
@@ -73,13 +85,11 @@ class UserServiceTest {
         when(passwordEncoder.encode("rawPassword")).thenReturn("encodedPassword");
         when(userRepository.save(any())).thenAnswer(invocation -> {
             var user = invocation.<User>getArgument(0);
-            return User.reconstruct(1L, user.getEmail(), user.getPhone(),
-                    user.getHashedPassword(), user.getDisplayName(),
-                    user.getStatus(), user.isEmailVerified(),
-                    null, user.getCreatedAt(), null, user.getRoles());
+            user.setId(1L);
+            return user;
         });
 
-        var result = userService.create("new@example.com", "1234567890", "rawPassword", "New User", request.firstName(), request.familyName());
+        var result = userService.create("new@example.com", "1234567890", "rawPassword", "New User", "John", "Doe");
 
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getEmail()).isEqualTo("new@example.com");
@@ -90,7 +100,7 @@ class UserServiceTest {
     void createThrowsWhenEmailAlreadyExists() {
         when(userRepository.existsByEmail("dup@example.com")).thenReturn(true);
 
-        assertThatThrownBy(() -> userService.create("dup@example.com", "1234567890", "pass", "Dup", request.firstName(), request.familyName()))
+        assertThatThrownBy(() -> userService.create("dup@example.com", "1234567890", "pass", "Dup", "John", "Doe"))
                 .isInstanceOf(EmailAlreadyExistsException.class);
         verify(userRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());

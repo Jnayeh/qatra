@@ -1,7 +1,10 @@
 package com.zayenha.qatra.donor.infrastructure.web.mapper;
 
 import com.zayenha.qatra.donor.domain.model.*;
+import com.zayenha.qatra.donor.infrastructure.mapper.DonorMapper;
+import com.zayenha.qatra.donor.infrastructure.mapper.DonorMapperImpl;
 import com.zayenha.qatra._shared.domain.BloodType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -9,6 +12,13 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DonorMapperTest {
+
+    private DonorMapper mapper;
+
+    @BeforeEach
+    void setUp() {
+        mapper = new DonorMapperImpl();
+    }
 
     private DonorProfile aProfile() {
         var profile = new DonorProfile(1L);
@@ -18,16 +28,14 @@ class DonorMapperTest {
         profile.setLatitude(40.71);
         profile.setLongitude(-74.00);
         profile.setCity("NYC");
-        profile.setCountry("USA");
-        profile.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
+        profile.setAvailability(AvailabilityStatus.AVAILABLE);
         profile.setNotificationPreferences(new NotificationPreferences(
                 NotificationFrequency.IMMEDIATE, null, true, 25));
         profile.setPermanentlyRestricted(false);
         profile.setFlaggedForManualReview(false);
-        profile.setReliabilityScore(80);
+        profile.setReliabilityScore(80.0);
         profile.setProfileComplete(true);
         profile.setTotalDonations(5);
-        profile.setEstimatedLivesSaved(15);
         profile.setCreatedAt(Instant.parse("2025-01-01T00:00:00Z"));
         profile.setUpdatedAt(Instant.parse("2025-06-01T00:00:00Z"));
         return profile;
@@ -36,7 +44,7 @@ class DonorMapperTest {
     @Test
     void toProfileResponseMapsAllFields() {
         var profile = aProfile();
-        var response = DonorMapper.toProfileResponse(profile);
+        var response = mapper.toProfileResponse(profile);
 
         assertThat(response.id()).isEqualTo(10L);
         assertThat(response.userId()).isEqualTo(1L);
@@ -45,17 +53,15 @@ class DonorMapperTest {
         assertThat(response.latitude()).isEqualTo(40.71);
         assertThat(response.longitude()).isEqualTo(-74.00);
         assertThat(response.city()).isEqualTo("NYC");
-        assertThat(response.country()).isEqualTo("USA");
-        assertThat(response.availabilityStatus()).isEqualTo(AvailabilityStatus.AVAILABLE);
+        assertThat(response.availability()).isEqualTo(AvailabilityStatus.AVAILABLE);
         assertThat(response.notificationPreferences()).isNotNull();
         assertThat(response.permanentlyRestricted()).isFalse();
         assertThat(response.flaggedForManualReview()).isFalse();
-        assertThat(response.reliabilityScore()).isEqualTo(80);
+        assertThat(response.reliabilityScore()).isEqualTo(80.0);
         assertThat(response.profileComplete()).isTrue();
         assertThat(response.totalDonations()).isEqualTo(5);
-        assertThat(response.estimatedLivesSaved()).isEqualTo(15);
-        assertThat(response.createdAt()).isEqualTo("2025-01-01T00:00:00Z");
-        assertThat(response.updatedAt()).isEqualTo("2025-06-01T00:00:00Z");
+        assertThat(response.createdAt()).isEqualTo(Instant.parse("2025-01-01T00:00:00Z"));
+        assertThat(response.updatedAt()).isEqualTo(Instant.parse("2025-06-01T00:00:00Z"));
     }
 
     @Test
@@ -66,28 +72,26 @@ class DonorMapperTest {
         q.setMedicalConditionsDetails("Diabetes");
         q.setOnMedication(true);
         q.setMedicationDetails("Insulin");
-        q.setRecentSurgery(false);
-        q.setRecentTravel(true);
-        q.setRecentTattooOrPiercing(false);
+        q.setLastSurgeryAt(Instant.parse("2025-01-01T00:00:00Z"));
+        q.setLastTravelAt(Instant.parse("2025-03-15T00:00:00Z"));
         q.setCreatedAt(Instant.parse("2025-03-01T00:00:00Z"));
         q.setUpdatedAt(Instant.parse("2025-06-01T00:00:00Z"));
 
-        var response = DonorMapper.toHealthResponse(q);
+        var response = mapper.toHealthResponse(q);
 
         assertThat(response.id()).isEqualTo(100L);
         assertThat(response.hasChronicIllness()).isTrue();
         assertThat(response.medicalConditionsDetails()).isEqualTo("Diabetes");
         assertThat(response.onMedication()).isTrue();
         assertThat(response.medicationDetails()).isEqualTo("Insulin");
-        assertThat(response.recentSurgery()).isFalse();
-        assertThat(response.recentTravel()).isTrue();
-        assertThat(response.recentTattooOrPiercing()).isFalse();
+        assertThat(response.lastSurgeryAt()).isEqualTo(Instant.parse("2025-01-01T00:00:00Z"));
+        assertThat(response.lastTravelAt()).isEqualTo(Instant.parse("2025-03-15T00:00:00Z"));
     }
 
     @Test
     void toEligibilityResponseReturnsEligibleWhenNoCooldown() {
         var profile = aProfile();
-        var response = DonorMapper.toEligibilityResponse(profile);
+        var response = mapper.toEligibilityResponse(profile);
 
         assertThat(response.eligible()).isTrue();
     }
@@ -98,7 +102,7 @@ class DonorMapperTest {
         profile.setPermanentlyRestricted(true);
         profile.setRestrictionReason("Chronic illness");
 
-        var response = DonorMapper.toEligibilityResponse(profile);
+        var response = mapper.toEligibilityResponse(profile);
 
         assertThat(response.eligible()).isFalse();
         assertThat(response.reason()).contains("Chronic illness");

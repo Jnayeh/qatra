@@ -1,6 +1,8 @@
 package com.zayenha.qatra.system.application;
 
+import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
+import com.zayenha.qatra.system.application.proxy.GDPRUserProxy;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionRequest;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionStatus;
 import com.zayenha.qatra.system.domain.port.out.GDPRRepositoryPort;
@@ -25,12 +27,16 @@ class GDPRServiceTest {
     private GDPRRepositoryPort repository;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private AuditPublisher auditPublisher;
+    @Mock
+    private GDPRUserProxy userProxy;
 
     private GDPRService service;
 
     @BeforeEach
     void setUp() {
-        service = new GDPRService(repository, eventPublisher);
+        service = new GDPRService(repository, eventPublisher, auditPublisher, userProxy);
     }
 
     @Test

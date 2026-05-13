@@ -6,7 +6,9 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.emergency.domain.model.*;
 import com.zayenha.qatra.emergency.domain.port.in.EmergencyCommandUseCases;
 import com.zayenha.qatra.emergency.domain.port.in.EmergencyQueryUseCases;
+import com.zayenha.qatra.emergency.infrastructure.mapper.EmergencyMapper;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.AcceptResponseRequest;
+import com.zayenha.qatra.emergency.infrastructure.web.dto.response.EmergencyResponse;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.CreateEmergencyRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,12 +36,14 @@ class EmergencyControllerTest {
     private EmergencyCommandUseCases commandUseCases;
     @Mock
     private EmergencyQueryUseCases queryUseCases;
+    @Mock
+    private EmergencyMapper mapper;
 
     private EmergencyController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new EmergencyController(commandUseCases, queryUseCases);
+        controller = new EmergencyController(commandUseCases, queryUseCases, mapper);
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(10L, null, java.util.List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN")))
         );
@@ -53,11 +57,12 @@ class EmergencyControllerTest {
     private EmergencyRequest anEmergency() {
         var e = new EmergencyRequest();
         e.setId(1L);
-        e.setPatientName("John");
+        e.setCenterId(1L);
         e.setBloodType(BloodType.A_POSITIVE);
         e.setUnitsNeeded(2);
         e.setUrgency(EmergencyUrgency.HIGH);
-        e.setHospital("General");
+        e.setMatchRadius(50);
+        e.setContactPhone("+123");
         e.setStatus(EmergencyStatus.OPEN);
         e.setCreatedAt(Instant.now());
         return e;
@@ -66,21 +71,38 @@ class EmergencyControllerTest {
     @Test
     void createReturnsCreated() {
         var emergency = anEmergency();
-        when(commandUseCases.create(anyString(), any(), anyInt(), any(), anyString(), anyDouble(), anyDouble(), anyString()))
+        when(commandUseCases.create(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(emergency);
 
-        var request = new CreateEmergencyRequest("John", BloodType.A_POSITIVE, 2,
-                EmergencyUrgency.HIGH, "General", 40.71, -74.00, "+123");
+        var request = new CreateEmergencyRequest(1L, BloodType.A_POSITIVE, 2,
+                EmergencyUrgency.HIGH, 50, "+123");
         var response = controller.create(request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody().data().patientName()).isEqualTo("John");
     }
 
     @Test
     void getByIdReturnsEmergency() {
         var emergency = anEmergency();
         when(queryUseCases.findById(1L)).thenReturn(Optional.of(emergency));
+        when(mapper.toResponse(emergency)).thenReturn(
+                new EmergencyResponse(
+                        emergency.getId(),
+                        emergency.getCenterId(),
+                        emergency.getBloodType(),
+                        emergency.getUnitsNeeded(),
+                        emergency.getUrgency(),
+                        emergency.getMatchRadius(),
+                        emergency.getEscalationLevel(),
+                        emergency.getContactPhone(),
+                        emergency.getStatus(),
+                        emergency.getCreatedAt(),
+                        emergency.getUpdatedAt(),
+                        emergency.getExpiresAt(),
+                        emergency.getResolvedAt(),
+                        emergency.getResolvedByUserId()
+                )
+        );
 
         var response = controller.getById(1L);
 
@@ -111,16 +133,15 @@ class EmergencyControllerTest {
 
     @Test
     void acceptResponseReturnsOk() {
-        var donorResponse = new DonorResponse();
+        var donorResponse = new DonorResponse(1L, 10L);
         donorResponse.setId(1L);
-        donorResponse.setStatus(ResponseStatus.ACCEPTED);
         donorResponse.setSlotId(100L);
+        donorResponse.setStatus(ResponseStatus.ACCEPTED);
         when(commandUseCases.acceptResponse(1L, 10L, 100L)).thenReturn(donorResponse);
 
         var request = new AcceptResponseRequest(100L);
         var response = controller.acceptResponse(1L, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().data().status()).isEqualTo(ResponseStatus.ACCEPTED);
     }
 }

@@ -9,7 +9,9 @@ import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserStatus;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
+import com.zayenha.qatra.user.infrastructure.mapper.UserMapper;
 import com.zayenha.qatra.user.infrastructure.web.dto.request.*;
+import com.zayenha.qatra.user.infrastructure.web.dto.response.UserDetailResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,20 +36,26 @@ class UserControllerTest {
     private UserCommandUseCases commandUseCases;
     @Mock
     private UserQueryUseCases queryUseCases;
+    @Mock
+    private UserMapper mapper;
 
     private UserController controller;
     private GlobalExceptionHandler exceptionHandler;
 
     @BeforeEach
     void setUp() {
-        controller = new UserController(commandUseCases, queryUseCases);
+        controller = new UserController(commandUseCases, queryUseCases, mapper);
         exceptionHandler = new GlobalExceptionHandler();
     }
 
     private User aUser() {
-        return User.reconstruct(1L, "test@example.com", "1234567890",
-                "encoded", "Test User", UserStatus.ACTIVE, false,
-                null, Instant.now(), null, List.of(Role.DONOR));
+        var user = new User("test@example.com", "1234567890", "encoded", "Test User", "John", "Doe");
+        user.setId(1L);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setEmailVerified(false);
+        user.setCreatedAt(Instant.now());
+        user.setRoles(List.of(Role.DONOR));
+        return user;
     }
 
     @Test
@@ -69,7 +77,13 @@ class UserControllerTest {
 
     @Test
     void getDetailsReturnsUser() {
-        when(queryUseCases.findById(1L)).thenReturn(Optional.of(aUser()));
+        var user = aUser();
+        when(queryUseCases.findById(1L)).thenReturn(Optional.of(user));
+        when(mapper.toDetail(user, user.getRoles())).thenReturn(
+            new UserDetailResponse(user.getId(), user.getEmail(), user.getPhone(),
+                user.getDisplayName(), user.getStatus(), user.isEmailVerified(),
+                user.getRoles(), user.getCreatedAt(), user.getDeletionRequestedAt(),
+                user.getDeletedAt(), user.getLastActiveAt()));
 
         var response = controller.getDetails(1L);
 
@@ -92,10 +106,15 @@ class UserControllerTest {
     @Test
     void createReturnsCreatedUser() {
         var user = aUser();
-        when(commandUseCases.create("test@example.com", "1234567890", "password123", "Test User", request.firstName(), request.familyName()))
+        var request = new CreateUserRequest("test@example.com", "1234567890", "password123", "Test User", "John", "Doe");
+        when(commandUseCases.create(request.email(), request.phone(), request.password(), request.displayName(), request.firstName(), request.familyName()))
                 .thenReturn(user);
+        when(mapper.toDetail(user, user.getRoles())).thenReturn(
+            new UserDetailResponse(user.getId(), user.getEmail(), user.getPhone(),
+                user.getDisplayName(), user.getStatus(), user.isEmailVerified(),
+                user.getRoles(), user.getCreatedAt(), user.getDeletionRequestedAt(),
+                user.getDeletedAt(), user.getLastActiveAt()));
 
-        var request = new CreateUserRequest("test@example.com", "1234567890", "password123", "Test User");
         var response = controller.create(request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);

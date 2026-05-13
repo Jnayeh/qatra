@@ -38,8 +38,14 @@ class UserTest {
         var now = Instant.now();
         var roles = List.of(Role.DONOR);
 
-        var user = User.reconstruct(ID, EMAIL, PHONE, PASSWORD, DISPLAY_NAME,
-                UserStatus.INACTIVE, true, now, now, now, roles);
+        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "John", "Doe");
+        user.setId(ID);
+        user.setStatus(UserStatus.INACTIVE);
+        user.setEmailVerified(true);
+        user.setCreatedAt(now);
+        user.setLastActiveAt(now);
+        user.setDeletedAt(now);
+        user.setRoles(roles);
 
         assertThat(user.getId()).isEqualTo(ID);
         assertThat(user.getEmail()).isEqualTo(EMAIL);

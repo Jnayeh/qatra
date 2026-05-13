@@ -4,30 +4,32 @@ import com.zayenha.qatra.appointment.domain.model.Appointment;
 import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
 import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
 import com.zayenha.qatra.appointment.domain.model.HealthScreening;
+import com.zayenha.qatra.appointment.infrastructure.mapper.AppointmentMapper;
+import com.zayenha.qatra.appointment.infrastructure.mapper.AppointmentMapperImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AppointmentMapperTest {
 
+    private AppointmentMapper mapper;
+
+    @BeforeEach
+    void setUp() {
+        mapper = new AppointmentMapperImpl();
+    }
+
     @Test
     void toResponseMapsAllFields() {
-        var appointment = new Appointment();
+        var appointment = new Appointment(10L, 100L, 1000L, null, null, null);
         appointment.setId(1L);
-        appointment.setDonorId(10L);
-        appointment.setSlotId(100L);
-        appointment.setCenterId(1000L);
         appointment.setStatus(AppointmentStatus.SCHEDULED);
-        appointment.setAppointmentDate(LocalDate.of(2030, 6, 15));
-        appointment.setStartTime(LocalTime.of(10, 0));
-        appointment.setEndTime(LocalTime.of(11, 0));
         appointment.setCreatedAt(Instant.now());
 
-        var response = AppointmentMapper.toResponse(appointment);
+        var response = mapper.toResponse(appointment);
 
         assertThat(response.id()).isEqualTo(1L);
         assertThat(response.donorId()).isEqualTo(10L);
@@ -42,7 +44,7 @@ class AppointmentMapperTest {
         screening.setWeight(70.0);
         screening.setEligible(true);
 
-        var response = AppointmentMapper.toScreeningResponse(screening);
+        var response = mapper.toScreeningResponse(screening);
 
         assertThat(response.id()).isEqualTo(1L);
         assertThat(response.appointmentId()).isEqualTo(10L);
@@ -52,6 +54,6 @@ class AppointmentMapperTest {
 
     @Test
     void toOutcomeParsesString() {
-        assertThat(AppointmentMapper.toOutcome("FULL_DONATION")).isEqualTo(DonationOutcome.FULL_DONATION);
+        assertThat(mapper.toOutcome("COMPLETED")).isEqualTo(DonationOutcome.COMPLETED);
     }
 }

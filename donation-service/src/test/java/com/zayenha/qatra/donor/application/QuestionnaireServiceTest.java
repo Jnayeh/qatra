@@ -1,5 +1,6 @@
 package com.zayenha.qatra.donor.application;
 
+import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
@@ -12,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,12 +28,14 @@ class QuestionnaireServiceTest {
     private DonorRepositoryPort donorRepository;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private AuditPublisher auditPublisher;
 
     private QuestionnaireService questionnaireService;
 
     @BeforeEach
     void setUp() {
-        questionnaireService = new QuestionnaireService(donorRepository, eventPublisher);
+        questionnaireService = new QuestionnaireService(donorRepository, eventPublisher, auditPublisher);
     }
 
     private DonorProfile aProfile() {
@@ -49,10 +53,10 @@ class QuestionnaireServiceTest {
         when(donorRepository.saveQuestionnaire(any())).thenAnswer(i -> i.getArgument(0));
 
         var command = new QuestionnaireCommandUseCases.HealthQuestionnaireCommand(
-                true, null, false, null, false, false, false);
+                true, null, false, null, null, null, null);
         var result = questionnaireService.updateHealthQuestionnaire(1L, command);
 
-        assertThat(result.isHasChronicIllness()).isTrue();
+        assertThat(result.getHasChronicIllness()).isTrue();
         assertThat(profile.getRestrictionReason()).contains("Chronic illness");
     }
 
@@ -66,10 +70,10 @@ class QuestionnaireServiceTest {
 
         var command = new QuestionnaireCommandUseCases.HealthQuestionnaireCommand(
                 false, null, true, "Patient takes insulin daily",
-                false, false, false);
+                null, null, null);
         var result = questionnaireService.updateHealthQuestionnaire(1L, command);
 
-        assertThat(result.isOnMedication()).isTrue();
+        assertThat(result.getOnMedication()).isTrue();
         assertThat(profile.getRestrictionReason()).contains("insulin");
     }
 
