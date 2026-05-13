@@ -35,7 +35,7 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
     @Transactional
     public HealthQuestionnaire updateHealthQuestionnaire(Long userId, HealthQuestionnaireCommand command) {
         var profile = donorRepository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("Donor not found: " + userId,
+                .orElseThrow(() -> new NotFoundException("Donor not found by userID: " + userId,
                         DonorErrorCode.DONOR_NOT_FOUND.name()));
 
         var questionnaire = donorRepository.findQuestionnaireByDonorId(profile.getId())
@@ -68,7 +68,7 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
     @Transactional(readOnly = true)
     public HealthQuestionnaire getHealthQuestionnaire(Long userId) {
         var profile = donorRepository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("Donor not found: " + userId,
+                .orElseThrow(() -> new NotFoundException("Donor not found by userID: " + userId,
                         DonorErrorCode.DONOR_NOT_FOUND.name()));
         return donorRepository.findQuestionnaireByDonorId(profile.getId())
                 .orElseThrow(() -> new NotFoundException("Health questionnaire not found",

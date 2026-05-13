@@ -21,6 +21,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -123,7 +124,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         cacheService.evictByPattern("appointments:*");
 
         // Update donor profile stats
-        donorProxy.findDonorByUserId(saved.getDonorId()).ifPresent(dto -> {
+        donorProxy.findOptionalByDonorId(saved.getDonorId()).ifPresent(dto -> {
             if (outcome == DonationOutcome.COMPLETED) {
                 dto.setTotalDonations(dto.getTotalDonations() + 1);
                 dto.setLastDonationDate(LocalDate.now());
@@ -132,7 +133,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
                 dto.setReliabilityScore(Math.min(100.0, (dto.getReliabilityScore() != null ? dto.getReliabilityScore() : 100.0) * (1.0 + rate)));
                 dto.setConsecutiveEmergencyDeclines(0);
             }
-            dto.setUpdatedAt(java.time.Instant.now());
+            dto.setUpdatedAt(Instant.now());
             donorProxy.saveDonor(dto);
             cacheService.evictByPattern("donorProfiles:*");
         });
@@ -157,8 +158,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         var saved = repository.save(appointment);
         cacheService.evictByPattern("appointments:*");
 
-        // Deduct reliability score
-        donorProxy.findDonorByUserId(saved.getDonorId()).ifPresent(dto -> {
+        donorProxy.findOptionalByDonorId(saved.getDonorId()).ifPresent(dto -> {
             var score = dto.getReliabilityScore() != null ? dto.getReliabilityScore() : 100.0;
             var rate = score > 50.0 ? 0.05 : 0.10;
             dto.setReliabilityScore(Math.max(0.0, score - score * rate));
@@ -167,16 +167,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
             cacheService.evictByPattern("donorProfiles:*");
         });
 
-        // Release slot capacity
-        if (saved.getSlotId() != null) {
-            centerProxy.findSlotById(saved.getSlotId()).ifPresent(slot -> {
-                slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
-                if (saved.getAppointmentType() == AppointmentType.REGULAR) {
-                    slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
-                }
-                centerProxy.updateSlot(slot);
-            });
-        }
+        releaseSlot(saved);
 
         auditPublisher.publish("APPOINTMENT_NO_SHOW", saved.getId(), "Appointment",
             Map.of("status", oldStatus.name()),
@@ -198,15 +189,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         cacheService.evictByPattern("appointments:*");
 
         // Release slot capacity
-        if (saved.getSlotId() != null) {
-            centerProxy.findSlotById(saved.getSlotId()).ifPresent(slot -> {
-                slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
-                if (saved.getAppointmentType() == AppointmentType.REGULAR) {
-                    slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
-                }
-                centerProxy.updateSlot(slot);
-            });
-        }
+        releaseSlot(saved);
 
         auditPublisher.publish("APPOINTMENT_CANCELLED", saved.getId(), "Appointment",
             Map.of("status", oldStatus.name()),
@@ -247,15 +230,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
             // Auto-cancel appointment and release slot when screening fails
             appointment.cancel("Failed health screening");
             repository.save(appointment);
-            if (appointment.getSlotId() != null) {
-                centerProxy.findSlotById(appointment.getSlotId()).ifPresent(slot -> {
-                    slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
-                    if (appointment.getAppointmentType() == AppointmentType.REGULAR) {
-                        slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
-                    }
-                    centerProxy.updateSlot(slot);
-                });
-            }
+            releaseSlot(appointment);
             cacheService.evictByPattern("appointments:*");
             eventPublisherPort.publishEligibilityRestored(appointment.getDonorId(), "deferred");
         } else {
@@ -308,6 +283,18 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         var result = repository.findScreeningByAppointmentId(appointmentId);
         result.ifPresent(r -> cacheService.put(key, r));
         return result;
+    }
+
+    private void releaseSlot(Appointment saved) {
+        if (saved.getSlotId() != null) {
+            centerProxy.findSlotById(saved.getSlotId()).ifPresent(slot -> {
+                slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
+                if (saved.getAppointmentType() == AppointmentType.REGULAR) {
+                    slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
+                }
+                centerProxy.updateSlot(slot);
+            });
+        }
     }
 
     private Appointment findOrThrow(Long id) {

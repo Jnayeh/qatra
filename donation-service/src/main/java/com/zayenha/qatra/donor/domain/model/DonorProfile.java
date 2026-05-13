@@ -32,6 +32,8 @@ public class DonorProfile {
     private int totalDonations;
     private Instant createdAt;
     private Instant updatedAt;
+    private Instant deletionRequestedAt;
+    private Instant deletedAt;
     private Instant lastAcceptAt;
 
     public DonorProfile() {}

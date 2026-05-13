@@ -18,8 +18,8 @@ public class AptDonorProxy {
         return donorApi.getDonorReference(id);
     }
 
-    public Optional<DonorProfileDTO> findDonorByUserId(Long userId) {
-        return donorApi.findDonorByUserId(userId);
+    public Optional<DonorProfileDTO> findOptionalByDonorId(Long donorId) {
+        return donorApi.findOptionalByDonorId(donorId);
     }
 
     public DonorProfileDTO saveDonor(DonorProfileDTO dto) {
