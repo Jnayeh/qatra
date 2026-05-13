@@ -1,7 +1,9 @@
 package com.zayenha.qatra.system.application;
 
 import com.zayenha.qatra._shared.event.AuditPublisher;
+import com.zayenha.qatra._shared.event.GDPRDeletionRequestedEvent;
 import com.zayenha.qatra._shared.exception.NotFoundException;
+import com.zayenha.qatra.system.application.proxy.GDPRUserProxy;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionRequest;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionStatus;
 import com.zayenha.qatra.system.domain.port.in.GDPRCommandUseCases;
@@ -12,6 +14,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +25,7 @@ public class GDPRService implements GDPRCommandUseCases, GDPRQueryUseCases {
     private final GDPRRepositoryPort repository;
     private final ApplicationEventPublisher eventPublisher;
     private final AuditPublisher auditPublisher;
+    private final GDPRUserProxy userProxy;
 
     @Transactional
     public GDPRDeletionRequest requestDeletion(Long userId, String reason) {
@@ -29,8 +33,10 @@ public class GDPRService implements GDPRCommandUseCases, GDPRQueryUseCases {
         if (existing.isPresent() && existing.get().getStatus() == GDPRDeletionStatus.IN_PROGRESS) {
             return existing.get();
         }
+        userProxy.requestDeletion(userId);
         var saved = repository.save(new GDPRDeletionRequest(userId, reason));
         auditPublisher.publish("GDPR_DELETION_REQUESTED", saved.getId(), "GDPRDeletionRequest", null, Map.of("userId", userId, "reason", reason));
+        eventPublisher.publishEvent(new GDPRDeletionRequestedEvent(userId, reason, Instant.now()));
         return saved;
     }
 

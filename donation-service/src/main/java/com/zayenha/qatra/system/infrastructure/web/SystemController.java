@@ -25,6 +25,7 @@ public class SystemController {
     private final SystemMapper mapper;
 
     @PostMapping("/gdpr/request")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
     public ResponseEntity<ApiResponse<GDPRDeletionResponse>> requestDeletion(@Valid @RequestBody GDPRRequestDeletionRequest request) {
         var gdpr = gdprCommandUseCases.requestDeletion(request.userId(), request.reason());
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(gdpr)));
