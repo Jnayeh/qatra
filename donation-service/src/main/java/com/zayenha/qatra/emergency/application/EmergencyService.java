@@ -120,6 +120,7 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
 
         // Reset consecutive declines on accept
         donor.setConsecutiveEmergencyDeclines(0);
+        donor.setLastAcceptAt(Instant.now());
         donor.setUpdatedAt(Instant.now());
         donorProxy.saveDonor(donor);
         cacheService.evictByPattern("donorProfiles:*");

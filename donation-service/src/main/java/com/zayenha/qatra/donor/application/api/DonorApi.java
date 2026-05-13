@@ -67,7 +67,8 @@ public class DonorApi implements EntityApi<DonorProfileEntity> {
             p.getId(), p.getUserId(), p.getBloodType(),
             p.getLatitude(), p.getLongitude(), p.getReliabilityScore(),
             p.getTotalDonations(), p.getLastDonationDate(), p.getEligibleFromDate(),
-            p.getConsecutiveEmergencyDeclines(), p.getFlaggedForManualReview(), p.getUpdatedAt()
+            p.getConsecutiveEmergencyDeclines(), p.getFlaggedForManualReview(), p.getUpdatedAt(),
+            p.getLastAcceptAt(), p.getDeletedAt()
         );
     }
 }

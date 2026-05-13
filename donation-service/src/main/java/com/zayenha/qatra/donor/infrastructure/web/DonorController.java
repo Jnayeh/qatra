@@ -135,14 +135,6 @@ public class DonorController {
         return ResponseEntity.ok(ApiResponse.success(mapper.toEligibilityDetailResponse(profile)));
     }
 
-    @DeleteMapping("/api/v1/donors/me")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
-    public ResponseEntity<ApiResponse<String>> requestDeletion() {
-        var userId = AuditUtils.currentUserId();
-        donorCommandUseCases.requestDeletion(userId);
-        return ResponseEntity.ok(ApiResponse.success("Deletion requested"));
-    }
-
     @GetMapping("/api/v1/donors/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<DonorDetailResponse>> getDonorById(

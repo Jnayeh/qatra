@@ -19,7 +19,7 @@ public class AptDonorProxy {
     }
 
     public Optional<DonorProfileDTO> findOptionalByDonorId(Long donorId) {
-        return donorApi.findOptionalByDonorId(donorId);
+        return donorApi.findOptionalByUserId(donorId);
     }
 
     public DonorProfileDTO saveDonor(DonorProfileDTO dto) {

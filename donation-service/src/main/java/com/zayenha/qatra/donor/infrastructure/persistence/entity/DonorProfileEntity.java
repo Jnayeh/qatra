@@ -81,6 +81,12 @@ public class DonorProfileEntity {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Column(name = "deletion_requested_at")
+    private Instant deletionRequestedAt;
+
     private Instant lastAcceptAt;
 
     @PrePersist

@@ -26,4 +26,6 @@ public class DonorProfileDTO {
     private Integer consecutiveEmergencyDeclines;
     private Boolean flaggedForManualReview;
     private Instant updatedAt;
+    private Instant lastAcceptAt;
+    private Instant deletedAt;
 }

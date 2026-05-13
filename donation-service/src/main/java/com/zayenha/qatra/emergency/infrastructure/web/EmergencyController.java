@@ -33,7 +33,7 @@ public class EmergencyController {
     private final EmergencyMapper mapper;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<EmergencyResponse>> create(@Valid @RequestBody CreateEmergencyRequest request) {
         var emergency = commandUseCases.create(
             request.centerId(), AuditUtils.currentUserId(), request.bloodType(), request.unitsNeeded(),
@@ -43,7 +43,7 @@ public class EmergencyController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<EmergencyResponse>> update(
             @PathVariable Long id, @Valid @RequestBody UpdateEmergencyRequest request) {
         var emergency = commandUseCases.update(
@@ -53,7 +53,7 @@ public class EmergencyController {
     }
 
     @PostMapping("/{id}/cancel")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<EmergencyResponse>> cancel(@PathVariable Long id) {
         var emergency = commandUseCases.cancel(id);
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(emergency)));
