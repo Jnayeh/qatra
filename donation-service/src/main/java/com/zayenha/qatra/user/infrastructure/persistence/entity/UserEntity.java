@@ -57,6 +57,9 @@ public class UserEntity {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    @Column(name = "deletion_requested_at")
+    private Instant deletionRequestedAt;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<UserRoleEntity> roles;
 

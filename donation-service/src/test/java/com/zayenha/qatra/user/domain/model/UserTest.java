@@ -17,7 +17,7 @@ class UserTest {
 
     @Test
     void constructorCreatesActiveUser() {
-        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME);
+        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "", "");
 
         assertThat(user.getId()).isNull();
         assertThat(user.getEmail()).isEqualTo(EMAIL);
@@ -56,7 +56,7 @@ class UserTest {
 
     @Test
     void updateChangesScalarFields() {
-        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME);
+        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "", "");
         user.update("new@example.com", "0987654321", "New Name");
 
         assertThat(user.getEmail()).isEqualTo("new@example.com");
@@ -66,7 +66,7 @@ class UserTest {
 
     @Test
     void updateStatusChangesStatus() {
-        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME);
+        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "", "");
         user.updateStatus(UserStatus.INACTIVE);
 
         assertThat(user.getStatus()).isEqualTo(UserStatus.INACTIVE);
@@ -74,7 +74,7 @@ class UserTest {
 
     @Test
     void updateStatusThrowsWhenUserIsDeleted() {
-        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME);
+        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "", "");
         user.markDeleted();
 
         assertThatThrownBy(() -> user.updateStatus(UserStatus.ACTIVE))
@@ -84,7 +84,7 @@ class UserTest {
 
     @Test
     void markDeletedSetsStatusAndDeletedAt() {
-        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME);
+        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "", "");
         user.markDeleted();
 
         assertThat(user.getStatus()).isEqualTo(UserStatus.DELETED);
@@ -94,7 +94,7 @@ class UserTest {
 
     @Test
     void verifyEmailSetsFlag() {
-        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME);
+        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "", "");
         user.verifyEmail();
 
         assertThat(user.isEmailVerified()).isTrue();
@@ -102,7 +102,7 @@ class UserTest {
 
     @Test
     void isActiveReturnsTrueOnlyForActiveStatus() {
-        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME);
+        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "", "");
         assertThat(user.isActive()).isTrue();
 
         user.updateStatus(UserStatus.INACTIVE);
@@ -114,7 +114,7 @@ class UserTest {
 
     @Test
     void isDeletedReturnsTrueOnlyForDeletedStatus() {
-        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME);
+        var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "", "");
         assertThat(user.isDeleted()).isFalse();
 
         user.markDeleted();

@@ -8,5 +8,7 @@ public record CreateUserRequest(
     @NotBlank @Email String email,
     @NotBlank String phone,
     @NotBlank @Size(min = 8) String password,
-    @NotBlank String displayName
+    @NotBlank String firstName,
+    @NotBlank String familyName,
+    String displayName
 ) {}

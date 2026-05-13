@@ -70,8 +70,11 @@ public class AuthController {
         var session = new Session(user.getId(), sha256(accessToken), sha256(refreshToken),
                 sanitizeIp(ipAddress), userAgent, Instant.now().plus(Duration.ofDays(30)));
         sessionRepository.save(session);
+        if (UserStatus.PENDING_DELETION.equals(user.getStatus())) {
+            userCommandUseCases.updateStatus(user.getId(), UserStatus.ACTIVE);
+        }
         if (UserStatus.PENDING_DELETION.equals(user.getStatus()) && roleNameStrings.contains(Role.DONOR.name())) {
-        applicationEventPublisher.publishEvent(new UserLoggedInEvent(this, user.getId(), user.getEmail()));
+            applicationEventPublisher.publishEvent(new UserLoggedInEvent(this, user.getId(), user.getEmail()));
         }
         return ResponseEntity.ok(ApiResponse.success(
                 new LoginResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
@@ -82,7 +85,7 @@ public class AuthController {
             @Valid @RequestBody SignupRequest request,
             @RequestHeader(name = HttpHeaders.USER_AGENT, required = false) String userAgent,
             @RequestHeader(name = "X-Forwarded-For", required = false) String ipAddress) {
-        var user = userCommandUseCases.create(request.email(), request.phone(), request.password(), request.displayName());
+        var user = userCommandUseCases.create(request.email(), request.phone(), request.password(), request.displayName(), request.firstName(), request.familyName());
         userCommandUseCases.assignRole(user.getId(), Role.DONOR);
         var roles = userQueryUseCases.getUserRoles(user.getId());
         var roleNameStrings = roles.stream().map(Enum::name).toList();

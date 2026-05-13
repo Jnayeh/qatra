@@ -1,11 +1,13 @@
 package com.zayenha.qatra.user.domain.model;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.List;
 
 @Getter
+@Setter
 public class User {
     private Long id;
     private String email;
@@ -18,6 +20,7 @@ public class User {
     private boolean emailVerified;
     private Instant createdAt;
     private Instant lastActiveAt;
+    private Instant deletionRequestedAt;
     private Instant deletedAt;
     private List<Role> roles;
 
@@ -35,34 +38,7 @@ public class User {
         this.roles = List.of();
     }
 
-    public User(String email, String phone, String hashedPassword, String displayName) {
-        this(email, phone, hashedPassword, displayName, null, null);
-    }
-
-    private User() {}
-
-    public static User reconstruct(Long id, String email, String phone,
-                                   String hashedPassword, String displayName,
-                                   String firstName, String familyName,
-                                   UserStatus status, boolean emailVerified,
-                                   Instant createdAt, Instant lastActiveAt,
-                                   Instant deletedAt, List<Role> roles) {
-        var u = new User();
-        u.id = id;
-        u.email = email;
-        u.phone = phone;
-        u.hashedPassword = hashedPassword;
-        u.displayName = displayName;
-        u.firstName = firstName;
-        u.familyName = familyName;
-        u.status = status;
-        u.emailVerified = emailVerified;
-        u.createdAt = createdAt;
-        u.lastActiveAt = lastActiveAt;
-        u.deletedAt = deletedAt;
-        u.roles = roles != null ? roles : List.of();
-        return u;
-    }
+    public User() {}
 
     public void update(String email, String phone, String displayName,
                        String firstName, String familyName) {
@@ -87,6 +63,11 @@ public class User {
     public void markDeleted() {
         this.status = UserStatus.DELETED;
         this.deletedAt = Instant.now();
+    }
+
+    public void markDeletionRequested() {
+        this.status = UserStatus.PENDING_DELETION;
+        this.deletionRequestedAt = Instant.now();
     }
 
     public void changePassword(String newEncodedPassword) {

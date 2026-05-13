@@ -79,7 +79,7 @@ class UserServiceTest {
                     null, user.getCreatedAt(), null, user.getRoles());
         });
 
-        var result = userService.create("new@example.com", "1234567890", "rawPassword", "New User");
+        var result = userService.create("new@example.com", "1234567890", "rawPassword", "New User", request.firstName(), request.familyName());
 
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getEmail()).isEqualTo("new@example.com");
@@ -90,7 +90,7 @@ class UserServiceTest {
     void createThrowsWhenEmailAlreadyExists() {
         when(userRepository.existsByEmail("dup@example.com")).thenReturn(true);
 
-        assertThatThrownBy(() -> userService.create("dup@example.com", "1234567890", "pass", "Dup"))
+        assertThatThrownBy(() -> userService.create("dup@example.com", "1234567890", "pass", "Dup", request.firstName(), request.familyName()))
                 .isInstanceOf(EmailAlreadyExistsException.class);
         verify(userRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());

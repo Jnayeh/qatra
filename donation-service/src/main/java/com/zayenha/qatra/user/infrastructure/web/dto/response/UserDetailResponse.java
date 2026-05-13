@@ -14,5 +14,7 @@ public record UserDetailResponse(
     boolean emailVerified,
     List<Role> roles,
     Instant createdAt,
+    Instant deletionRequestedAt,
+    Instant deletedAt,
     Instant lastActiveAt
 ) {}

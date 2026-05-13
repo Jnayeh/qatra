@@ -56,9 +56,9 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
     @Override
     @Transactional
-    public User create(String email, String phone, String password, String displayName) {
+    public User create(String email, String phone, String password, String displayName, String firstName, String lastName) {
         validator().validateCreate(email, phone);
-        var user = new User(email, phone, passwordEncoder.encode(password), displayName);
+        var user = new User(email, phone, passwordEncoder.encode(password), displayName, firstName, lastName);
         user = userRepository.save(user);
         cacheService.evictByPattern("users:*");
         cacheService.evictByPattern("userExists:*");
@@ -107,6 +107,18 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         userRepository.save(user);
         cacheService.evictByPattern("users:*");
         auditPublisher.publish("USER_PASSWORD_CHANGED", userId, "User", null, null);
+    }
+
+    @Override
+    @Transactional
+    public void requestDeletion(Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        user.markDeletionRequested();
+        userRepository.save(user);
+        cacheService.evictByPattern("users:*");
+        auditPublisher.publish("USER_DELETION_REQUESTED", userId, "User",
+            null, Map.of("status", UserStatus.PENDING_DELETION.name()));
     }
 
     @Override
@@ -164,7 +176,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
                 || superAdminPhone == null || superAdminPhone.isBlank()
                 || superAdminPassword == null || superAdminPassword.isBlank()) return;
         if (userRepository.existsByEmail(superAdminEmail)) return;
-        var user = create(superAdminEmail, superAdminPhone, superAdminPassword, "Super Admin");
+        var user = create(superAdminEmail, superAdminPhone, superAdminPassword, "Super Admin", "Mourad Selim", "Jnayeh");
         userRoleRepository.save(new UserRole(user.getId(), Role.SUPER_ADMIN));
     }
 

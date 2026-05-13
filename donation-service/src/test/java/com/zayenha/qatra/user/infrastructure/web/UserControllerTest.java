@@ -92,7 +92,7 @@ class UserControllerTest {
     @Test
     void createReturnsCreatedUser() {
         var user = aUser();
-        when(commandUseCases.create("test@example.com", "1234567890", "password123", "Test User"))
+        when(commandUseCases.create("test@example.com", "1234567890", "password123", "Test User", request.firstName(), request.familyName()))
                 .thenReturn(user);
 
         var request = new CreateUserRequest("test@example.com", "1234567890", "password123", "Test User");

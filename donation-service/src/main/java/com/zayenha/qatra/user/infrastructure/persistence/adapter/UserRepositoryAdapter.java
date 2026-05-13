@@ -2,9 +2,9 @@ package com.zayenha.qatra.user.infrastructure.persistence.adapter;
 
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
-import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
+import com.zayenha.qatra.user.infrastructure.mapper.UserMapper;
 import com.zayenha.qatra.user.infrastructure.persistence.adapter.utils.TimedCount;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserRoleEntity;
@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class UserRepositoryAdapter implements UserRepositoryPort {
     private final UserJpaRepository jpaRepository;
+    private final UserMapper mapper;
     private final Map<String, TimedCount> countCache = new ConcurrentHashMap<>();
 
     @Override
@@ -127,34 +128,17 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     private User toDomain(UserEntity e, boolean withRoles) {
-        List<Role> roles = List.of();
+        var u = mapper.toDomain(e);
         if (withRoles && e.getRoles() != null) {
-            roles = e.getRoles().stream()
-                    .map(UserRoleEntity::getRole).toList();
+            u.setRoles(e.getRoles().stream()
+                    .map(UserRoleEntity::getRole).toList());
         }
-
-        return User.reconstruct(
-            e.getId(), e.getEmail(), e.getPhone(),
-            e.getHashedPassword(), e.getDisplayName(),
-            e.getFirstName(), e.getFamilyName(),
-            e.getStatus(), e.isEmailVerified(),
-            e.getCreatedAt(), e.getLastActiveAt(),
-            e.getDeletedAt(), roles
-        );
+        return u;
     }
 
     private UserEntity toJpa(User u) {
-        var e = new UserEntity();
+        var e = mapper.toEntity(u);
         if (u.getId() != null) e.setId(u.getId());
-        e.setEmail(u.getEmail());
-        e.setPhone(u.getPhone());
-        e.setHashedPassword(u.getHashedPassword());
-        e.setDisplayName(u.getDisplayName());
-        e.setStatus(u.getStatus());
-        e.setEmailVerified(u.isEmailVerified());
-        e.setDeletedAt(u.getDeletedAt());
-        e.setCreatedAt(u.getCreatedAt());
-        e.setLastActiveAt(u.getLastActiveAt());
         return e;
     }
 }

@@ -57,7 +57,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDetailResponse>> create(
             @Valid @RequestBody CreateUserRequest request) {
         var user = commandUseCases.create(
-                request.email(), request.phone(), request.password(), request.displayName());
+                request.email(), request.phone(), request.password(), request.displayName(), request.firstName(), request.familyName());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(
                     mapper.toDetail(user, user.getRoles())));
