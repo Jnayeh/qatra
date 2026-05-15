@@ -16,7 +16,7 @@ class UserTest {
     private static final String DISPLAY_NAME = "Test User";
 
     @Test
-    void constructorCreatesActiveUser() {
+    void constructorCreatesPendingVerificationUser() {
         var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "", "");
 
         assertThat(user.getId()).isNull();
@@ -24,12 +24,12 @@ class UserTest {
         assertThat(user.getPhone()).isEqualTo(PHONE);
         assertThat(user.getHashedPassword()).isEqualTo(PASSWORD);
         assertThat(user.getDisplayName()).isEqualTo(DISPLAY_NAME);
-        assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+        assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_VERIFICATION);
         assertThat(user.isEmailVerified()).isFalse();
         assertThat(user.getDeletedAt()).isNull();
         assertThat(user.getCreatedAt()).isNotNull();
         assertThat(user.getRoles()).isEmpty();
-        assertThat(user.isActive()).isTrue();
+        assertThat(user.isActive()).isFalse();
         assertThat(user.isDeleted()).isFalse();
     }
 
@@ -109,6 +109,9 @@ class UserTest {
     @Test
     void isActiveReturnsTrueOnlyForActiveStatus() {
         var user = new User(EMAIL, PHONE, PASSWORD, DISPLAY_NAME, "", "");
+        assertThat(user.isActive()).isFalse();
+
+        user.updateStatus(UserStatus.ACTIVE);
         assertThat(user.isActive()).isTrue();
 
         user.updateStatus(UserStatus.INACTIVE);

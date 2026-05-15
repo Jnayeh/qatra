@@ -32,7 +32,7 @@ public class User {
         this.displayName = displayName;
         this.firstName = firstName;
         this.familyName = familyName;
-        this.status = UserStatus.ACTIVE;
+        this.status = UserStatus.PENDING_VERIFICATION;
         this.emailVerified = false;
         this.createdAt = Instant.now();
         this.roles = List.of();

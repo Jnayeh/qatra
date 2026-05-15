@@ -62,7 +62,6 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user = userRepository.save(user);
         cacheService.evictByPattern("users:*");
         cacheService.evictByPattern("userExists:*");
-        auditPublisher.publish("USER_CREATED", user.getId(), "User", null, Map.of("email", email, "phone", phone));
         return user;
     }
 
