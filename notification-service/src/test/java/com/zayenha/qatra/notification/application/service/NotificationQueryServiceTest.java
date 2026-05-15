@@ -34,7 +34,7 @@ class NotificationQueryServiceTest {
     @Test
     void shouldReturnUserNotifications() {
         when(notificationRepository.findByUserId(eq(1L), isNull(), isNull(), eq(0), eq(20)))
-                .thenReturn(List.of(new Notification(1L, null, null,
+                .thenReturn(List.of(new Notification(1L, null, null, null,
                         NotificationType.GENERAL, "T", "B", null, "c1", NotificationChannel.EMAIL)));
 
         var result = queryService.getUserNotifications(1L, null, null, 0, 20);
@@ -51,7 +51,7 @@ class NotificationQueryServiceTest {
 
     @Test
     void shouldMarkAsRead() {
-        var notification = new Notification(1L, null, null,
+        var notification = new Notification(1L, null, null, null,
                 NotificationType.GENERAL, "T", "B", null, "c1", NotificationChannel.EMAIL);
         when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
         when(notificationRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));

@@ -1,4 +1,4 @@
-﻿package com.zayenha.qatra.notification.application.service;
+package com.zayenha.qatra.notification.application.service;
 
 import com.zayenha.qatra.notification.domain.model.Notification;
 import com.zayenha.qatra.notification.domain.model.NotificationPayload;
