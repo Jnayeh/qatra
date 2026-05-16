@@ -53,6 +53,7 @@ services:
   donation-service:
     build:
       context: ./donation-service
+    pull_policy: build
     ports:
       - "8080:8080"
     depends_on:
@@ -85,6 +86,7 @@ services:
   notification-service:
     build:
       context: ./notification-service
+    pull_policy: build
     environment:
       SERVER_PORT: 8082
       DB_URL: jdbc:postgresql://postgres:5432/qatra_notification

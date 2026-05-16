@@ -6,7 +6,6 @@ import com.zayenha.qatra.notification.application.dto.EligibilityRestoredEvent;
 import com.zayenha.qatra.notification.application.dto.EmergencyCreatedEvent;
 import com.zayenha.qatra.notification.application.dto.NotificationDispatchEvent;
 import com.zayenha.qatra.notification.application.dto.ProfileCompletionEvent;
-import com.zayenha.qatra.notification.application.dto.StaffMessageEvent;
 import com.zayenha.qatra.notification.application.service.NotificationDispatchService;
 import com.zayenha.qatra.notification.domain.model.NotificationChannel;
 import com.zayenha.qatra.notification.domain.model.NotificationPayload;
@@ -103,20 +102,6 @@ public class NotificationEventConsumer {
                     "Complete Your Donor Profile",
                     event.message(),
                     Map.of("profileId", event.profileId()),
-                    event.correlationId(), event.occurredAt());
-            dispatchService.dispatch(payload, channelConfig);
-        });
-    }
-
-    @KafkaListener(topics = "#{'${kafka.topic.staff-message.name:staff.message}'}")
-    public void consumeStaffMessage(String message) {
-        handle(message, StaffMessageEvent.class, event -> {
-            var payload = new NotificationPayload(
-                    event.userId(), event.email(), null, null,
-                    NotificationType.STAFF_MESSAGE, NotificationChannel.IN_APP,
-                    event.subject(),
-                    event.body(),
-                    Map.of("staffId", event.staffId()),
                     event.correlationId(), event.occurredAt());
             dispatchService.dispatch(payload, channelConfig);
         });

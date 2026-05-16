@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/internal/notifications")
+@RequestMapping("/api/v1/notifications/internal")
 @Tag(name = "Internal Notification API", description = "Endpoints for nginx / inter-service communication")
 @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
 public class InternalNotificationController {
