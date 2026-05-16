@@ -7,8 +7,10 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.*;
+import com.zayenha.qatra._shared.event.DonationCompletedEvent;
 import com.zayenha.qatra.appointment.application.proxy.AptCenterProxy;
 import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
+import com.zayenha.qatra.appointment.application.proxy.AptUserProxy;
 import com.zayenha.qatra.appointment.domain.exception.AppointmentErrorCode;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
@@ -26,6 +28,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
     private final AppointmentRepositoryPort repository;
     private final AptCenterProxy centerProxy;
     private final AptDonorProxy donorProxy;
+    private final AptUserProxy userProxy;
     private final ApplicationEventPublisher eventPublisher;
     private final EventPublisherPort eventPublisherPort;
     private final CacheService cacheService;
@@ -137,6 +141,16 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
             donorProxy.saveDonor(dto);
             cacheService.evictByPattern("donorProfiles:*");
         });
+
+        if (DonationOutcome.COMPLETED.equals(outcome)) {
+            var centerName = centerProxy.getCenterReference(saved.getCenterId()).getName();
+            var donorName = userProxy.getUserDisplayName(saved.getDonorId());
+            var evt = new DonationCompletedEvent(
+                saved.getId(), saved.getDonorId(), donorName,
+                saved.getCenterId(), centerName, saved.getMlCollected(),
+                saved.getCompletedAt(), UUID.randomUUID().toString(), Instant.now());
+            eventPublisher.publishEvent(evt);
+        }
 
         auditPublisher.publish("APPOINTMENT_COMPLETED", saved.getId(), "Appointment",
             Map.of("status", oldStatus.name()),

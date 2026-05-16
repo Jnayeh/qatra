@@ -11,11 +11,15 @@ import com.zayenha.qatra.donor.infrastructure.web.dto.response.DonorProfileRespo
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityDetailResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.EligibilityResponse;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.ImpactResponse;
+import com.zayenha.qatra.donor.infrastructure.web.dto.response.CertificateResponse;
+import com.zayenha.qatra.donor.application.PdfCertificateService;
 import com.zayenha.qatra.donor.infrastructure.mapper.DonorMapper;
 import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +33,7 @@ public class DonorController {
     private final QuestionnaireCommandUseCases healthCommandUseCases;
     private final QuestionnaireQueryUseCases healthQueryUseCases;
     private final DonorMapper mapper;
+    private final PdfCertificateService pdfCertificateService;
 
     @GetMapping("/api/v1/donors/me/health-questionnaire")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
@@ -125,6 +130,29 @@ public class DonorController {
         var userId = AuditUtils.currentUserId();
         var result = donorQueryUseCases.getImpact(userId);
         return ResponseEntity.ok(ApiResponse.success(mapper.toImpactResponse(result)));
+    }
+
+    @GetMapping("/api/v1/donors/me/certificates")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
+    public ResponseEntity<ApiResponse<java.util.List<CertificateResponse>>> getCertificates() {
+        var userId = AuditUtils.currentUserId();
+        var certs = donorQueryUseCases.getCertificates(userId).stream()
+                .map(c -> new CertificateResponse(
+                        c.id(), c.appointmentId(), c.donorName(), c.centerName(),
+                        c.mlCollected(), c.donationDate(),
+                        "/api/v1/donors/me/certificates/" + c.id() + "/download"))
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success(certs));
+    }
+
+    @GetMapping("/api/v1/donors/me/certificates/{id}/download")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
+    public ResponseEntity<byte[]> downloadCertificate(@PathVariable Long id) {
+        var pdfBytes = pdfCertificateService.generateCertificate(id);
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "certificate-" + id + ".pdf");
+        return ResponseEntity.ok().headers(headers).body(pdfBytes);
     }
 
     @GetMapping("/api/v1/donors/{id}/eligibility")

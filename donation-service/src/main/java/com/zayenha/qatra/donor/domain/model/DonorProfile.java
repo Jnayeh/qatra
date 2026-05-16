@@ -61,11 +61,7 @@ public class DonorProfile {
     public boolean canDonate() {
         return !permanentlyRestricted
             && status == DonorStatus.ACTIVE
-            && (eligibleFromDate == null || !Instant.now().isBefore(eligibleFromDate.atStartOfDay(java.time.ZoneOffset.UTC).toInstant()));
-    }
-
-    public void calculateEligibility() {
-        // eligibility logic delegated to service
+            && (eligibleFromDate == null || Instant.now().isAfter(eligibleFromDate.atStartOfDay(java.time.ZoneOffset.UTC).toInstant()));
     }
 
     public void updateLocation(Double latitude, Double longitude, String city) {

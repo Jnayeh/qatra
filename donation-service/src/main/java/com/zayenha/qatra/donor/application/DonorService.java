@@ -13,12 +13,14 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
+import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonationCertificateJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -26,6 +28,7 @@ import java.util.Map;
 public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
 
     private final DonorRepositoryPort donorRepository;
+    private final DonationCertificateJpaRepository certificateRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final CacheService cacheService;
     private final AuditPublisher auditPublisher;
@@ -251,6 +254,18 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         var result = new ImpactResult(profile.getTotalDonations(), 0, milestones);
         cacheService.put(key, result);
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CertificateProjection> getCertificates(Long userId) {
+        var profile = donorRepository.findByUserId(userId).orElseThrow(() -> new NotFoundException(
+                "Donor not found by userID: " + userId, DonorErrorCode.DONOR_NOT_FOUND.name()));
+        return certificateRepository.findByDonorIdOrderByDonationDateDesc(profile.getId()).stream()
+                .map(c -> new CertificateProjection(
+                        c.getId(), c.getAppointmentId(), c.getDonorName(),
+                        c.getCenterName(), c.getMlCollected(), c.getDonationDate()))
+                .toList();
     }
 
 }
