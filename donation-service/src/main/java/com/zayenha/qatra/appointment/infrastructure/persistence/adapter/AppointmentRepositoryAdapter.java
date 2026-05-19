@@ -90,6 +90,13 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     }
 
     @Override
+    public List<Appointment> findScheduledAppointmentsByDate(LocalDate targetDate) {
+        return jpaRepository.findScheduledAppointmentsBySlotDate(targetDate).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public boolean existsByDonorIdAndStatusIn(Long donorId, List<AppointmentStatus> statuses) {
         return jpaRepository.existsByDonor_IdAndStatusIn(donorId, statuses);
     }

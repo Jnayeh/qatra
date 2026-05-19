@@ -21,4 +21,5 @@ public interface AppointmentRepositoryPort {
     List<Appointment> findByEmergencyId(Long emergencyId);
 
     long countCompletedByEmergencyId(Long emergencyId);
+    List<Appointment> findScheduledAppointmentsByDate(LocalDate targetDate);
 }

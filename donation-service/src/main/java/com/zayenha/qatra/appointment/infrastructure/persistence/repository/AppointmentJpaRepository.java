@@ -19,4 +19,7 @@ public interface AppointmentJpaRepository extends JpaRepository<AppointmentEntit
 
     @Query("SELECT COUNT(a) FROM AppointmentEntity a WHERE a.emergency.id = :emergencyId AND a.outcome = :outcome AND a.status = :status")
     long countCompletedByEmergencyId(Long emergencyId, DonationOutcome outcome, AppointmentStatus status);
+
+    @Query("SELECT a FROM AppointmentEntity a JOIN FETCH a.slot s WHERE a.status = 'SCHEDULED' AND s.date = :targetDate")
+    List<AppointmentEntity> findScheduledAppointmentsBySlotDate(@org.springframework.data.repository.query.Param("targetDate") java.time.LocalDate targetDate);
 }
