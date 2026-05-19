@@ -32,6 +32,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
 
     private final CenterRepositoryPort centerRepository;
     private final SlotRepositoryPort slotRepository;
+    private final CenterReportService reportService;
     private final ApplicationEventPublisher eventPublisher;
     private final CacheService cacheService;
     private final AuditPublisher auditPublisher;
@@ -289,5 +290,14 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         var result = centerRepository.findStaffByCenterId(centerId);
         cacheService.put(key, result);
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String generateCenterReport(Long centerId, LocalDate startDate, LocalDate endDate) {
+        if (!centerRepository.existsById(centerId)) {
+            throw new NotFoundException("Center not found: " + centerId, CenterErrorCode.CENTER_NOT_FOUND.name());
+        }
+        return reportService.generateCsvReport(centerId, startDate, endDate);
     }
 }

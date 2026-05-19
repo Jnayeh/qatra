@@ -14,4 +14,5 @@ public interface CenterQueryUseCases {
     PageResult<DonationCenter> getPending(SearchCriteria criteria);
     List<Slot> getSlots(Long centerId, LocalDate date, String slotType, boolean fetchJoins);
     List<CenterStaffProfile> getStaff(Long centerId);
+    String generateCenterReport(Long centerId, LocalDate startDate, LocalDate endDate);
 }

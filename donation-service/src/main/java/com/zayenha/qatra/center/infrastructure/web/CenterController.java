@@ -10,7 +10,9 @@ import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -151,5 +153,17 @@ public class CenterController {
             @Valid @RequestBody ApproveCenterRequest request) {
         var center = commandUseCases.approve(id, request.approved(), request.reason());
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(center)));
+    }
+
+    @GetMapping("/{id}/report")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
+    public ResponseEntity<byte[]> getReport(@PathVariable Long id,
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate) {
+        var csv = queryUseCases.generateCenterReport(id, startDate, endDate);
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDispositionFormData("attachment", "center-" + id + "-report.csv");
+        return ResponseEntity.ok().headers(headers).body(csv.getBytes());
     }
 }
