@@ -3,7 +3,9 @@ package com.zayenha.qatra.donor.infrastructure.persistence.repository;
 import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonorProfileEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,4 +25,10 @@ public interface DonorJpaRepository extends JpaRepository<DonorProfileEntity, Lo
           AND (d.eligibleFromDate IS NULL OR d.eligibleFromDate <= CURRENT_DATE)
         """)
     List<DonorProfileEntity> findEligibleForEmergency();
+
+    @Query("SELECT d FROM DonorProfileEntity d WHERE d.eligibleFromDate IS NOT NULL AND d.eligibleFromDate <= CURRENT_DATE AND d.permanentlyRestricted = false AND d.status = 'ACTIVE'")
+    List<DonorProfileEntity> findDonorsWhoseEligibilityIsRestored();
+
+    @Query("SELECT d FROM DonorProfileEntity d WHERE d.eligibleFromDate = :date AND d.permanentlyRestricted = false AND d.status = 'ACTIVE'")
+    List<DonorProfileEntity> findByEligibleFromDate(@Param("date") LocalDate date);
 }

@@ -70,4 +70,18 @@ public class DonorRepositoryAdapter implements DonorRepositoryPort {
                 .map(mapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public List<DonorProfile> findEligibilityRestoredDonors() {
+        return donorJpaRepository.findDonorsWhoseEligibilityIsRestored().stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<DonorProfile> findByEligibleFromDate(java.time.LocalDate date) {
+        return donorJpaRepository.findByEligibleFromDate(date).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

@@ -16,4 +16,6 @@ public interface DonorRepositoryPort {
     boolean donorHasQuestionnaire(Long donorId);
     void deleteByUserId(Long userId);
     List<DonorProfile> findEligibleForEmergency();
+    List<DonorProfile> findEligibilityRestoredDonors();
+    List<DonorProfile> findByEligibleFromDate(java.time.LocalDate date);
 }
