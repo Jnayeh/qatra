@@ -6,6 +6,8 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
+import com.zayenha.qatra._shared.exception.ValidationException;
+import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
@@ -148,6 +150,23 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         userRoleRepository.deleteByUserIdAndRole(userId, role);
         cacheService.evictByPattern("userRoles:*");
         auditPublisher.publish("ROLE_REVOKED", userId, "User", Map.of("role", role.name()), null);
+    }
+
+    @Override
+    @Transactional
+    public void verifyEmail(Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        if (user.getStatus() != UserStatus.PENDING_VERIFICATION) {
+            throw new ValidationException("Email already verified", UserErrorCode.USER_NOT_FOUND.name());
+        }
+        user.verifyEmail();
+        user.updateStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
+        cacheService.evictByPattern("users:*");
+        auditPublisher.publish("USER_EMAIL_VERIFIED", userId, "User",
+            Map.of("status", user.getStatus().name()),
+            Map.of("emailVerified", true));
     }
 
     @Override

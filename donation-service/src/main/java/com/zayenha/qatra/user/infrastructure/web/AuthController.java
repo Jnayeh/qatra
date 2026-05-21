@@ -4,7 +4,6 @@ import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra.user.api.UserLoggedInEvent;
-import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.domain.model.*;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
@@ -12,14 +11,19 @@ import com.zayenha.qatra.user.domain.port.out.SessionRepositoryPort;
 import com.zayenha.qatra.user.domain.port.out.VerificationTokenRepositoryPort;
 import com.zayenha.qatra.user.infrastructure.security.JwtTokenProvider;
 import com.zayenha.qatra.user.infrastructure.security.UserDetailsAdapter;
+import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.exception.ValidationException;
+import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.infrastructure.web.dto.request.*;
 import com.zayenha.qatra.user.infrastructure.web.dto.response.LoginResponse;
+import com.zayenha.qatra.user.infrastructure.web.dto.response.VerifyEmailResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -96,8 +100,49 @@ public class AuthController {
                 sanitizeIp(ipAddress), userAgent, Instant.now().plus(Duration.ofDays(30)));
         sessionRepository.save(session);
 
+        sendVerificationEmail(user);
+
         return ResponseEntity.ok(ApiResponse.success(
                 new LoginResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
+    }
+
+    @PostMapping("/request-verification")
+    @PreAuthorize("hasAnyRole('DONOR', 'SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<VerifyEmailResponse>> requestVerification() {
+        var userId = AuditUtils.currentUserId();
+        var user = userQueryUseCases.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found", UserErrorCode.USER_NOT_FOUND.name()));
+        if (user.getStatus() != UserStatus.PENDING_VERIFICATION) {
+            throw new ValidationException("Email already verified", UserErrorCode.USER_NOT_FOUND.name());
+        }
+        verificationTokenRepository.findByUserIdAndType(user.getId(), VerificationTokenType.EMAIL_VERIFICATION)
+                .ifPresent(t -> verificationTokenRepository.deleteById(t.getId()));
+        sendVerificationEmail(user);
+        return ResponseEntity.ok(ApiResponse.success(new VerifyEmailResponse("Verification email sent")));
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<ApiResponse<VerifyEmailResponse>> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        var tokenHash = sha256(request.token());
+        var token = verificationTokenRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new NotFoundException("Invalid or expired verification token", "INVALID_VERIFICATION_TOKEN"));
+
+        if (!token.validate()) {
+            throw new NotFoundException("Verification token expired", "VERIFICATION_TOKEN_EXPIRED");
+        }
+
+        var user = userQueryUseCases.findById(token.getUserId())
+                .orElseThrow(() -> new NotFoundException("User not found", UserErrorCode.USER_NOT_FOUND.name()));
+
+        if (user.getStatus() != UserStatus.PENDING_VERIFICATION) {
+            throw new ValidationException("Email already verified", UserErrorCode.USER_NOT_FOUND.name());
+        }
+
+        userCommandUseCases.verifyEmail(token.getUserId());
+        token.consume();
+        verificationTokenRepository.save(token);
+
+        return ResponseEntity.ok(ApiResponse.success(new VerifyEmailResponse("Email verified successfully")));
     }
 
     @PostMapping("/logout")
@@ -178,6 +223,19 @@ public class AuthController {
         });
 
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    private void sendVerificationEmail(User user) {
+        var rawToken = UUID.randomUUID().toString();
+        var token = new VerificationToken(user.getId(), sha256(rawToken), VerificationTokenType.EMAIL_VERIFICATION,
+                Instant.now().plus(Duration.ofHours(24)));
+        verificationTokenRepository.save(token);
+
+        var verificationLink = baseUrl + "/verify-email?token=" + rawToken;
+        eventPublisherPort.publishNotificationDispatch(
+                user.getId(), user.getEmail(), "EMAIL_VERIFICATION", "Verify your email",
+                "Click the link to verify your email: " + verificationLink,
+                Map.of("verificationToken", rawToken, "email", user.getEmail()));
     }
 
     private static String sha256(String value) {

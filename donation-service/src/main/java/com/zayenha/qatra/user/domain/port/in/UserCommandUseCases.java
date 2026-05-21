@@ -13,5 +13,6 @@ public interface UserCommandUseCases {
     void updatePassword(Long userId, String newEncodedPassword);
     void requestDeletion(Long userId);
     void delete(Long id);
+    void verifyEmail(Long userId);
     void seedSuperAdminIfAbsent();
 }
