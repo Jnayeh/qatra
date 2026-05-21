@@ -1,5 +1,6 @@
 package com.zayenha.qatra.emergency.infrastructure.persistence.adapter;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +32,7 @@ public class EmergencyRepositoryAdapter implements EmergencyRepositoryPort {
     private final MatchResultJpaRepository matchResultJpaRepository;
     private final EmergencyCenterProxy centerProxy;
     private final EmergencyMapper mapper;
+    private final CacheService cacheService;
 
     @Override
     public EmergencyRequest save(EmergencyRequest request) {
@@ -66,11 +69,20 @@ public class EmergencyRepositoryAdapter implements EmergencyRepositoryPort {
     public PageResult<EmergencyRequest> findAll(SearchCriteria criteria) {
         var pageable = PageRequest.of(criteria.page(), criteria.size());
         var page = emergencyJpaRepository.findAllByOrderByCreatedAtDesc(pageable);
+        var total = cachedCount("count:emergencies");
         return new PageResult<>(
             page.getContent().stream().map(mapper::toDomain).toList(),
             page.getNumber(), page.getSize(),
-            page.getTotalElements(), page.getTotalPages()
+            total, (int) Math.ceil((double) total / criteria.size())
         );
+    }
+
+    private long cachedCount(String key) {
+        var cached = cacheService.get(key, Long.class);
+        if (cached.isPresent()) return cached.get();
+        var count = emergencyJpaRepository.count();
+        cacheService.put(key, count, Duration.ofSeconds(6800));
+        return count;
     }
 
     @Override

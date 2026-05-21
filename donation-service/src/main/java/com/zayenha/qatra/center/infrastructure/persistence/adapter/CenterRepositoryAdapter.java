@@ -1,5 +1,6 @@
 package com.zayenha.qatra.center.infrastructure.persistence.adapter;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra.center.domain.model.CenterAdminProfile;
 import com.zayenha.qatra.center.domain.model.CenterStaffProfile;
 import com.zayenha.qatra.center.domain.model.CenterStatus;
@@ -21,9 +22,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @Component
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
     private final CenterStaffJpaRepository staffJpaRepository;
     private final CenterAdminJpaRepository adminJpaRepository;
     private final CenterMapper mapper;
+    private final CacheService cacheService;
 
     @Override
     public DonationCenter save(DonationCenter center) {
@@ -80,10 +84,11 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
         var sort = buildSort(criteria.sortBy(), criteria.sortDirection());
         var pageable = PageRequest.of(criteria.page(), criteria.size(), sort);
         var page = jpaRepository.findAll(spec, pageable);
+        var total = cachedCount("count:centers", jpaRepository::count);
         return new PageResult<>(
                 page.getContent().stream().map(mapper::toDomain).toList(),
                 page.getNumber(), page.getSize(),
-                page.getTotalElements(), page.getTotalPages()
+                total, (int) Math.ceil((double) total / criteria.size())
         );
     }
 
@@ -97,11 +102,20 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
         var sort = buildSort(criteria.sortBy(), criteria.sortDirection());
         var pageable = PageRequest.of(criteria.page(), criteria.size(), sort);
         var page = jpaRepository.findByStatus(CenterStatus.PENDING_APPROVAL, pageable);
+        var total = cachedCount("count:pendingCenters", () -> jpaRepository.countByStatus(CenterStatus.PENDING_APPROVAL));
         return new PageResult<>(
             page.getContent().stream().map(mapper::toDomain).toList(),
             page.getNumber(), page.getSize(),
-            page.getTotalElements(), page.getTotalPages()
+            total, (int) Math.ceil((double) total / criteria.size())
         );
+    }
+
+    private long cachedCount(String key, Supplier<Long> countSupplier) {
+        var cached = cacheService.get(key, Long.class);
+        if (cached.isPresent()) return cached.get();
+        var count = countSupplier.get();
+        cacheService.put(key, count, Duration.ofSeconds(6800));
+        return count;
     }
 
     @Override

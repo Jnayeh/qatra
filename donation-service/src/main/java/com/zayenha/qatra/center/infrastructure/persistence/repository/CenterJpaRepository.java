@@ -16,6 +16,7 @@ public interface CenterJpaRepository extends JpaRepository<CenterEntity, Long>, 
     boolean existsByNameAndIdNot(String name, Long id);
     Page<CenterEntity> findByStatus(CenterStatus status, Pageable pageable);
     List<CenterEntity> findAllByStatus(CenterStatus status);
+    long countByStatus(CenterStatus status);
 
     @EntityGraph("CenterEntity.withSlots")
     Optional<CenterEntity> findWithSlotsById(Long id);
