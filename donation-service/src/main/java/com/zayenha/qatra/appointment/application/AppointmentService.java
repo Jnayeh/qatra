@@ -52,8 +52,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         }
 
         // Validate slot capacity and increment counts
-        var slot = centerProxy.findSlotById(slotId)
-            .orElseThrow(() -> new NotFoundException("Slot not found: " + slotId, AppointmentErrorCode.APPOINTMENT_NOT_FOUND.name()));
+        var slot = centerProxy.findSlotById(slotId);
         validateSlot(slot, type);
         slot.setBookedCount(slot.getBookedCount() + 1);
         if (AppointmentType.REGULAR.equals(type)) slot.setRegularBookedCount(slot.getRegularBookedCount() + 1);
@@ -223,6 +222,38 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
     @Override
     @Transactional
+    public Appointment reschedule(Long appointmentId, Long newSlotId) {
+        var appointment = findOrThrow(appointmentId);
+        if (appointment.getStatus() != AppointmentStatus.SCHEDULED) {
+            throw new ValidationException("Only scheduled appointments can be rescheduled",
+                    AppointmentErrorCode.INVALID_APPOINTMENT_STATUS.name());
+        }
+
+        var newSlot = centerProxy.findSlotById(newSlotId);
+        validateSlot(newSlot, appointment.getAppointmentType());
+
+        releaseSlot(appointment);
+
+        newSlot.setBookedCount(newSlot.getBookedCount() + 1);
+        if (appointment.getAppointmentType() == AppointmentType.REGULAR) {
+            newSlot.setRegularBookedCount(newSlot.getRegularBookedCount() + 1);
+        }
+        centerProxy.updateSlot(newSlot);
+
+        var oldSlotId = appointment.getSlotId();
+        appointment.reschedule(newSlotId);
+        var saved = repository.save(appointment);
+        cacheService.evictByPattern("appointments:*");
+
+        auditPublisher.publish("APPOINTMENT_RESCHEDULED", saved.getId(), "Appointment",
+                Map.of("oldSlotId", oldSlotId, "oldStatus", AppointmentStatus.SCHEDULED.name()),
+                Map.of("newSlotId", newSlotId, "status", AppointmentStatus.RESCHEDULED.name(),
+                       "donorId", saved.getDonorId()));
+        return saved;
+    }
+
+    @Override
+    @Transactional
     public HealthScreening saveScreening(Long appointmentId, double weight, String bloodPressure,
                                           double hemoglobin, double temperature, boolean eligible, String notes) {
         var screening = new HealthScreening(appointmentId, null);
@@ -301,13 +332,12 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
     private void releaseSlot(Appointment saved) {
         if (saved.getSlotId() != null) {
-            centerProxy.findSlotById(saved.getSlotId()).ifPresent(slot -> {
-                slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
-                if (saved.getAppointmentType() == AppointmentType.REGULAR) {
-                    slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
-                }
-                centerProxy.updateSlot(slot);
-            });
+            var slot = centerProxy.findSlotById(saved.getSlotId());
+            slot.setBookedCount(Math.max(0, slot.getBookedCount() - 1));
+            if (saved.getAppointmentType() == AppointmentType.REGULAR) {
+                slot.setRegularBookedCount(Math.max(0, slot.getRegularBookedCount() - 1));
+            }
+            centerProxy.updateSlot(slot);
         }
     }
 

@@ -12,6 +12,7 @@ public interface AppointmentCommandUseCases {
     Appointment complete(Long appointmentId, DonationOutcome outcome, String notes);
     Appointment cancel(Long appointmentId);
     Appointment cancelByDonor(Long appointmentId, Long donorId);
+    Appointment reschedule(Long appointmentId, Long newSlotId);
     Appointment markNoShow(Long appointmentId);
     HealthScreening saveScreening(Long appointmentId, double weight, String bloodPressure,
                                    double hemoglobin, double temperature, boolean eligible, String notes);

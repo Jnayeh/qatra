@@ -1,5 +1,6 @@
 package com.zayenha.qatra.donor.infrastructure.web;
 
+import com.zayenha.qatra.donor.application.PdfCertificateService;
 import com.zayenha.qatra.donor.domain.model.*;
 import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
@@ -38,13 +39,14 @@ class DonorControllerTest {
     @Mock private QuestionnaireCommandUseCases healthCommandUseCases;
     @Mock private QuestionnaireQueryUseCases healthQueryUseCases;
     @Mock private DonorMapper mapper;
+    @Mock private PdfCertificateService pdfCertificateService;
 
     private DonorController controller;
     private GlobalExceptionHandler exceptionHandler;
 
     @BeforeEach
     void setUp() {
-        controller = new DonorController(commandUseCases, queryUseCases, healthCommandUseCases, healthQueryUseCases, mapper);
+        controller = new DonorController(commandUseCases, queryUseCases, healthCommandUseCases, healthQueryUseCases, mapper, pdfCertificateService);
         exceptionHandler = new GlobalExceptionHandler();
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(1L, null, java.util.List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN")))

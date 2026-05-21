@@ -55,7 +55,7 @@ class AppointmentServiceTest {
     @Test
     void bookCreatesAppointment() {
         var slot = new SlotDTO(100L, 1000L, 1, 0, 10, 5, false);
-        when(centerProxy.findSlotById(100L)).thenReturn(Optional.of(slot));
+        when(centerProxy.findSlotById(100L)).thenReturn(slot);
         when(repository.existsByDonorIdAndStatusIn(1L, List.of(AppointmentStatus.SCHEDULED, AppointmentStatus.CHECKED_IN, AppointmentStatus.IN_SCREENING))).thenReturn(false);
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 

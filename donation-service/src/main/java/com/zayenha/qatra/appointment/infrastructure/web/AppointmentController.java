@@ -7,6 +7,7 @@ import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentQueryUseCases;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.request.CompleteAppointmentRequest;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.request.CreateAppointmentRequest;
+import com.zayenha.qatra.appointment.infrastructure.web.dto.request.RescheduleAppointmentRequest;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.request.ScreeningRequest;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.response.AppointmentResponse;
 import com.zayenha.qatra.appointment.infrastructure.web.dto.response.HealthScreeningResponse;
@@ -73,6 +74,14 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<AppointmentResponse>> cancel(@PathVariable Long id) {
         var appointment = commandUseCases.cancel(id);
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(appointment)));
+    }
+
+    @PutMapping("/{id}/reschedule")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
+    public ResponseEntity<ApiResponse<AppointmentResponse>> reschedule(
+            @PathVariable Long id, @Valid @RequestBody RescheduleAppointmentRequest request) {
+        var appointment = commandUseCases.reschedule(id, request.slotId());
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(appointment)));
     }
 

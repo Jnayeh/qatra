@@ -16,6 +16,7 @@ public interface CenterRepositoryPort {
     Optional<DonationCenter> findById(Long id, boolean fetchJoins);
     PageResult<DonationCenter> findAll(SearchCriteria criteria);
     PageResult<DonationCenter> findAllPending(SearchCriteria criteria);
+    List<DonationCenter> findAllByStatus(CenterStatus status);
     void deleteById(Long id);
 
     CenterStaffProfile saveStaff(CenterStaffProfile staff);

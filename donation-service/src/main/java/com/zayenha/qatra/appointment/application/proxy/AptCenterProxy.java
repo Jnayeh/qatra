@@ -23,7 +23,7 @@ public class AptCenterProxy {
         return centerApi.getSlotReference(id);
     }
 
-    public Optional<SlotDTO> findSlotById(Long slotId) {
+    public SlotDTO findSlotById(Long slotId) {
         return centerApi.findSlotById(slotId);
     }
 

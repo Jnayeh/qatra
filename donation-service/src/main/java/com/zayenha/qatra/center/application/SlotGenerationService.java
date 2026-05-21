@@ -1,10 +1,10 @@
 package com.zayenha.qatra.center.application;
 
+import com.zayenha.qatra.center.domain.model.CenterStatus;
 import com.zayenha.qatra.center.domain.model.OperatingHours;
 import com.zayenha.qatra.center.domain.model.Slot;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
-import com.zayenha.qatra._shared.domain.SearchCriteria;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,10 +27,13 @@ public class SlotGenerationService {
     public void generateSlots(int lookaheadDays, int defaultSlotPeriodMinutes, String timezone) {
         var today = LocalDate.now(ZoneId.of(timezone));
         var end = today.plusDays(lookaheadDays);
-        var result = centerRepository.findAll(SearchCriteria.defaultAll());
-
-        for (var center : result.content()) {
-            if (center.getStatus() != com.zayenha.qatra.center.domain.model.CenterStatus.ACTIVE) continue;
+        var result = centerRepository.findAllByStatus(CenterStatus.ACTIVE);
+        if (result.isEmpty()) {
+            log.info("No active centers found for slot generation");
+            return;
+        }
+        for (var center : result) {
+            if (center.getStatus() != CenterStatus.ACTIVE) continue;
             var hours = center.getOperatingHours();
             if (hours == null) continue;
             var existingSlots = slotRepository.findAllByDateRange(today, end);
@@ -61,7 +64,7 @@ public class SlotGenerationService {
             }
             log.info("Slot generation complete for center {}", center.getId());
         }
-        log.info("Slot generation complete for {} centers", result.content().size());
+        log.info("Slot generation complete for {} centers", result.size());
     }
 
     private boolean isClosed(OperatingHours hours, LocalDate date, LocalTime start, LocalTime end) {

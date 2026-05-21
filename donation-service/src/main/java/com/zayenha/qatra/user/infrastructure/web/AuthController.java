@@ -19,6 +19,7 @@ import com.zayenha.qatra.user.infrastructure.web.dto.response.LoginResponse;
 import com.zayenha.qatra.user.infrastructure.web.dto.response.VerifyEmailResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +39,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -63,7 +65,7 @@ public class AuthController {
             @RequestHeader(name = "X-Forwarded-For", required = false) String ipAddress) {
         var auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password()));
-
+        log.info("User {} logged in successfully", request.email());
         var principal = (UserDetailsAdapter) auth.getPrincipal();
         var user = principal.user();
         var roles = userQueryUseCases.getUserRoles(user.getId());

@@ -81,10 +81,15 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
         var pageable = PageRequest.of(criteria.page(), criteria.size(), sort);
         var page = jpaRepository.findAll(spec, pageable);
         return new PageResult<>(
-            page.getContent().stream().map(mapper::toDomain).toList(),
-            page.getNumber(), page.getSize(),
-            page.getTotalElements(), page.getTotalPages()
+                page.getContent().stream().map(mapper::toDomain).toList(),
+                page.getNumber(), page.getSize(),
+                page.getTotalElements(), page.getTotalPages()
         );
+    }
+
+    @Override
+    public List<DonationCenter> findAllByStatus(CenterStatus status) {
+        return jpaRepository.findAllByStatus(status).stream().map(mapper::toDomain).toList();
     }
 
     @Override

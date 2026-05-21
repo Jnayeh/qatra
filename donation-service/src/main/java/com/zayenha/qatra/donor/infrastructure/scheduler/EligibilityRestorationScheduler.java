@@ -32,8 +32,6 @@ public class EligibilityRestorationScheduler {
                     donor.getUserId(), oldDate != null ? oldDate.toString() : null);
             log.info("Restored eligibility for donor userId={}", donor.getUserId());
         }
-        if (!restored.isEmpty()) {
-            log.info("EligibilityRestorationScheduler: restored {} donors", restored.size());
-        }
+        log.info("EligibilityRestorationScheduler: restored {} donors", restored.size());
     }
 }

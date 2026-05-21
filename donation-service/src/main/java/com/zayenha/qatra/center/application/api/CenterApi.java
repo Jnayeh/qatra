@@ -51,8 +51,9 @@ public class CenterApi implements EntityApi<CenterEntity> {
             new CenterDTO(c.getId(), c.getLatitude(), c.getLongitude()));
     }
 
-    public Optional<SlotDTO> findSlotById(Long slotId) {
-        return slotRepositoryPort.findById(slotId).map(slotMapper::toSlotDto);
+    public SlotDTO findSlotById(Long slotId) {
+        return slotRepositoryPort.findById(slotId).map(slotMapper::toSlotDto)
+                .orElseThrow(() -> new NotFoundException("Slot not found: " + slotId, "SLOT_NOT_FOUND"));
     }
 
     public SlotDTO updateSlot(SlotDTO dto) {

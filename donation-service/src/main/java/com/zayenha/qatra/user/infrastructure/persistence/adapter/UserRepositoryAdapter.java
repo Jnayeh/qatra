@@ -1,11 +1,11 @@
 package com.zayenha.qatra.user.infrastructure.persistence.adapter;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
 import com.zayenha.qatra.user.infrastructure.mapper.UserMapper;
-import com.zayenha.qatra.user.infrastructure.persistence.adapter.utils.TimedCount;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserRoleEntity;
 import com.zayenha.qatra.user.infrastructure.persistence.repository.UserJpaRepository;
@@ -17,12 +17,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
@@ -30,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserRepositoryAdapter implements UserRepositoryPort {
     private final UserJpaRepository jpaRepository;
     private final UserMapper mapper;
-    private final Map<String, TimedCount> countCache = new ConcurrentHashMap<>();
+    private final CacheService cacheService;
 
     @Override
     public Optional<User> findById(Long id) {
@@ -83,15 +81,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     private long getTotalCount() {
-        var countTime = Instant.now();
-        var total = countCache.get("total");
-        if (total == null || total.ttl().isBefore(countTime)) {
-            var count = jpaRepository.count();
-            var ttl = countTime.plusSeconds(60);
-            countCache.put("total", new TimedCount(count, ttl));
-            return count;
-        }
-        return total.count();
+        var cached = cacheService.get("count:users", Long.class);
+        if (cached.isPresent()) return cached.get();
+        var count = jpaRepository.count();
+        cacheService.put("count:users", count, Duration.ofSeconds(6800));
+        return count;
     }
 
     @Override
