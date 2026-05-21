@@ -9,6 +9,8 @@ import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.appointment.application.proxy.AptCenterProxy;
 import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
+import com.zayenha.qatra.appointment.application.proxy.AptUserProxy;
+import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.zayenha.qatra.center.application.api.dto.SlotDTO;
@@ -44,12 +46,14 @@ class AppointmentServiceTest {
     private CacheService cacheService;
     @Mock
     private AuditPublisher auditPublisher;
+    @Mock
+    private AptUserProxy userProxy;
 
     private AppointmentService service;
 
     @BeforeEach
     void setUp() {
-        service = new AppointmentService(repository, centerProxy, donorProxy, eventPublisher, eventPublisherPort, cacheService, auditPublisher);
+        service = new AppointmentService(repository, centerProxy, donorProxy, userProxy, eventPublisher, eventPublisherPort, cacheService, auditPublisher);
     }
 
     @Test
@@ -107,8 +111,13 @@ class AppointmentServiceTest {
         var appointment = new Appointment();
         appointment.setId(1L);
         appointment.setDonorId(1L);
+        appointment.setCenterId(100L);
         appointment.setMlCollected(450);
         appointment.setStatus(AppointmentStatus.CHECKED_IN);
+        var centerEntity = mock(CenterEntity.class);
+        when(centerEntity.getName()).thenReturn("Main Center");
+        when(centerProxy.getCenterReference(any())).thenReturn(centerEntity);
+        when(userProxy.getUserDisplayName(any())).thenReturn("John Doe");
         when(repository.findById(1L)).thenReturn(Optional.of(appointment));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 

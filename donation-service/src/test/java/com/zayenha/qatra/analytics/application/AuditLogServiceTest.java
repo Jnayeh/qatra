@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -40,5 +42,14 @@ class AuditLogServiceTest {
         when(repository.countByAction("APPOINTMENT_CREATED")).thenReturn(5L);
 
         assertThat(service.countByAction("APPOINTMENT_CREATED")).isEqualTo(5L);
+    }
+
+    @Test
+    void countByActionBetweenReturnsCountInRange() {
+        var from = Instant.parse("2026-01-01T00:00:00Z");
+        var to = Instant.parse("2026-02-01T00:00:00Z");
+        when(repository.countByActionAndTimestampBetween("APPOINTMENT_CREATED", from, to)).thenReturn(3L);
+
+        assertThat(service.countByActionBetween("APPOINTMENT_CREATED", from, to)).isEqualTo(3L);
     }
 }

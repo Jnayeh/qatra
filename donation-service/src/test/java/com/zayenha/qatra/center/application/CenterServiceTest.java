@@ -40,12 +40,14 @@ class CenterServiceTest {
     private CacheService cacheService;
     @Mock
     private AuditPublisher auditPublisher;
+    @Mock
+    private CenterReportService reportService;
 
     private CenterService centerService;
 
     @BeforeEach
     void setUp() {
-        centerService = new CenterService(centerRepository, slotRepository, eventPublisher, cacheService, auditPublisher);
+        centerService = new CenterService(centerRepository, slotRepository, reportService, eventPublisher, cacheService, auditPublisher);
     }
 
     private DonationCenter aCenter() {

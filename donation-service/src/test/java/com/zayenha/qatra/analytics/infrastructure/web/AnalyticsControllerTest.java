@@ -1,5 +1,6 @@
 package com.zayenha.qatra.analytics.infrastructure.web;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.analytics.domain.model.AuditLog;
@@ -14,10 +15,12 @@ import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,12 +30,14 @@ class AnalyticsControllerTest {
     private AuditLogQueryUseCases auditLogQueryUseCases;
     @Mock
     private AnalyticsMapper mapper;
+    @Mock
+    private CacheService cacheService;
 
     private AnalyticsController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new AnalyticsController(auditLogQueryUseCases, mapper);
+        controller = new AnalyticsController(auditLogQueryUseCases, mapper, cacheService);
     }
 
     @Test
@@ -51,12 +56,36 @@ class AnalyticsControllerTest {
     }
 
     @Test
-    void getMetricsReturnsCounts() {
-        when(auditLogQueryUseCases.countByAction(anyString())).thenReturn(0L);
+    void getMetricsReturnsEnrichedCounts() {
+        when(cacheService.get(anyString(), any(Class.class))).thenReturn(Optional.empty());
+        when(auditLogQueryUseCases.countByAction(anyString())).thenReturn(10L);
+        when(auditLogQueryUseCases.countByActionBetween(anyString(), any(), any())).thenReturn(3L);
 
         var response = controller.getMetrics();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().data()).isNotEmpty();
+        response.getBody().data().forEach(m -> {
+            assertThat(m.total()).isEqualTo(10L);
+            assertThat(m.today()).isEqualTo(3L);
+            assertThat(m.thisWeek()).isEqualTo(3L);
+            assertThat(m.thisMonth()).isEqualTo(3L);
+        });
+    }
+
+    @Test
+    void getMetricsUsesCache() {
+        var cachedMetrics = List.of(
+            new com.zayenha.qatra.analytics.infrastructure.web.dto.response.MetricsResponse(
+                "APPOINTMENT_CREATED", 50L, 5L, 20L, 40L)
+        );
+        when(cacheService.get(eq("metrics:overview"), any(Class.class))).thenReturn(
+            Optional.of(new AnalyticsController.CacheableMetricsList(cachedMetrics)));
+
+        var response = controller.getMetrics();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().data()).hasSize(1);
+        assertThat(response.getBody().data().get(0).total()).isEqualTo(50L);
     }
 }
