@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -41,5 +42,9 @@ public class AuditLogService implements AuditLogQueryUseCases {
 
     public long countByAction(String action) {
         return repository.countByAction(action);
+    }
+
+    public long countByActionBetween(String action, Instant from, Instant to) {
+        return repository.countByActionAndTimestampBetween(action, from, to);
     }
 }

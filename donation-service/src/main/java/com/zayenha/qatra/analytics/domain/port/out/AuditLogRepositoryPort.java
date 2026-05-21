@@ -14,4 +14,5 @@ public interface AuditLogRepositoryPort {
     List<AuditLog> findByUserId(Long userId);
     List<AuditLog> findByTimestampBetween(Instant from, Instant to);
     long countByAction(String action);
+    long countByActionAndTimestampBetween(String action, Instant from, Instant to);
 }

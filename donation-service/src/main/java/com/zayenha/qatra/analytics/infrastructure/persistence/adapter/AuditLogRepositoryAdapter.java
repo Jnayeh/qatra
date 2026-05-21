@@ -1,5 +1,6 @@
 package com.zayenha.qatra.analytics.infrastructure.persistence.adapter;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.analytics.domain.model.AuditLog;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -18,6 +20,7 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
 
     private final AuditLogJpaRepository jpaRepository;
     private final AuditLogMapper mapper;
+    private final CacheService cacheService;
 
     @Override
     public AuditLog save(AuditLog log) {
@@ -28,11 +31,20 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
     public PageResult<AuditLog> findAll(SearchCriteria criteria) {
         var pageable = PageRequest.of(criteria.page(), criteria.size());
         var page = jpaRepository.findAllByOrderByTimestampDesc(pageable);
+        var total = cachedCount("count:auditLogs");
         return new PageResult<>(
             page.getContent().stream().map(mapper::toDomain).toList(),
             page.getNumber(), page.getSize(),
-            page.getTotalElements(), page.getTotalPages()
+            total, page.getTotalPages()
         );
+    }
+
+    private long cachedCount(String key) {
+        var cached = cacheService.get(key, Long.class);
+        if (cached.isPresent()) return cached.get();
+        var count = jpaRepository.count();
+        cacheService.put(key, count, Duration.ofSeconds(6800));
+        return count;
     }
 
     @Override
@@ -53,5 +65,10 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
     @Override
     public long countByAction(String action) {
         return jpaRepository.countByAction(action);
+    }
+
+    @Override
+    public long countByActionAndTimestampBetween(String action, Instant from, Instant to) {
+        return jpaRepository.countByActionAndTimestampBetween(action, from, to);
     }
 }
