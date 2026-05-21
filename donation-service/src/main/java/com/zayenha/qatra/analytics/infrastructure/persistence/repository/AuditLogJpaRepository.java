@@ -14,4 +14,5 @@ public interface AuditLogJpaRepository extends JpaRepository<AuditLogEntity, Lon
     List<AuditLogEntity> findByUser_IdOrderByTimestampDesc(Long userId);
     List<AuditLogEntity> findByTimestampBetweenOrderByTimestampDesc(Instant from, Instant to);
     long countByAction(String action);
+
 }

@@ -85,8 +85,6 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     private long getTotalCount() {
         var countTime = Instant.now();
         var total = countCache.get("total");
-        log.info("Cached value: {}", total);
-        log.info("Current time: {}", countTime);
         if (total == null || total.ttl().isBefore(countTime)) {
             var count = jpaRepository.count();
             var ttl = countTime.plusSeconds(60);
