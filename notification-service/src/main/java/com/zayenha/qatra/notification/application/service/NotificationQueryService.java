@@ -2,6 +2,7 @@ package com.zayenha.qatra.notification.application.service;
 
 import com.zayenha.qatra.notification.application.dto.NotificationResponse;
 import com.zayenha.qatra.notification.domain.exception.NotificationNotFoundException;
+import com.zayenha.qatra.notification.domain.exception.NotificationDeliveryException;
 import com.zayenha.qatra.notification.domain.model.Notification;
 import com.zayenha.qatra.notification.domain.model.NotificationType;
 import com.zayenha.qatra.notification.domain.port.in.NotificationQueryUseCases;
@@ -42,6 +43,9 @@ public class NotificationQueryService implements NotificationQueryUseCases {
     public NotificationResponse markAsRead(Long notificationId, Long userId) {
         var notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotificationNotFoundException(notificationId));
+        if (!notification.getUserId().equals(userId)) {
+            throw new NotificationDeliveryException("Notification does not belong to user " + userId, null);
+        }
         notification.markRead();
         notificationRepository.save(notification);
         return toResponse(notification);

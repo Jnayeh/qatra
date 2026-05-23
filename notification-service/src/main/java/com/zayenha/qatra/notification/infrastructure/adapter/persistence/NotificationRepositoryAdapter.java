@@ -31,7 +31,11 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
     public List<Notification> findByUserId(Long userId, NotificationType type, Boolean read, int page, int size) {
         var pageable = PageRequest.of(page, size);
         if (type != null && read != null) {
-            return jpaRepository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, type, pageable)
+            if (read) {
+                return jpaRepository.findReadByUserIdAndType(userId, type, pageable)
+                        .stream().map(mapper::toDomain).toList();
+            }
+            return jpaRepository.findUnreadByUserIdAndType(userId, type, pageable)
                     .stream().map(mapper::toDomain).toList();
         }
         if (type != null) {
@@ -54,7 +58,7 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
     public long countByUserId(Long userId, NotificationType type, Boolean read) {
         if (type != null && read != null) {
             if (read) {
-                return jpaRepository.countByUserId(userId) - jpaRepository.countUnreadByUserIdAndType(userId, type);
+                return jpaRepository.countByUserIdAndType(userId, type) - jpaRepository.countUnreadByUserIdAndType(userId, type);
             }
             return jpaRepository.countUnreadByUserIdAndType(userId, type);
         }

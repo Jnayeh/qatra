@@ -7,8 +7,10 @@ import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireQueryUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
+import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
+import com.zayenha.qatra.user.api.UserApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
     private final DonorRepositoryPort donorRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final AuditPublisher auditPublisher;
+    private final EventPublisherPort eventPublisherPort;
+    private final UserApi userApi;
 
     @Value("${questionnaire.permanent-restriction-keywords:insulin,chemo,immunosuppressant}")
     private String restrictionKeywords;
@@ -53,10 +57,12 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         evaluatePermanentRestriction(profile, command);
         profile.setUpdatedAt(Instant.now());
         boolean hasLocation = profile.getLatitude() != null && profile.getLongitude() != null;
+        boolean wasProfileComplete = Boolean.TRUE.equals(profile.getProfileComplete());
         profile.setProfileComplete(hasLocation);
 
         donorRepository.save(profile);
         var saved = donorRepository.saveQuestionnaire(questionnaire);
+
         auditPublisher.publish("HEALTH_QUESTIONNAIRE_UPDATED", saved.getId(), "HealthQuestionnaire", null,
             Map.of("userId", userId, "donorId", profile.getId(),
                    "hasChronicIllness", command.hasChronicIllness(),

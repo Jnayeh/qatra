@@ -21,6 +21,12 @@ public interface JpaNotificationRepository extends JpaRepository<NotificationEnt
     @Query("SELECT n FROM NotificationEntity n WHERE n.userId = :userId AND n.readAt IS NOT NULL ORDER BY n.createdAt DESC")
     List<NotificationEntity> findReadByUserId(@Param("userId") Long userId, Pageable pageable);
 
+    @Query("SELECT n FROM NotificationEntity n WHERE n.userId = :userId AND n.type = :type AND n.readAt IS NULL ORDER BY n.createdAt DESC")
+    List<NotificationEntity> findUnreadByUserIdAndType(@Param("userId") Long userId, @Param("type") NotificationType type, Pageable pageable);
+
+    @Query("SELECT n FROM NotificationEntity n WHERE n.userId = :userId AND n.type = :type AND n.readAt IS NOT NULL ORDER BY n.createdAt DESC")
+    List<NotificationEntity> findReadByUserIdAndType(@Param("userId") Long userId, @Param("type") NotificationType type, Pageable pageable);
+
     long countByUserId(Long userId);
 
     long countByUserIdAndType(Long userId, NotificationType type);

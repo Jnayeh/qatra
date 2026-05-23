@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -12,6 +15,9 @@ import lombok.Setter;
 public class SlotDTO {
     private Long id;
     private Long centerId;
+    private LocalDate date;
+    private LocalTime startTime;
+    private LocalTime endTime;
     private int bookedCount;
     private int regularBookedCount;
     private int maxBookings;

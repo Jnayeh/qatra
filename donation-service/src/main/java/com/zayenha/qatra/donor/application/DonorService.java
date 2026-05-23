@@ -11,9 +11,11 @@ import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.donor.domain.service.DonorDomainValidator;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonationCertificateJpaRepository;
+import com.zayenha.qatra.user.api.UserApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,8 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
     private final ApplicationEventPublisher eventPublisher;
     private final CacheService cacheService;
     private final AuditPublisher auditPublisher;
+    private final EventPublisherPort eventPublisherPort;
+    private final UserApi userApi;
 
     private DonorDomainValidator validator() {
         return new DonorDomainValidator();
@@ -100,8 +104,10 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setCity(command.city());
         profile.setUpdatedAt(Instant.now());
         var hasQuestionnaire = donorRepository.donorHasQuestionnaire(profile.getId());
+        boolean wasProfileComplete = Boolean.TRUE.equals(profile.getProfileComplete());
         profile.setProfileComplete(command.latitude() != null && command.longitude() != null && hasQuestionnaire);
         var saved = donorRepository.save(profile);
+
         cacheService.evictByPattern("donorProfiles:*");
         cacheService.evictByPattern("impactResults:*");
         auditPublisher.publish("DONOR_LOCATION_UPDATED", saved.getId(), "DonorProfile",
@@ -249,9 +255,9 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
                 "Donor not found by userID: " + userId, DonorErrorCode.DONOR_NOT_FOUND.name()));
         var milestones = new java.util.ArrayList<String>();
         if (profile.getTotalDonations() >= 1) milestones.add("First donation completed");
-        if (profile.getTotalDonations() >= 5) milestones.add("5 donations milestone");
-        if (profile.getTotalDonations() >= 10) milestones.add("10 donations milestone");
-        var result = new ImpactResult(profile.getTotalDonations(), 0, milestones);
+        if (profile.getTotalDonations() >= 5) milestones.add("Regular donator");
+        if (profile.getTotalDonations() >= 10) milestones.add("Life saver");
+        var result = new ImpactResult(profile.getTotalDonations(), milestones);
         cacheService.put(key, result);
         return result;
     }
