@@ -6,10 +6,11 @@ import java.time.Instant;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record AppointmentReminderEvent(
-    Long appointmentId,
-    Long donorId,
-    String slotTime,
+public record EmailVerificationEvent(
+    Long userId,
+    String email,
+    String verificationToken,
+    String verificationLink,
     String correlationId,
     Instant occurredAt,
     List<String> channels

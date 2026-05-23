@@ -13,8 +13,6 @@ import java.util.List;
 @ConditionalOnProperty(value = "spring.kafka.bootstrap-servers")
 public class KafkaConfig {
 
-    public record TopicDef(String name, int partitions, int replicas) {}
-
     @Bean
     public List<NewTopic> kafkaTopics(
             @Value("${kafka.topic.appointment-events.name:appointment-events}") String appointmentName,
@@ -26,9 +24,6 @@ public class KafkaConfig {
             @Value("${kafka.topic.audit-events.name:audit-events}") String auditName,
             @Value("${kafka.topic.audit-events.partitions:2}") int auditPartitions,
             @Value("${kafka.topic.audit-events.replicas:1}") int auditReplicas,
-            @Value("${kafka.topic.notification-dispatch.name:notification.dispatch}") String notifName,
-            @Value("${kafka.topic.notification-dispatch.partitions:3}") int notifPartitions,
-            @Value("${kafka.topic.notification-dispatch.replicas:1}") int notifReplicas,
             @Value("${kafka.topic.emergency-created.name:emergency.created}") String emergCreatedName,
             @Value("${kafka.topic.emergency-created.partitions:3}") int emergCreatedPartitions,
             @Value("${kafka.topic.emergency-created.replicas:1}") int emergCreatedReplicas,
@@ -37,16 +32,27 @@ public class KafkaConfig {
             @Value("${kafka.topic.appointment-reminder.replicas:1}") int apptReminderReplicas,
             @Value("${kafka.topic.eligibility-restored.name:eligibility.restored}") String eligName,
             @Value("${kafka.topic.eligibility-restored.partitions:3}") int eligPartitions,
-            @Value("${kafka.topic.eligibility-restored.replicas:1}") int eligReplicas
+            @Value("${kafka.topic.eligibility-restored.replicas:1}") int eligReplicas,
+            @Value("${kafka.topic.eligibility-reminder.name:eligibility.reminder}") String eligReminderName,
+            @Value("${kafka.topic.eligibility-reminder.partitions:3}") int eligReminderPartitions,
+            @Value("${kafka.topic.eligibility-reminder.replicas:1}") int eligReminderReplicas,
+            @Value("${kafka.topic.password-reset.name:password.reset}") String passwordResetName,
+            @Value("${kafka.topic.password-reset.partitions:3}") int passwordResetPartitions,
+            @Value("${kafka.topic.password-reset.replicas:1}") int passwordResetReplicas,
+            @Value("${kafka.topic.email-verification.name:email.verification}") String emailVerificationName,
+            @Value("${kafka.topic.email-verification.partitions:3}") int emailVerificationPartitions,
+            @Value("${kafka.topic.email-verification.replicas:1}") int emailVerificationReplicas
     ) {
         return List.of(
             topic(appointmentName, appointmentPartitions, appointmentReplicas),
             topic(emergencyName, emergencyPartitions, emergencyReplicas),
             topic(auditName, auditPartitions, auditReplicas),
-            topic(notifName, notifPartitions, notifReplicas),
             topic(emergCreatedName, emergCreatedPartitions, emergCreatedReplicas),
             topic(apptReminderName, apptReminderPartitions, apptReminderReplicas),
-            topic(eligName, eligPartitions, eligReplicas)
+            topic(eligName, eligPartitions, eligReplicas),
+            topic(eligReminderName, eligReminderPartitions, eligReminderReplicas),
+            topic(passwordResetName, passwordResetPartitions, passwordResetReplicas),
+            topic(emailVerificationName, emailVerificationPartitions, emailVerificationReplicas)
         );
     }
 

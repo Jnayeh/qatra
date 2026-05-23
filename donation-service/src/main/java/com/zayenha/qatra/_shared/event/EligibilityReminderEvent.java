@@ -6,10 +6,9 @@ import java.time.Instant;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record AppointmentReminderEvent(
-    Long appointmentId,
+public record EligibilityReminderEvent(
     Long donorId,
-    String slotTime,
+    String eligibleFromDate,
     String correlationId,
     Instant occurredAt,
     List<String> channels

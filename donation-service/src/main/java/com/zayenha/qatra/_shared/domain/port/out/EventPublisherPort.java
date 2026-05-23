@@ -1,7 +1,6 @@
 package com.zayenha.qatra._shared.domain.port.out;
 
 import java.util.List;
-import java.util.Map;
 
 public interface EventPublisherPort {
 
@@ -11,5 +10,9 @@ public interface EventPublisherPort {
 
     void publishEligibilityRestored(Long donorId, String eligibleFromDate);
 
-    void publishNotificationDispatch(Long userId, String email, String type, String title, String body, Map<String, Object> data);
+    void publishEligibilityReminder(Long donorId, String eligibleFromDate);
+
+    void publishPasswordReset(Long userId, String email, String resetToken, String resetLink);
+
+    void publishEmailVerification(Long userId, String email, String verificationToken, String verificationLink);
 }

@@ -69,12 +69,15 @@ services:
       DB_USERNAME: qatra
       DB_PASSWORD: qatra
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JWT_SECRET: QatraSecretKeyMustBeAtLeast256BitsLongForHS256AlgorithmMinimum
+      JWT_SECRET: QatraSecretKeyMustBeAtLeast256BitsLong
       SPRING_DATA_REDIS_HOST: redis
       SPRING_CACHE_TYPE: redis
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_DEVTOOLS_RESTART: false
       SPRING_DEVTOOLS_LIVERELOAD: false
+      KAFKA_TOPIC_PASSWORD_RESET: password.reset
+      KAFKA_TOPIC_EMAIL_VERIFICATION: email.verification
+      KAFKA_TOPIC_ELIGIBILITY_REMINDER: eligibility.reminder
       OTEL_SERVICE_NAME: donation-service
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
@@ -97,7 +100,8 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_DEVTOOLS_RESTART: false
       SPRING_DEVTOOLS_LIVERELOAD: false
-      EMAIL_CHANNEL_PROVIDER: gmail
+      EMAIL_CHANNEL_PROVIDER: resend
+      RESEND_API_KEY: re_XJ2hGXgj_65viAXyrVcTTEgReFda2GNNg
       GMAIL_SMTP_HOST: ""
       GMAIL_USERNAME: ""
       GMAIL_APP_PASSWORD: ""

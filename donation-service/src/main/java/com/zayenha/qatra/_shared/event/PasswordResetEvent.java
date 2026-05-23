@@ -3,16 +3,15 @@ package com.zayenha.qatra._shared.event;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.Instant;
-import java.util.Map;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record NotificationDispatchEvent(
+public record PasswordResetEvent(
     Long userId,
     String email,
-    String type,
-    String title,
-    String body,
-    Map<String, Object> data,
+    String resetToken,
+    String resetLink,
     String correlationId,
-    Instant occurredAt
+    Instant occurredAt,
+    List<String> channels
 ) {}

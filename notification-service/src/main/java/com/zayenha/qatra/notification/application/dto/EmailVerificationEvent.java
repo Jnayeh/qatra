@@ -3,13 +3,15 @@ package com.zayenha.qatra.notification.application.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.Instant;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ProfileCompletionEvent(
+public record EmailVerificationEvent(
     Long userId,
     String email,
-    Long profileId,
-    String message,
+    String verificationToken,
+    String verificationLink,
     String correlationId,
-    Instant occurredAt
+    Instant occurredAt,
+    List<String> channels
 ) {}

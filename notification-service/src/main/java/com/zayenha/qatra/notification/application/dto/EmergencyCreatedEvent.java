@@ -10,5 +10,6 @@ public record EmergencyCreatedEvent(
     Long emergencyId,
     List<Long> matchedDonorIds,
     String correlationId,
-    Instant occurredAt
+    Instant occurredAt,
+    List<String> channels
 ) {}
