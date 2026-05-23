@@ -7,7 +7,7 @@ public interface DonorQueryUseCases {
     DonorProfile getDonorById(Long donorId);
     ImpactResult getImpact(Long userId);
 
-    record ImpactResult(int totalDonations, int estimatedLivesSaved, java.util.List<String> milestones) {}
+    record ImpactResult(int totalDonations, java.util.List<String> milestones) {}
 
     java.util.List<CertificateProjection> getCertificates(Long userId);
 

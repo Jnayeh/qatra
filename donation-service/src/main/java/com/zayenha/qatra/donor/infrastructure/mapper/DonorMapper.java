@@ -4,6 +4,7 @@ import com.zayenha.qatra.donor.application.proxy.DonorUserProxy;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
+import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonorProfileEntity;
 import com.zayenha.qatra.donor.infrastructure.persistence.entity.HealthQuestionnaireEntity;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonorJpaRepository;
@@ -29,6 +30,9 @@ public abstract class DonorMapper {
 
     @Autowired
     protected DonorJpaRepository donorJpaRepository;
+
+    @Autowired
+    protected DonorRepositoryPort donorRepository;
 
     public abstract DonorProfileResponse toProfileResponse(DonorProfile profile);
 
@@ -63,6 +67,8 @@ public abstract class DonorMapper {
     }
 
     public DonorDetailResponse toDetailResponse(DonorProfile profile) {
+        var questionnaire = donorRepository.findQuestionnaireByDonorId(profile.getId()).orElse(null);
+        var healthResponse = questionnaire != null ? toHealthResponse(questionnaire) : null;
         return new DonorDetailResponse(
             profile.getId(), profile.getUserId(),
             profile.getBloodType(), profile.getBloodTypeVerified(),
@@ -72,7 +78,7 @@ public abstract class DonorMapper {
             profile.getFlaggedForManualReview(), profile.getReliabilityScore(),
             profile.getEligibleFromDate(), profile.getProfileComplete(),
             profile.getTotalDonations(),
-            null, 0,
+            healthResponse,
             profile.getCreatedAt(), profile.getUpdatedAt()
         );
     }

@@ -25,7 +25,6 @@ public record DonorDetailResponse(
     Boolean profileComplete,
     int totalDonations,
     DonorHealthResponse healthQuestionnaire,
-    int appointmentCount,
     Instant createdAt,
     Instant updatedAt
 ) {}

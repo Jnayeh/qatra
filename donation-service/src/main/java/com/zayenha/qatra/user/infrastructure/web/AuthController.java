@@ -35,7 +35,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -196,10 +195,8 @@ public class AuthController {
         verificationTokenRepository.save(token);
 
         var resetLink = baseUrl + "/reset-password?token=" + rawToken;
-        eventPublisherPort.publishNotificationDispatch(
-                user.getId(), user.getEmail(), "PASSWORD_RESET", "Password Reset Request",
-                "Click the link to reset your password: " + resetLink,
-                Map.of("resetToken", rawToken, "email", user.getEmail()));
+        eventPublisherPort.publishPasswordReset(
+                user.getId(), user.getEmail(), rawToken, resetLink);
 
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -234,10 +231,8 @@ public class AuthController {
         verificationTokenRepository.save(token);
 
         var verificationLink = baseUrl + "/verify-email?token=" + rawToken;
-        eventPublisherPort.publishNotificationDispatch(
-                user.getId(), user.getEmail(), "EMAIL_VERIFICATION", "Verify your email",
-                "Click the link to verify your email: " + verificationLink,
-                Map.of("verificationToken", rawToken, "email", user.getEmail()));
+        eventPublisherPort.publishEmailVerification(
+                user.getId(), user.getEmail(), rawToken, verificationLink);
     }
 
     private static String sha256(String value) {

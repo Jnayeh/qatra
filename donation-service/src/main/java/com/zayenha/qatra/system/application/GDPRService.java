@@ -1,6 +1,7 @@
 package com.zayenha.qatra.system.application;
 
 import com.zayenha.qatra._shared.event.AuditPublisher;
+import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.event.GDPRDeletionRequestedEvent;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.system.application.proxy.GDPRUserProxy;
@@ -11,12 +12,14 @@ import com.zayenha.qatra.system.domain.port.in.GDPRQueryUseCases;
 import com.zayenha.qatra.system.domain.port.out.GDPRRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,11 @@ public class GDPRService implements GDPRCommandUseCases, GDPRQueryUseCases {
 
     @Transactional
     public GDPRDeletionRequest requestDeletion(Long userId, String reason) {
+        var user = userProxy.getUser(AuditUtils.currentUserId());
+        var roles = user.roles().stream().map(Enum::name).toList();
+        if (!roles.contains("SUPER_ADMIN") && !Objects.equals(user.id(), userId)) {
+            throw new AccessDeniedException("You are not allowed to request deletion for this user");
+        }
         var existing = repository.findByUserId(userId);
         if (existing.isPresent() && existing.get().getStatus() == GDPRDeletionStatus.IN_PROGRESS) {
             return existing.get();

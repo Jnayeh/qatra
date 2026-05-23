@@ -4,6 +4,5 @@ import java.util.List;
 
 public record ImpactResponse(
     int totalDonations,
-    int estimatedLivesSaved,
     List<String> milestones
 ) {}

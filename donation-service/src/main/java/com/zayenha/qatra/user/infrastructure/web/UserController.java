@@ -40,7 +40,7 @@ public class UserController {
             PageHelper.toPageIndex(page), size);
         var result = queryUseCases.findAll(criteria);
         var users = result.content().stream()
-                .map(u -> mapper.toDetail(u, u.getRoles()))
+                .map(mapper::toDetail)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(users, PageHelper.fromDomain(result)));
     }
@@ -49,8 +49,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDetailResponse>> getDetails(@PathVariable Long id) {
         var user = queryUseCases.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found: " + id, UserErrorCode.USER_NOT_FOUND.name()));
-        return ResponseEntity.ok(ApiResponse.success(
-            mapper.toDetail(user, user.getRoles())));
+        return ResponseEntity.ok(ApiResponse.success(mapper.toDetail(user)));
     }
 
     @PostMapping
@@ -59,8 +58,7 @@ public class UserController {
         var user = commandUseCases.create(
                 request.email(), request.phone(), request.password(), request.displayName(), request.firstName(), request.familyName());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(
-                    mapper.toDetail(user, user.getRoles())));
+                .body(ApiResponse.success(mapper.toDetail(user)));
     }
 
     @PutMapping("/{id}")
@@ -68,8 +66,7 @@ public class UserController {
             @PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
         var user = commandUseCases.update(
                 id, request.email(), request.phone(), request.displayName());
-        return ResponseEntity.ok(ApiResponse.success(
-            mapper.toDetail(user, user.getRoles())));
+        return ResponseEntity.ok(ApiResponse.success(mapper.toDetail(user)));
     }
 
     @PatchMapping("/{id}/status")

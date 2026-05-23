@@ -13,8 +13,7 @@ import java.util.List;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
 
-    @Mapping(target = "roles", source = "roles")
-    UserDetailResponse toDetail(User user, List<Role> roles);
+    UserDetailResponse toDetail(User user);
     @Mapping(target = "roles", ignore = true)
     User toDomain(UserEntity entity);
 
