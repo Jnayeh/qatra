@@ -17,6 +17,7 @@ public interface EmergencyRepositoryPort {
     PageResult<EmergencyRequest> findAll(SearchCriteria criteria);
     List<EmergencyRequest> findByBloodTypeAndStatus(BloodType bloodType, EmergencyStatus status);
     List<EmergencyRequest> findByStatus(EmergencyStatus status);
+    List<EmergencyRequest> findOpenByStatus();
     DonorResponse saveResponse(DonorResponse response);
     Optional<DonorResponse> findResponseById(Long id);
     List<DonorResponse> findResponsesByEmergencyId(Long emergencyId);

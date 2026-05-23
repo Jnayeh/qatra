@@ -93,6 +93,10 @@ public class MatchingService {
                 .limit(emergency.getUnitsNeeded())
                 .toList();
 
+        var matchedDonorIds = selected.stream()
+                .map(md -> md.donor().getUserId())
+                .toList();
+
         for (var md : selected) {
             var matchResult = new MatchResult(
                     emergency.getId(), emergency.getCenterId(),
@@ -102,13 +106,9 @@ public class MatchingService {
                     emergency.getEscalationLevel()
             );
             emergencyRepository.saveMatchResult(matchResult);
-            eventPublisherPort.publishNotificationDispatch(
-                    md.donor().getUserId(), null, "EMERGENCY_ALERT",
-                    "Urgent: Blood Donation Needed",
-                    "An emergency blood request has been created at a nearby center. Please respond.",
-                    Map.of("emergencyId", emergency.getId())
-            );
         }
+
+        eventPublisherPort.publishEmergencyCreated(emergency.getId(), matchedDonorIds);
 
         if (radius > emergency.getMatchRadius()) {
             emergency.setMatchRadius(radius);

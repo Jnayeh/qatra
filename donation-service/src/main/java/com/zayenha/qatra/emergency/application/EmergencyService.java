@@ -1,5 +1,6 @@
 package com.zayenha.qatra.emergency.application;
 
+import com.zayenha.qatra._shared.domain.GeoUtils;
 import com.zayenha.qatra._shared.domain.AppointmentType;
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
@@ -10,6 +11,7 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
+import com.zayenha.qatra.emergency.application.proxy.EmergencyCenterProxy;
 import com.zayenha.qatra.emergency.application.proxy.EmergencyDonorProxy;
 import com.zayenha.qatra.emergency.domain.exception.EmergencyErrorCode;
 import com.zayenha.qatra.emergency.domain.model.*;
@@ -35,6 +37,7 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
     private final AppointmentServiceProvider appointmentApi;
     private final EmergencyRepositoryPort repository;
     private final EmergencyDonorProxy donorProxy;
+    private final EmergencyCenterProxy centerProxy;
     private final CacheService cacheService;
     private final MatchingService matchingService;
 
@@ -193,8 +196,12 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
     @Override
     @Transactional(readOnly = true)
     public List<EmergencyRequest> findOpenWithinRadius(double latitude, double longitude, double radiusKm) {
-        return repository.findAll(SearchCriteria.defaultAll()).content().stream()
-                .filter(e -> e.getStatus() == EmergencyStatus.OPEN)
+        return repository.findOpenByStatus().stream()
+                .filter(e -> {
+                    var center = centerProxy.findCenterById(e.getCenterId()).orElse(null);
+                    return center != null && center.getLatitude() != null && center.getLongitude() != null
+                        && GeoUtils.distanceKm(latitude, longitude, center.getLatitude(), center.getLongitude()) <= radiusKm;
+                })
                 .toList();
     }
 

@@ -98,6 +98,12 @@ public class EmergencyRepositoryAdapter implements EmergencyRepositoryPort {
     }
 
     @Override
+    public List<EmergencyRequest> findOpenByStatus() {
+        return emergencyJpaRepository.findByStatus(EmergencyStatus.OPEN)
+                .stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public DonorResponse saveResponse(DonorResponse response) {
         if (response.getId() != null) {
             var existing = responseJpaRepository.findById(response.getId()).orElseThrow();
