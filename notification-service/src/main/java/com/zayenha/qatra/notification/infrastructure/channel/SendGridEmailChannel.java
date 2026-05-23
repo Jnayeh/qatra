@@ -8,6 +8,7 @@ import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import com.zayenha.qatra.notification.application.service.ChannelHandler;
 import com.zayenha.qatra.notification.domain.exception.NotificationDeliveryException;
+import com.zayenha.qatra.notification.domain.model.Notification;
 import com.zayenha.qatra.notification.domain.model.NotificationChannel;
 import com.zayenha.qatra.notification.domain.model.NotificationPayload;
 import org.slf4j.Logger;
@@ -23,9 +24,11 @@ public class SendGridEmailChannel implements ChannelHandler {
     private static final Logger log = LoggerFactory.getLogger(SendGridEmailChannel.class);
 
     private final SendGrid sendGrid;
+    private final String from;
 
-    public SendGridEmailChannel(@Value("${sendgrid.api-key}") String apiKey) {
+    public SendGridEmailChannel(@Value("${sendgrid.api-key}") String apiKey, @Value("${email.channel.from}") String from) {
         this.sendGrid = new SendGrid(apiKey);
+        this.from = from;
     }
 
     @Override
@@ -34,17 +37,17 @@ public class SendGridEmailChannel implements ChannelHandler {
     }
 
     @Override
-    public void deliver(NotificationPayload payload) {
+    public void deliver(NotificationPayload payload, Notification notification) {
         var toEmail = resolveEmail(payload);
         if (toEmail == null) {
             log.warn("Cannot send EMAIL for userId {}: no email address available", payload.userId());
             return;
         }
         try {
-            var from = new Email("noreply@qatra.com");
+            var fromMail = new Email(from);
             var to = new Email(toEmail);
-            var content = new Content("text/plain", payload.body());
-            var mail = new Mail(from, payload.title(), to, content);
+            var content = new Content("text/html", payload.htmlBody());
+            var mail = new Mail(fromMail, payload.title(), to, content);
 
             var request = new Request();
             request.setMethod(Method.POST);

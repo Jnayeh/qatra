@@ -1,6 +1,7 @@
 package com.zayenha.qatra.notification.domain.model;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 public record NotificationPayload(
@@ -12,7 +13,9 @@ public record NotificationPayload(
     NotificationChannel channel,
     String title,
     String body,
+    String htmlBody,
     Map<String, Object> data,
     String correlationId,
-    Instant occurredAt
+    Instant occurredAt,
+    List<NotificationChannel> requestedChannels
 ) {}

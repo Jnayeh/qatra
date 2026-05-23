@@ -8,13 +8,12 @@ import com.zayenha.qatra.notification.domain.port.in.NotificationCommandUseCases
 import com.zayenha.qatra.notification.domain.port.out.NotificationRepositoryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,35 +23,34 @@ public class NotificationDispatchService implements NotificationCommandUseCases 
     private static final Logger log = LoggerFactory.getLogger(NotificationDispatchService.class);
 
     private final NotificationRepositoryPort notificationRepository;
-    private final List<ChannelHandler> channels;
-    private final int maxRetryAttempts;
-    private final long backoffBaseMs;
+    private final java.util.List<ChannelHandler> channels;
 
     public NotificationDispatchService(
             NotificationRepositoryPort notificationRepository,
-            List<ChannelHandler> channels,
-            @Value("${notification.retry.max-attempts:3}") int maxRetryAttempts,
-            @Value("${notification.retry.backoff-base-ms:2000}") long backoffBaseMs) {
+            java.util.List<ChannelHandler> channels) {
         this.notificationRepository = notificationRepository;
         this.channels = channels;
-        this.maxRetryAttempts = maxRetryAttempts;
-        this.backoffBaseMs = backoffBaseMs;
     }
 
+    @Transactional
     public void dispatch(NotificationPayload payload, String channelConfig) {
         if (notificationRepository.existsByCorrelationId(payload.correlationId())) {
             log.debug("Duplicate notification skipped: {}", payload.correlationId());
             return;
         }
 
-        var channelsToUse = resolveChannels(channelConfig);
+        var configuredChannels = resolveChannels(channelConfig);
+        Set<NotificationChannel> requestedChannels = payload.requestedChannels() != null
+                ? payload.requestedChannels().stream().filter(configuredChannels::contains).collect(Collectors.toSet())
+                : Set.of();
+
         var notification = notificationRepository.save(
                 new Notification(payload.userId(), payload.email(), payload.emergencyId(), payload.appointmentId(),
                         payload.type(), payload.title(), payload.body(), payload.data(),
                         payload.correlationId(), payload.channel()));
 
         for (var channel : channels) {
-            if (!channelsToUse.contains(channel.type())) {
+            if (!requestedChannels.contains(channel.type())) {
                 continue;
             }
             deliverWithRetry(channel, payload, notification);
@@ -73,9 +71,9 @@ public class NotificationDispatchService implements NotificationCommandUseCases 
         maxAttemptsExpression = "${notification.retry.max-attempts:3}",
         backoff = @Backoff(delayExpression = "${notification.retry.backoff-base-ms:2000}",
                            multiplierExpression = "2"))
-    private void deliverWithRetry(ChannelHandler channel, NotificationPayload payload,
+    public void deliverWithRetry(ChannelHandler channel, NotificationPayload payload,
                                    Notification notification) {
-        channel.deliver(payload);
+        channel.deliver(payload, notification);
         notification.markSent();
         notificationRepository.save(notification);
     }

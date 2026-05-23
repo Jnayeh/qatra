@@ -1,20 +1,17 @@
 package com.zayenha.qatra.notification.infrastructure.channel;
 
+import com.resend.Resend;
+import com.resend.services.emails.model.CreateEmailOptions;
 import com.zayenha.qatra.notification.application.service.ChannelHandler;
 import com.zayenha.qatra.notification.domain.exception.NotificationDeliveryException;
+import com.zayenha.qatra.notification.domain.model.Notification;
 import com.zayenha.qatra.notification.domain.model.NotificationChannel;
 import com.zayenha.qatra.notification.domain.model.NotificationPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Map;
 
 @Component
 @ConditionalOnProperty(name = "email.channel.provider", havingValue = "resend")
@@ -22,14 +19,14 @@ public class ResendEmailChannel implements ChannelHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ResendEmailChannel.class);
 
-    private final RestTemplate restTemplate;
-    private final String apiKey;
+    private final Resend resend;
+    private final String from;
 
     public ResendEmailChannel(
-            
-            @Value("${resend.api-key}") String apiKey) {
-        this.restTemplate = new RestTemplate();
-        this.apiKey = apiKey;
+            @Value("${resend.api-key}") String apiKey,
+            @Value("${email.channel.from}") String from) {
+        this.resend = new Resend(apiKey);
+        this.from = from;
     }
 
     @Override
@@ -38,27 +35,22 @@ public class ResendEmailChannel implements ChannelHandler {
     }
 
     @Override
-    public void deliver(NotificationPayload payload) {
+    public void deliver(NotificationPayload payload, Notification notification) {
         var toEmail = resolveEmail(payload);
         if (toEmail == null) {
             log.warn("Cannot send EMAIL for userId {}: no email address available", payload.userId());
             return;
         }
         try {
-            var headers = new HttpHeaders();
-            headers.setBearerAuth(apiKey);
-            headers.setContentType(MediaType.APPLICATION_JSON);
+            var params = CreateEmailOptions.builder()
+                    .from(from)
+                    .to(toEmail)
+                    .subject(payload.title())
+                    .html(payload.htmlBody())
+                    .build();
 
-            var body = Map.of(
-                "from", "noreply@qatra.com",
-                "to", toEmail,
-                "subject", payload.title(),
-                "text", payload.body()
-            );
-
-            var request = new HttpEntity<>(body, headers);
-            restTemplate.postForEntity("https://api.resend.com/emails", request, String.class);
-            log.debug("Resend email sent to {}", toEmail);
+            var response = resend.emails().send(params);
+            log.debug("Resend email sent to {} (id={})", toEmail, response.getId());
         } catch (Exception e) {
             throw new NotificationDeliveryException("Resend delivery failed", e);
         }

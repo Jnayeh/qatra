@@ -1,6 +1,7 @@
 package com.zayenha.qatra.notification.infrastructure.channel;
 
 import com.zayenha.qatra.notification.application.service.ChannelHandler;
+import com.zayenha.qatra.notification.domain.model.Notification;
 import com.zayenha.qatra.notification.domain.model.NotificationChannel;
 import com.zayenha.qatra.notification.domain.model.NotificationPayload;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ public class PushNotificationChannel implements ChannelHandler {
     }
 
     @Override
-    public void deliver(NotificationPayload payload) {
+    public void deliver(NotificationPayload payload, Notification notification) {
         log.info("Push notification for userId={}: title={}, body={}",
                 payload.userId(), payload.title(), payload.body());
     }
