@@ -4,7 +4,6 @@ import com.zayenha.qatra.donor.application.proxy.DonorUserProxy;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
-import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonorProfileEntity;
 import com.zayenha.qatra.donor.infrastructure.persistence.entity.HealthQuestionnaireEntity;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonorJpaRepository;
@@ -25,11 +24,9 @@ import java.time.ZoneOffset;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public abstract class DonorMapper {
 
-    @Autowired
-    protected DonorUserProxy userProxy;
+    @Autowired protected DonorUserProxy userProxy;
 
-    @Autowired
-    protected DonorJpaRepository donorJpaRepository;
+    @Autowired protected DonorJpaRepository donorJpaRepository;
 
     public abstract DonorProfileResponse toProfileResponse(DonorProfile profile);
 
