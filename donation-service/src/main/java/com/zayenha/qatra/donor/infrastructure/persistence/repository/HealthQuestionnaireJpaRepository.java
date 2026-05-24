@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface HealthQuestionnaireJpaRepository extends JpaRepository<HealthQuestionnaireEntity, Long> {
     Optional<HealthQuestionnaireEntity> findByDonor_Id(Long donorId);
+    Optional<HealthQuestionnaireEntity> findByDonor_User_Id(Long donorId);
     boolean existsByDonor_Id(Long donorId);
 }

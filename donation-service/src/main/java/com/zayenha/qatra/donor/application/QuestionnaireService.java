@@ -57,7 +57,6 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         evaluatePermanentRestriction(profile, command);
         profile.setUpdatedAt(Instant.now());
         boolean hasLocation = profile.getLatitude() != null && profile.getLongitude() != null;
-        boolean wasProfileComplete = Boolean.TRUE.equals(profile.getProfileComplete());
         profile.setProfileComplete(hasLocation);
 
         donorRepository.save(profile);
@@ -73,10 +72,7 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
     @Override
     @Transactional(readOnly = true)
     public HealthQuestionnaire getHealthQuestionnaire(Long userId) {
-        var profile = donorRepository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("Donor not found by userID: " + userId,
-                        DonorErrorCode.DONOR_NOT_FOUND.name()));
-        return donorRepository.findQuestionnaireByDonorId(profile.getId())
+        return donorRepository.findQuestionnaireByUserId(userId)
                 .orElseThrow(() -> new NotFoundException("Health questionnaire not found",
                         DonorErrorCode.HEALTH_QUESTIONNAIRE_NOT_FOUND.name()));
     }

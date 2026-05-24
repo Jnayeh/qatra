@@ -31,9 +31,6 @@ public abstract class DonorMapper {
     @Autowired
     protected DonorJpaRepository donorJpaRepository;
 
-    @Autowired
-    protected DonorRepositoryPort donorRepository;
-
     public abstract DonorProfileResponse toProfileResponse(DonorProfile profile);
 
     public abstract DonorHealthResponse toHealthResponse(HealthQuestionnaire questionnaire);
@@ -66,8 +63,7 @@ public abstract class DonorMapper {
             profile.getPermanentlyRestricted(), profile.getRestrictionReason());
     }
 
-    public DonorDetailResponse toDetailResponse(DonorProfile profile) {
-        var questionnaire = donorRepository.findQuestionnaireByDonorId(profile.getId()).orElse(null);
+    public DonorDetailResponse toDetailResponse(DonorProfile profile, HealthQuestionnaire questionnaire) {
         var healthResponse = questionnaire != null ? toHealthResponse(questionnaire) : null;
         return new DonorDetailResponse(
             profile.getId(), profile.getUserId(),

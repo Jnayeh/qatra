@@ -13,6 +13,7 @@ public interface DonorRepositoryPort {
     boolean existsByUserId(Long userId);
     HealthQuestionnaire saveQuestionnaire(HealthQuestionnaire questionnaire);
     Optional<HealthQuestionnaire> findQuestionnaireByDonorId(Long donorId);
+    Optional<HealthQuestionnaire> findQuestionnaireByUserId(Long userId);
     boolean donorHasQuestionnaire(Long donorId);
     void deleteByUserId(Long userId);
     List<DonorProfile> findEligibleForEmergency();

@@ -55,6 +55,11 @@ public class DonorRepositoryAdapter implements DonorRepositoryPort {
     }
 
     @Override
+    public Optional<HealthQuestionnaire> findQuestionnaireByUserId(Long userId) {
+        return questionnaireJpaRepository.findByDonor_User_Id(userId).map(mapper::toQuestionnaireDomain);
+    }
+
+    @Override
     public boolean donorHasQuestionnaire(Long donorId) {
         return questionnaireJpaRepository.existsByDonor_Id(donorId);
     }

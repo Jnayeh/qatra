@@ -24,7 +24,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -272,8 +271,10 @@ class DonorControllerTest {
     @Test
     void getDonorByIdReturnsDetail() {
         var profile = aProfile();
+        HealthQuestionnaire questionnaire = null;
         when(queryUseCases.getDonorById(10L)).thenReturn(profile);
-        when(mapper.toDetailResponse(profile)).thenReturn(new DonorDetailResponse(
+        when(healthQueryUseCases.getHealthQuestionnaire(1L)).thenReturn(null);
+        when(mapper.toDetailResponse(profile, questionnaire)).thenReturn(new DonorDetailResponse(
                 profile.getId(), profile.getUserId(), profile.getBloodType(),
                 profile.getBloodTypeVerified(), profile.getLatitude(), profile.getLongitude(),
                 profile.getCity(), profile.getAvailability(), profile.getNotificationPreferences(),

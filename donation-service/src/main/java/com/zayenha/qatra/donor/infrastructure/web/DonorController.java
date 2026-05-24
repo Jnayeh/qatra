@@ -168,7 +168,8 @@ public class DonorController {
     public ResponseEntity<ApiResponse<DonorDetailResponse>> getDonorById(
             @PathVariable Long id) {
         var profile = donorQueryUseCases.getDonorById(id);
-        return ResponseEntity.ok(ApiResponse.success(mapper.toDetailResponse(profile)));
+        var healthQuestionnaire = healthQueryUseCases.getHealthQuestionnaire(profile.getUserId());
+        return ResponseEntity.ok(ApiResponse.success(mapper.toDetailResponse(profile, healthQuestionnaire)));
     }
 
     @PatchMapping("/api/v1/donors/{id}/restriction")

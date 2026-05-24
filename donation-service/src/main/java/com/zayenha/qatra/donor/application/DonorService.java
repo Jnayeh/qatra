@@ -31,10 +31,8 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
 
     private final DonorRepositoryPort donorRepository;
     private final DonationCertificateJpaRepository certificateRepository;
-    private final ApplicationEventPublisher eventPublisher;
     private final CacheService cacheService;
     private final AuditPublisher auditPublisher;
-    private final EventPublisherPort eventPublisherPort;
     private final UserApi userApi;
 
     private DonorDomainValidator validator() {

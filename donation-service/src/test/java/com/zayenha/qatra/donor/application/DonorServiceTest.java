@@ -11,7 +11,6 @@ import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonationCertificateJpaRepository;
 import com.zayenha.qatra._shared.domain.BloodType;
-import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra.user.api.UserApi;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -35,15 +33,11 @@ class DonorServiceTest {
     @Mock
     private DonorRepositoryPort donorRepository;
     @Mock
-    private ApplicationEventPublisher eventPublisher;
-    @Mock
     private CacheService cacheService;
     @Mock
     private AuditPublisher auditPublisher;
     @Mock
     private DonationCertificateJpaRepository certificateRepository;
-    @Mock
-    private EventPublisherPort eventPublisherPort;
     @Mock
     private UserApi userApi;
 
@@ -51,7 +45,7 @@ class DonorServiceTest {
 
     @BeforeEach
     void setUp() {
-        donorService = new DonorService(donorRepository, certificateRepository, eventPublisher, cacheService, auditPublisher, eventPublisherPort, userApi);
+        donorService = new DonorService(donorRepository, certificateRepository, cacheService, auditPublisher, userApi);
     }
 
     private DonorProfile aProfile() {

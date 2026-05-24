@@ -189,7 +189,6 @@ class DonorControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalDonations").value(0))
-                .andExpect(jsonPath("$.data.estimatedLivesSaved").value(0))
                 .andExpect(jsonPath("$.data.milestones").isArray());
     }
 

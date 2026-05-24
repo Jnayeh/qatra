@@ -85,11 +85,9 @@ class QuestionnaireServiceTest {
 
     @Test
     void getHealthQuestionnaireReturnsQuestionnaire() {
-        var profile = aProfile();
         var q = new HealthQuestionnaire(10L);
         q.setId(100L);
-        when(donorRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
-        when(donorRepository.findQuestionnaireByDonorId(10L)).thenReturn(Optional.of(q));
+        when(donorRepository.findQuestionnaireByUserId(1L)).thenReturn(Optional.of(q));
 
         var result = questionnaireService.getHealthQuestionnaire(1L);
 
@@ -98,9 +96,7 @@ class QuestionnaireServiceTest {
 
     @Test
     void getHealthQuestionnaireThrowsWhenNotFound() {
-        var profile = aProfile();
-        when(donorRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
-        when(donorRepository.findQuestionnaireByDonorId(10L)).thenReturn(Optional.empty());
+        when(donorRepository.findQuestionnaireByUserId(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> questionnaireService.getHealthQuestionnaire(1L))
                 .isInstanceOf(NotFoundException.class)
