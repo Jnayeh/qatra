@@ -3,6 +3,12 @@ target/
 .gitattributes
 .gitignore
 .idea/
+*.iml
+*.ipr
+*.iws
 *.md
 .env*
 HELP.md
+Dockerfile
+.dockerignore
+.mvn/
