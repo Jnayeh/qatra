@@ -238,10 +238,10 @@ class DonorControllerTest {
 
     @Test
     void getImpactReturnsImpactResponse() {
-        var impact = new DonorQueryUseCases.ImpactResult(5, 15, List.of("First donation completed"));
+        var impact = new DonorQueryUseCases.ImpactResult(5, List.of("First donation completed"));
         when(queryUseCases.getImpact(1L)).thenReturn(impact);
         when(mapper.toImpactResponse(impact)).thenReturn(new ImpactResponse(
-                impact.totalDonations(), impact.estimatedLivesSaved(), impact.milestones()));
+                impact.totalDonations(), impact.milestones()));
 
         var response = controller.getImpact();
 
@@ -249,7 +249,6 @@ class DonorControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().success()).isTrue();
         assertThat(response.getBody().data().totalDonations()).isEqualTo(5);
-        assertThat(response.getBody().data().estimatedLivesSaved()).isEqualTo(15);
         assertThat(response.getBody().data().milestones()).hasSize(1);
     }
 
@@ -281,7 +280,7 @@ class DonorControllerTest {
                 profile.getPermanentlyRestricted(), profile.getRestrictionReason(),
                 profile.getFlaggedForManualReview(), profile.getReliabilityScore(),
                 profile.getEligibleFromDate(), profile.getProfileComplete(),
-                profile.getTotalDonations(), null, 0,
+                profile.getTotalDonations(), null,
                 profile.getCreatedAt(), profile.getUpdatedAt()));
 
         var response = controller.getDonorById(10L);

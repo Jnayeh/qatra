@@ -5,6 +5,8 @@ import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
+import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
+import com.zayenha.qatra.user.api.UserApi;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,12 +32,16 @@ class QuestionnaireServiceTest {
     private ApplicationEventPublisher eventPublisher;
     @Mock
     private AuditPublisher auditPublisher;
+    @Mock
+    private EventPublisherPort eventPublisherPort;
+    @Mock
+    private UserApi userApi;
 
     private QuestionnaireService questionnaireService;
 
     @BeforeEach
     void setUp() {
-        questionnaireService = new QuestionnaireService(donorRepository, eventPublisher, auditPublisher);
+        questionnaireService = new QuestionnaireService(donorRepository, eventPublisher, auditPublisher, eventPublisherPort, userApi);
     }
 
     private DonorProfile aProfile() {

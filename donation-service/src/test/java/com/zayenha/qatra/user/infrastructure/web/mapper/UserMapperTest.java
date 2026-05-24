@@ -36,7 +36,7 @@ class UserMapperTest {
     @Test
     void toDetailMapsAllFields() {
         var user = aUser();
-        var detail = mapper.toDetail(user, user.getRoles());
+        var detail = mapper.toDetail(user);
 
         assertThat(detail.id()).isEqualTo(1L);
         assertThat(detail.email()).isEqualTo("test@example.com");
@@ -57,7 +57,7 @@ class UserMapperTest {
         user.setEmailVerified(false);
         user.setCreatedAt(Instant.now());
         user.setRoles(List.of());
-        var detail = mapper.toDetail(user, List.of());
+        var detail = mapper.toDetail(user);
 
         assertThat(detail.roles()).isEmpty();
         assertThat(detail.lastActiveAt()).isNull();

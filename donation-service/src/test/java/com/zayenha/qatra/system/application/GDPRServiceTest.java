@@ -6,13 +6,20 @@ import com.zayenha.qatra.system.application.proxy.GDPRUserProxy;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionRequest;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionStatus;
 import com.zayenha.qatra.system.domain.port.out.GDPRRepositoryPort;
+import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra.user.infrastructure.web.dto.response.UserDetailResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,10 +44,19 @@ class GDPRServiceTest {
     @BeforeEach
     void setUp() {
         service = new GDPRService(repository, eventPublisher, auditPublisher, userProxy);
+        SecurityContextHolder.getContext().setAuthentication(
+            new UsernamePasswordAuthenticationToken(1L, null, java.util.List.of(new SimpleGrantedAuthority("ROLE_DONOR")))
+        );
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void requestDeletionCreatesInProgressRequest() {
+        when(userProxy.getUser(1L)).thenReturn(new UserDetailResponse(1L, "test@test.com", null, "Test", null, false, List.of(Role.DONOR), null, null, null, null));
         when(repository.findByUserId(1L)).thenReturn(Optional.empty());
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 

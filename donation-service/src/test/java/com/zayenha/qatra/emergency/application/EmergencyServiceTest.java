@@ -7,6 +7,7 @@ import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.emergency.domain.model.*;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
 import com.zayenha.qatra._shared.domain.port.out.AppointmentServiceProvider;
+import com.zayenha.qatra.emergency.application.proxy.EmergencyCenterProxy;
 import com.zayenha.qatra.emergency.application.proxy.EmergencyDonorProxy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,8 @@ class EmergencyServiceTest {
     @Mock
     private EmergencyDonorProxy donorProxy;
     @Mock
+    private EmergencyCenterProxy centerProxy;
+    @Mock
     private CacheService cacheService;
     @Mock
     private MatchingService matchingService;
@@ -44,7 +47,7 @@ class EmergencyServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new EmergencyService(appointmentApi, repository, donorProxy, cacheService, matchingService, auditPublisher);
+        service = new EmergencyService(appointmentApi, repository, donorProxy, centerProxy, cacheService, matchingService, auditPublisher);
     }
 
     @Test

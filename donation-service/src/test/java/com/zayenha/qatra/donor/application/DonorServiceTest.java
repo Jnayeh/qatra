@@ -11,6 +11,8 @@ import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonationCertificateJpaRepository;
 import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
+import com.zayenha.qatra.user.api.UserApi;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,12 +42,16 @@ class DonorServiceTest {
     private AuditPublisher auditPublisher;
     @Mock
     private DonationCertificateJpaRepository certificateRepository;
+    @Mock
+    private EventPublisherPort eventPublisherPort;
+    @Mock
+    private UserApi userApi;
 
     private DonorService donorService;
 
     @BeforeEach
     void setUp() {
-        donorService = new DonorService(donorRepository, certificateRepository, eventPublisher, cacheService, auditPublisher);
+        donorService = new DonorService(donorRepository, certificateRepository, eventPublisher, cacheService, auditPublisher, eventPublisherPort, userApi);
     }
 
     private DonorProfile aProfile() {
@@ -230,7 +236,6 @@ class DonorServiceTest {
         var result = donorService.getImpact(1L);
 
         assertThat(result.totalDonations()).isEqualTo(3);
-        assertThat(result.estimatedLivesSaved()).isEqualTo(0);
         assertThat(result.milestones()).contains("First donation completed");
     }
 

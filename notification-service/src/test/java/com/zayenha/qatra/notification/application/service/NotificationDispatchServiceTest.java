@@ -30,14 +30,14 @@ class NotificationDispatchServiceTest {
     void setUp() {
         lenient().when(inAppChannel.type()).thenReturn(com.zayenha.qatra.notification.domain.model.NotificationChannel.IN_APP);
         dispatchService = new NotificationDispatchService(
-                notificationRepository, List.of(inAppChannel), 3, 2000);
+                notificationRepository, List.of(inAppChannel));
     }
 
     @Test
     void shouldSkipDuplicateByCorrelationId() {
         when(notificationRepository.existsByCorrelationId("dup-corr")).thenReturn(true);
 
-        var payload = new NotificationPayload(1L, null, null, null, null, null, "Title", "Body", null, "dup-corr", Instant.now());
+        var payload = new NotificationPayload(1L, null, null, null, null, null, "Title", "Body", null, null, "dup-corr", Instant.now(), List.of());
         dispatchService.dispatch(payload, "IN_APP");
 
         verify(notificationRepository, never()).save(any());
@@ -48,11 +48,11 @@ class NotificationDispatchServiceTest {
         when(notificationRepository.existsByCorrelationId(any())).thenReturn(false);
         when(notificationRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var payload = new NotificationPayload(1L, null, null, null, null, null, "Title", "Body", null, "corr-1", Instant.now());
+        var payload = new NotificationPayload(1L, null, null, null, null, null, "Title", "Body", null, null, "corr-1", Instant.now(), List.of(com.zayenha.qatra.notification.domain.model.NotificationChannel.IN_APP));
         dispatchService.dispatch(payload, "IN_APP");
 
         verify(notificationRepository, times(2)).save(any()); // save + update status
-        verify(inAppChannel).deliver(payload);
+        verify(inAppChannel).deliver(eq(payload), any(Notification.class));
     }
 
     @Test
@@ -60,9 +60,9 @@ class NotificationDispatchServiceTest {
         when(notificationRepository.existsByCorrelationId(any())).thenReturn(false);
         when(notificationRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var payload = new NotificationPayload(1L, null, null, null, null, null, "Title", "Body", null, "corr-2", Instant.now());
+        var payload = new NotificationPayload(1L, null, null, null, null, null, "Title", "Body", null, null, "corr-2", Instant.now(), List.of());
         dispatchService.dispatch(payload, "EMAIL");
 
-        verify(inAppChannel, never()).deliver(any());
+        verify(inAppChannel, never()).deliver(any(), any());
     }
 }

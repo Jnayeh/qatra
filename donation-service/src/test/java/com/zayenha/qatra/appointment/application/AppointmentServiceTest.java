@@ -14,6 +14,8 @@ import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.zayenha.qatra.center.application.api.dto.SlotDTO;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,7 +60,7 @@ class AppointmentServiceTest {
 
     @Test
     void bookCreatesAppointment() {
-        var slot = new SlotDTO(100L, 1000L, 1, 0, 10, 5, false);
+        var slot = new SlotDTO(100L, 1000L, LocalDate.now(), LocalTime.of(9, 0), LocalTime.of(10, 0), 1, 0, 10, 5, false);
         when(centerProxy.findSlotById(100L)).thenReturn(slot);
         when(repository.existsByDonorIdAndStatusIn(1L, List.of(AppointmentStatus.SCHEDULED, AppointmentStatus.CHECKED_IN, AppointmentStatus.IN_SCREENING))).thenReturn(false);
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
