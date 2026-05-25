@@ -27,14 +27,17 @@ public class NotificationEventConsumer {
     private static final Logger log = LoggerFactory.getLogger(NotificationEventConsumer.class);
 
     private final NotificationDispatchService dispatchService;
+    private final NotificationResultPublisher resultPublisher;
     private final ObjectMapper objectMapper;
     private final String channelConfig;
 
     public NotificationEventConsumer(
             NotificationDispatchService dispatchService,
+            NotificationResultPublisher resultPublisher,
             ObjectMapper objectMapper,
             @Value("${notification.channels:IN_APP,EMAIL}") String channelConfig) {
         this.dispatchService = dispatchService;
+        this.resultPublisher = resultPublisher;
         this.objectMapper = objectMapper;
         this.channelConfig = channelConfig;
     }
@@ -133,7 +136,9 @@ public class NotificationEventConsumer {
 
     @KafkaListener(topics = "#{'${kafka.topic.password-reset.name:password.reset}'}")
     public void consumePasswordReset(String message) {
-        handle(message, PasswordResetEvent.class, event -> {
+        handleWithResult(message, PasswordResetEvent.class, "PasswordResetEvent",
+                PasswordResetEvent::userId, PasswordResetEvent::correlationId,
+                event -> {
             var requestedChannels = mapChannels(event.correlationId(), event.channels());
             var html = """
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -157,7 +162,9 @@ public class NotificationEventConsumer {
 
     @KafkaListener(topics = "#{'${kafka.topic.email-verification.name:email.verification}'}")
     public void consumeEmailVerification(String message) {
-        handle(message, EmailVerificationEvent.class, event -> {
+        handleWithResult(message, EmailVerificationEvent.class, "EmailVerificationEvent",
+                EmailVerificationEvent::userId, EmailVerificationEvent::correlationId,
+                event -> {
             var requestedChannels = mapChannels(event.correlationId(), event.channels());
             var html = """
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -194,11 +201,44 @@ public class NotificationEventConsumer {
         void accept(T event) throws Exception;
     }
 
+    @FunctionalInterface
+    private interface UserIdExtractor<T> {
+        Long extract(T event);
+    }
+
+    @FunctionalInterface
+    private interface CorrelationExtractor<T> {
+        String extract(T event);
+    }
+
     private <T> void handle(String message, Class<T> type, EventAction<T> action) {
         try {
             action.accept(objectMapper.readValue(message, type));
         } catch (Exception e) {
-            log.error("Failed to process {} event: {}", type.getSimpleName(), e.getMessage(), e);
+            log.error("[NOTIFICATION] Failed to process {} event: {}", type.getSimpleName(), e.getMessage(), e);
+        }
+    }
+
+    private <T> void handleWithResult(String message, Class<T> type, String eventType,
+                                       UserIdExtractor<T> userIdExtractor,
+                                       CorrelationExtractor<T> correlationExtractor,
+                                       EventAction<T> action) {
+        T event = null;
+        try {
+            event = objectMapper.readValue(message, type);
+            var userId = userIdExtractor.extract(event);
+            var corrId = correlationExtractor.extract(event);
+            log.info("[SAGA] Received {} for userId={} correlationId={}", eventType, userId, corrId);
+            action.accept(event);
+            resultPublisher.publishResult(corrId, eventType, userId, "DELIVERY_SUCCESS", null);
+            log.info("[SAGA] {} delivered successfully for userId={}", eventType, userId);
+        } catch (Exception e) {
+            log.error("[SAGA] Failed to process {} event: {}", eventType, e.getMessage(), e);
+            if (event != null) {
+                resultPublisher.publishResult(
+                        correlationExtractor.extract(event), eventType,
+                        userIdExtractor.extract(event), "DELIVERY_FAILED", e.getMessage());
+            }
         }
     }
 }

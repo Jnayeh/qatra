@@ -48,11 +48,14 @@ public class NotificationDispatchService implements NotificationCommandUseCases 
                 new Notification(payload.userId(), payload.email(), payload.emergencyId(), payload.appointmentId(),
                         payload.type(), payload.title(), payload.body(), payload.data(),
                         payload.correlationId(), payload.channel()));
+        log.info("[SAGA] Notification saved: id={} type={} userId={} correlationId={}",
+                notification.getId(), payload.type(), payload.userId(), payload.correlationId());
 
         for (var channel : channels) {
             if (!requestedChannels.contains(channel.type())) {
                 continue;
             }
+            log.info("[SAGA] Delivering via {} for userId={}", channel.type(), payload.userId());
             deliverWithRetry(channel, payload, notification);
         }
     }
@@ -76,5 +79,6 @@ public class NotificationDispatchService implements NotificationCommandUseCases 
         channel.deliver(payload, notification);
         notification.markSent();
         notificationRepository.save(notification);
+        log.info("[SAGA] Channel {} delivery confirmed for notification id={}", channel.type(), notification.getId());
     }
 }

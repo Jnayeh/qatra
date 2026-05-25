@@ -11,10 +11,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventPublisher {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Autowired(required = false)
     private KafkaTemplate<String, String> kafkaTemplate;
+
+    public EventPublisher(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public void publish(String topic, String key, Object event) {
         if (kafkaTemplate == null) {
@@ -26,11 +30,13 @@ public class EventPublisher {
             kafkaTemplate.send(topic, key, payload)
                     .whenComplete((result, ex) -> {
                         if (ex != null) {
-                            log.error("Failed to publish event to topic {}: {}", topic, ex.getMessage(), ex);
+                            log.error("[SAGA] Failed to publish event to topic {}: {}", topic, ex.getMessage(), ex);
+                        } else {
+                            log.info("[SAGA] Event published successfully to topic={} key={}", topic, key);
                         }
                     });
         } catch (JsonProcessingException e) {
-            log.error("Failed to serialize event: {}", e.getMessage(), e);
+            log.error("[SAGA] Failed to serialize event: {}", e.getMessage(), e);
         }
     }
 

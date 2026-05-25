@@ -50,7 +50,7 @@ public class ResendEmailChannel implements ChannelHandler {
                     .build();
 
             var response = resend.emails().send(params);
-            log.debug("Resend email sent to {} (id={})", toEmail, response.getId());
+            log.info("[SAGA] Resend email sent to {} (id={})", toEmail, response.getId());
         } catch (Exception e) {
             throw new NotificationDeliveryException("Resend delivery failed", e);
         }

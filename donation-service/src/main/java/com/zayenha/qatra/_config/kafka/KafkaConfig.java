@@ -6,10 +6,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.kafka.annotation.EnableKafka;
 
 import java.util.List;
 
 @Configuration
+@EnableKafka
 @ConditionalOnProperty(value = "spring.kafka.bootstrap-servers")
 public class KafkaConfig {
 
@@ -41,7 +43,10 @@ public class KafkaConfig {
             @Value("${kafka.topic.password-reset.replicas:1}") int passwordResetReplicas,
             @Value("${kafka.topic.email-verification.name:email.verification}") String emailVerificationName,
             @Value("${kafka.topic.email-verification.partitions:3}") int emailVerificationPartitions,
-            @Value("${kafka.topic.email-verification.replicas:1}") int emailVerificationReplicas
+            @Value("${kafka.topic.email-verification.replicas:1}") int emailVerificationReplicas,
+            @Value("${kafka.topic.notification-result.name:notification.result}") String notificationResultName,
+            @Value("${kafka.topic.notification-result.partitions:3}") int notificationResultPartitions,
+            @Value("${kafka.topic.notification-result.replicas:1}") int notificationResultReplicas
     ) {
         return List.of(
             topic(appointmentName, appointmentPartitions, appointmentReplicas),
@@ -52,7 +57,8 @@ public class KafkaConfig {
             topic(eligName, eligPartitions, eligReplicas),
             topic(eligReminderName, eligReminderPartitions, eligReminderReplicas),
             topic(passwordResetName, passwordResetPartitions, passwordResetReplicas),
-            topic(emailVerificationName, emailVerificationPartitions, emailVerificationReplicas)
+            topic(emailVerificationName, emailVerificationPartitions, emailVerificationReplicas),
+            topic(notificationResultName, notificationResultPartitions, notificationResultReplicas)
         );
     }
 
