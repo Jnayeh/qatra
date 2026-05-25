@@ -1,8 +1,6 @@
 package com.zayenha.qatra._config.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -39,15 +37,13 @@ public class CacheConfig {
         }
 
         @Bean
-        public CacheManager cacheManager(RedisConnectionFactory factory, Environment env) {
-            var objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
-            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            objectMapper.activateDefaultTyping(
-                    objectMapper.getPolymorphicTypeValidator(),
+        public CacheManager cacheManager(RedisConnectionFactory factory, Environment env, ObjectMapper objectMapper) {
+            var cacheMapper = objectMapper.copy();
+            cacheMapper.activateDefaultTyping(
+                    cacheMapper.getPolymorphicTypeValidator(),
                     ObjectMapper.DefaultTyping.EVERYTHING);
 
-            var serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+            var serializer = new GenericJackson2JsonRedisSerializer(cacheMapper);
             var keySerializer = new StringRedisSerializer();
 
             var baseConfig = RedisCacheConfiguration.defaultCacheConfig()
