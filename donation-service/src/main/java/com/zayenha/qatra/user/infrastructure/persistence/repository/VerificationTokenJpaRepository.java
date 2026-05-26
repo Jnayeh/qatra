@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.persistence.repository;
 
-import com.zayenha.qatra.user.domain.model.VerificationTokenType;
+import com.zayenha.qatra._shared.domain.VerificationTokenType;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.VerificationTokenEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 

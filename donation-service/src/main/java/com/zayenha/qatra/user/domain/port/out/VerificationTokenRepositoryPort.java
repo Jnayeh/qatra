@@ -1,7 +1,7 @@
 package com.zayenha.qatra.user.domain.port.out;
 
 import com.zayenha.qatra.user.domain.model.VerificationToken;
-import com.zayenha.qatra.user.domain.model.VerificationTokenType;
+import com.zayenha.qatra._shared.domain.VerificationTokenType;
 
 import java.util.Optional;
 

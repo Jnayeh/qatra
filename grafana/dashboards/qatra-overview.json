@@ -1,0 +1,803 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Donation Service",
+      "type": "stat",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "up{application=\"Qatra\"}", "legendFormat": "status", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "id": 2,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Notification Service",
+      "type": "stat",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "up{application=\"Qatra-notification\"}", "legendFormat": "status", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.05 }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 6,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "API Error Rate",
+      "type": "stat",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count[5m]))", "legendFormat": "errors", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.05 }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "id": 57,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Kafka Failure %",
+      "type": "stat",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(spring_kafka_listener_seconds_count{result=\"failure\"}[5m])) by (application) / sum(rate(spring_kafka_listener_seconds_count[5m])) by (application)", "legendFormat": "{{application}}", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.7 }, { "color": "red", "value": 0.85 }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "id": 60,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Donation RAM Usage",
+      "type": "gauge",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "jvm_memory_used_bytes{application=\"Qatra\",area=\"heap\"} / jvm_memory_max_bytes{application=\"Qatra\",area=\"heap\"}", "legendFormat": "donation", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.7 }, { "color": "red", "value": 0.85 }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "id": 61,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Notification RAM Usage",
+      "type": "gauge",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "jvm_memory_used_bytes{application=\"Qatra-notification\",area=\"heap\"} / jvm_memory_max_bytes{application=\"Qatra-notification\",area=\"heap\"}", "legendFormat": "notification", "refId": "A" }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "HTTP Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "req/s",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 6 },
+      "id": 10,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Request Rate by Service",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{application=\"Qatra\"}[5m]))", "legendFormat": "donation-service", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{application=\"Qatra-notification\"}[5m]))", "legendFormat": "notification-service", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "ms",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 6 },
+      "id": 11,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Response Time (p50 / p95 / p99)",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"Qatra\"}[5m])) by (le))", "legendFormat": "donation p50", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"Qatra\"}[5m])) by (le))", "legendFormat": "donation p95", "refId": "B" },
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"Qatra\"}[5m])) by (le))", "legendFormat": "donation p99", "refId": "C" },
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"Qatra-notification\"}[5m])) by (le))", "legendFormat": "notification p50", "refId": "D" },
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"Qatra-notification\"}[5m])) by (le))", "legendFormat": "notification p95", "refId": "E" },
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"Qatra-notification\"}[5m])) by (le))", "legendFormat": "notification p99", "refId": "F" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "req/s",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+      "id": 12,
+      "options": { "legend": { "calcs": ["mean"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Requests by Status Code",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{status=~\"2..\"}[5m])) by (application)", "legendFormat": "{{application}} 2xx", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{status=~\"3..\"}[5m])) by (application)", "legendFormat": "{{application}} 3xx", "refId": "B" },
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{status=~\"4..\"}[5m])) by (application)", "legendFormat": "{{application}} 4xx", "refId": "C" },
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[5m])) by (application)", "legendFormat": "{{application}} 5xx", "refId": "D" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "req/s",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "reqps",
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*4xx.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*5xx.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 14 },
+      "id": 13,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "API Endpoints — Request Rate",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{application=\"Qatra\"}[5m])) by (uri)", "legendFormat": "donation {{uri}}", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{application=\"Qatra-notification\"}[5m])) by (uri)", "legendFormat": "notification {{uri}}", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "req/s",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "reqps",
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*4xx.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*5xx.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 14 },
+      "id": 14,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "API Failures by Endpoint (4xx / 5xx)",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{application=\"Qatra\",status=~\"4..\"}[5m])) by (uri, status)", "legendFormat": "donation {{uri}} {{status}}", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{application=\"Qatra\",status=~\"5..\"}[5m])) by (uri, status)", "legendFormat": "donation {{uri}} {{status}}", "refId": "B" },
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{application=\"Qatra-notification\",status=~\"4..\"}[5m])) by (uri, status)", "legendFormat": "notification {{uri}} {{status}}", "refId": "C" },
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{application=\"Qatra-notification\",status=~\"5..\"}[5m])) by (uri, status)", "legendFormat": "notification {{uri}} {{status}}", "refId": "D" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "req/s",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "reqps",
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 14 },
+      "id": 62,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "API Failure % by Endpoint",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(http_server_requests_seconds_count{status=~\"[45]..\"}[5m])) by (uri) / sum(rate(http_server_requests_seconds_count[5m])) by (uri)", "legendFormat": "{{uri}}", "refId": "A" }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "id": 107,
+      "title": "Resources",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "bytes",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 23 },
+      "id": 63,
+      "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "JVM Heap Memory",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "jvm_memory_used_bytes{application=\"Qatra\",area=\"heap\"}", "legendFormat": "donation used", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "jvm_memory_max_bytes{application=\"Qatra\",area=\"heap\"}", "legendFormat": "donation max", "refId": "B" },
+        { "datasource": { "type": "prometheus" }, "expr": "jvm_memory_used_bytes{application=\"Qatra-notification\",area=\"heap\"}", "legendFormat": "notification used", "refId": "C" },
+        { "datasource": { "type": "prometheus" }, "expr": "jvm_memory_max_bytes{application=\"Qatra-notification\",area=\"heap\"}", "legendFormat": "notification max", "refId": "D" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "bytes",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 23 },
+      "id": 64,
+      "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "JVM Non-Heap Memory",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "jvm_memory_used_bytes{application=\"Qatra\",area=\"nonheap\"}", "legendFormat": "donation used", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "jvm_memory_used_bytes{application=\"Qatra-notification\",area=\"nonheap\"}", "legendFormat": "notification used", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.7 }, { "color": "red", "value": 0.85 }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 23 },
+      "id": 65,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "CPU Usage (%)",
+      "type": "gauge",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "process_cpu_usage{application=\"Qatra\"}", "legendFormat": "donation", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "process_cpu_usage{application=\"Qatra-notification\"}", "legendFormat": "notification", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "seconds",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 31 },
+      "id": 21,
+      "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "GC Pause Time",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "rate(jvm_gc_pause_seconds_sum{application=\"Qatra\"}[5m])", "legendFormat": "donation {{action}}", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "rate(jvm_gc_pause_seconds_sum{application=\"Qatra-notification\"}[5m])", "legendFormat": "notification {{action}}", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "threads",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 31 },
+      "id": 22,
+      "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Live Threads",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "jvm_threads_live_threads{application=\"Qatra\"}", "legendFormat": "donation", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "jvm_threads_live_threads{application=\"Qatra-notification\"}", "legendFormat": "notification", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "bytes",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 31 },
+      "id": 66,
+      "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "CPU Time by Service",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "process_cpu_time_seconds_total{application=\"Qatra\"}", "legendFormat": "donation", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "process_cpu_time_seconds_total{application=\"Qatra-notification\"}", "legendFormat": "notification", "refId": "B" }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 },
+      "id": 103,
+      "title": "Database",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "connections",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "id": 30,
+      "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "HikariCP Connections",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "hikaricp_connections_active{application=\"Qatra\"}", "legendFormat": "donation active", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "hikaricp_connections_idle{application=\"Qatra\"}", "legendFormat": "donation idle", "refId": "B" },
+        { "datasource": { "type": "prometheus" }, "expr": "hikaricp_connections_active{application=\"Qatra-notification\"}", "legendFormat": "notification active", "refId": "C" },
+        { "datasource": { "type": "prometheus" }, "expr": "hikaricp_connections_idle{application=\"Qatra-notification\"}", "legendFormat": "notification idle", "refId": "D" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "pending",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "id": 31,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "HikariCP Pending Threads",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "hikaricp_connections_pending_threads{application=\"Qatra\"}", "legendFormat": "donation pending", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "hikaricp_connections_pending_threads{application=\"Qatra-notification\"}", "legendFormat": "notification pending", "refId": "B" }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 48 },
+      "id": 104,
+      "title": "Kafka Events",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "events/s",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 49 },
+      "id": 51,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Kafka Processing Rate (success vs failure)",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(spring_kafka_listener_seconds_count{result=\"success\"}[5m])) by (application)", "legendFormat": "{{application}} success", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(spring_kafka_listener_seconds_count{result=\"failure\"}[5m])) by (application)", "legendFormat": "{{application}} failure", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.05 }] },
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 49 },
+      "id": 52,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Kafka Event Failure %",
+      "type": "gauge",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(spring_kafka_listener_seconds_count{result=\"failure\"}[5m])) by (application) / sum(rate(spring_kafka_listener_seconds_count[5m])) by (application)", "legendFormat": "{{application}}", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "ms",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 49 },
+      "id": 53,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Kafka Listener Processing Time (p50 / p95 / p99)",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.50, sum(rate(spring_kafka_listener_seconds_bucket{application=\"Qatra\"}[5m])) by (le, application))", "legendFormat": "donation p50", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(spring_kafka_listener_seconds_bucket{application=\"Qatra\"}[5m])) by (le, application))", "legendFormat": "donation p95", "refId": "B" },
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.99, sum(rate(spring_kafka_listener_seconds_bucket{application=\"Qatra\"}[5m])) by (le, application))", "legendFormat": "donation p99", "refId": "C" },
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.50, sum(rate(spring_kafka_listener_seconds_bucket{application=\"Qatra-notification\"}[5m])) by (le, application))", "legendFormat": "notification p50", "refId": "D" },
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(spring_kafka_listener_seconds_bucket{application=\"Qatra-notification\"}[5m])) by (le, application))", "legendFormat": "notification p95", "refId": "E" },
+        { "datasource": { "type": "prometheus" }, "expr": "histogram_quantile(0.99, sum(rate(spring_kafka_listener_seconds_bucket{application=\"Qatra-notification\"}[5m])) by (le, application))", "legendFormat": "notification p99", "refId": "F" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 10 }, { "color": "red", "value": 100 }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 57 },
+      "id": 54,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Kafka Consumer Lag",
+      "type": "stat",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(kafka_consumer_records_lag_max{application=\"Qatra-notification\"}) by (application)", "legendFormat": "{{application}}", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "events/s",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 57 },
+      "id": 55,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Kafka Events by Topic",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(rate(spring_kafka_listener_seconds_count[5m])) by (name)", "legendFormat": "{{name}}", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "events",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "scheme", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 57 },
+      "id": 56,
+      "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Kafka Total Events Processed (1h)",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus" }, "expr": "sum(increase(spring_kafka_listener_seconds_count{result=\"success\"}[1h])) by (application)", "legendFormat": "{{application}} success", "refId": "A" },
+        { "datasource": { "type": "prometheus" }, "expr": "sum(increase(spring_kafka_listener_seconds_count{result=\"failure\"}[1h])) by (application)", "legendFormat": "{{application}} failure", "refId": "B" }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 65 },
+      "id": 106,
+      "title": "Logs",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "P8E80F9AEF21F6940" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "lines/s",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "bars", "fillOpacity": 50,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "donation-service" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "notification-service" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "postgres" }, "properties": [{ "id": "color", "value": { "fixedColor": "dark-blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "kafka" }, "properties": [{ "id": "color", "value": { "fixedColor": "dark-orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 66 },
+      "id": 40,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Log Volume by Service",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "loki" }, "expr": "sum(rate({service=~\".+\"} [5m])) by (service)", "legendFormat": "{{service}}", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "P8E80F9AEF21F6940" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "lines/s",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "bars", "fillOpacity": 50,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "ERROR" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "WARN" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 66 },
+      "id": 41,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Log Level Distribution",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "loki" }, "expr": "sum(rate({service=~\".+\"} [5m])) by (level)", "legendFormat": "{{level}}", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "P8E80F9AEF21F6940" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 74 },
+      "id": 42,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "title": "Error Logs",
+      "type": "logs",
+      "targets": [
+        { "datasource": { "type": "loki" }, "expr": "{service=~\".+\"} |~ \"(?i)(ERROR|Exception|WARN)\"", "legendFormat": "", "refId": "A" }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 82 },
+      "id": 105,
+      "title": "Traces",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "jaeger", "uid": "pddcnpesu7j40c" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 83 },
+      "id": 50,
+      "options": {},
+      "title": "Jaeger Trace Search",
+      "type": "traces",
+      "targets": [
+        { "datasource": { "type": "jaeger" }, "queryType": "search", "refId": "A" }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["qatra", "monitoring"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Qatra Overview",
+  "uid": "qatra-overview",
+  "version": 2
+}
