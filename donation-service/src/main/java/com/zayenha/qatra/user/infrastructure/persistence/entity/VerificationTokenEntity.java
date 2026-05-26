@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.persistence.entity;
 
-import com.zayenha.qatra._shared.domain.VerificationTokenType;
+import com.zayenha.qatra.user.domain.model.verification.VerificationTokenType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

@@ -2,7 +2,7 @@ package com.zayenha.qatra._config.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zayenha.qatra._shared.event.NotificationResultEvent;
-import com.zayenha.qatra._shared.domain.VerificationTokenType;
+import com.zayenha.qatra.user.domain.model.verification.VerificationTokenType;
 import com.zayenha.qatra.user.infrastructure.persistence.adapter.VerificationTokenRepositoryAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +22,8 @@ public class NotificationResultListener {
     private String resultTopic;
 
     public NotificationResultListener(
-        VerificationTokenRepositoryAdapter tokenRepo) {
+        VerificationTokenRepositoryAdapter tokenRepo,
+        ObjectMapper objectMapper) {
         this.tokenRepo = tokenRepo;
         this.objectMapper = objectMapper;
     }

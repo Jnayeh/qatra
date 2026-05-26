@@ -1,7 +1,7 @@
 package com.zayenha.qatra.user.infrastructure.persistence.adapter;
 
-import com.zayenha.qatra.user.domain.model.VerificationToken;
-import com.zayenha.qatra._shared.domain.VerificationTokenType;
+import com.zayenha.qatra.user.domain.model.verification.VerificationToken;
+import com.zayenha.qatra.user.domain.model.verification.VerificationTokenType;
 import com.zayenha.qatra.user.domain.port.out.VerificationTokenRepositoryPort;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.VerificationTokenEntity;
 import com.zayenha.qatra.user.infrastructure.persistence.repository.UserJpaRepository;

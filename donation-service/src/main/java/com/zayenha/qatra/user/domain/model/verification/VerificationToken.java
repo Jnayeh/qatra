@@ -1,6 +1,5 @@
-package com.zayenha.qatra.user.domain.model;
+package com.zayenha.qatra.user.domain.model.verification;
 
-import com.zayenha.qatra._shared.domain.VerificationTokenType;
 import lombok.Getter;
 
 import java.time.Instant;

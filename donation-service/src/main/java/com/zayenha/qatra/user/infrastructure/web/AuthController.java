@@ -1,11 +1,12 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
-import com.zayenha.qatra._shared.domain.VerificationTokenType;
+import com.zayenha.qatra.user.domain.model.verification.VerificationTokenType;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra.user.api.UserLoggedInEvent;
 import com.zayenha.qatra.user.domain.model.*;
+import com.zayenha.qatra.user.domain.model.verification.VerificationToken;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import com.zayenha.qatra.user.domain.port.out.SessionRepositoryPort;
