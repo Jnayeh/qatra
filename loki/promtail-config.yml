@@ -27,3 +27,9 @@ scrape_configs:
       - action: replace
         source_labels: ["__meta_docker_container_label_com_docker_compose_service"]
         target_label: "job"
+    pipeline_stages:
+      - regex:
+          expression: '.*\[?(?P<trace_id>[0-9a-f]{32})\]?,?\s*(?P<span_id>[0-9a-f]{16})\]?'
+      - labels:
+          trace_id:
+          span_id:
