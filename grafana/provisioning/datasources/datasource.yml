@@ -5,6 +5,7 @@ datasources:
     type: prometheus
     access: proxy
     url: http://prometheus:9090
+    uid: PBFA97CFB590B2093
     isDefault: true
     editable: false
 
@@ -12,12 +13,20 @@ datasources:
     type: loki
     access: proxy
     url: http://loki:3100
+    uid: P8E80F9AEF21F6940
     isDefault: false
     editable: false
+    jsonData:
+      derivedFields:
+        - matcherRegex: "trace_id[=,\\s]+([0-9a-f]{32})"
+          name: TraceID
+          url: "http://jaeger:16686/trace/$${__value.raw}"
+          datasourceUid: pddcnpesu7j40c
 
   - name: Jaeger
     type: jaeger
     access: proxy
     url: http://jaeger:16686
+    uid: pddcnpesu7j40c
     isDefault: false
     editable: false
