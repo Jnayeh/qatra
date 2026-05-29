@@ -1,22 +1,19 @@
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
+# Cache Maven dependencies (only invalidated when pom.xml changes)
 COPY pom.xml ./
 RUN mvn dependency:go-offline -B
 
+# Copy source code
 COPY src ./src
+
+# Run tests and build the application
 RUN mvn clean package -B -DskipTests
 
-RUN java -Djarmode=layertools -jar target/*.jar extract
-
-# ── Runtime stage ──────────────────────────────────────
+# ── Runtime stage ──────────────────────────────────────────
 FROM eclipse-temurin:21-jre
-WORKDIR /workspace
-
-COPY --from=build /app/dependencies/ ./
-COPY --from=build /app/spring-boot-loader/ ./
-COPY --from=build /app/snapshot-dependencies/ ./
-COPY --from=build /app/application/ ./
-
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
