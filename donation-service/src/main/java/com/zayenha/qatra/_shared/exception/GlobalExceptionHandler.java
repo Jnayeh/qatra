@@ -27,6 +27,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ApiResponse<Map<String, Object>>> handleBase(BaseException ex) {
+        log.error("Base exception error: ExceptionType {}", ex.getClass(), ex);
         HttpStatus status = HttpStatus.resolve(ex.getHttpStatus());
         if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
         return ResponseEntity.status(status)
@@ -48,12 +49,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException ex) {
+        log.error("Access denied error: ExceptionType {}", ex.getClass(), ex);
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ApiResponse.error(StringUtils.defaultIfBlank(ex.getMessage(), "Access denied")));
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiResponse<Void>> handleAuthentication(AuthenticationException ex) {
+        log.error("Authentication error: ExceptionType {}", ex.getClass(), ex);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error("Authentication failed"));
     }
