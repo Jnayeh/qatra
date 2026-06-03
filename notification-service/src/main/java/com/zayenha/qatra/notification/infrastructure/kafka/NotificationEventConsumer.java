@@ -46,7 +46,7 @@ public class NotificationEventConsumer {
     public void consumeEmergencyCreated(String message) {
         handle(message, EmergencyCreatedEvent.class, event -> {
             var requestedChannels = mapChannels(event.correlationId(), event.channels());
-            for (var donorId : event.matchedDonorIds()) {
+            for (var donorId : event.matchedUserIds()) {
                 var html = """
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2 style="color: #c0392b;">Blood Donation Needed</h2>

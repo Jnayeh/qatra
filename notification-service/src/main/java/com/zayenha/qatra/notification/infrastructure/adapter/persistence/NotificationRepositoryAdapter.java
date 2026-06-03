@@ -42,11 +42,11 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
             return jpaRepository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, type, pageable)
                     .stream().map(mapper::toDomain).toList();
         }
-        if (read != null && read) {
+        if (Boolean.TRUE.equals(read)) {
             return jpaRepository.findReadByUserId(userId, pageable)
                     .stream().map(mapper::toDomain).toList();
         }
-        if (read != null && !read) {
+        if (Boolean.FALSE.equals(read)) {
             return jpaRepository.findUnreadByUserId(userId, pageable)
                     .stream().map(mapper::toDomain).toList();
         }
