@@ -1,7 +1,10 @@
 package com.zayenha.qatra.notification.infrastructure.web;
 
+import com.zayenha.qatra.notification._shared.web.ApiResponse;
+import com.zayenha.qatra.notification._shared.web.Paginated;
 import com.zayenha.qatra.notification.application.dto.NotificationResponse;
 import com.zayenha.qatra.notification.application.service.NotificationQueryService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -16,33 +19,27 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/notifications")
 public class NotificationController {
 
     private final NotificationQueryService queryService;
 
-    public NotificationController(NotificationQueryService queryService) {
-        this.queryService = queryService;
-    }
-
     @GetMapping
     @PreAuthorize("hasAnyRole('DONOR', 'CENTER_STAFF')")
-    public ResponseEntity<Map<String, Object>> listNotifications(
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> listNotifications(
             Authentication auth,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Boolean read,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
         Long userId = (Long) auth.getPrincipal();
-        var notifications = queryService.getUserNotifications(userId, type, read, page, size);
+        var safePage = page > 1 ? page - 1 : 1;
+        int pageIndex = page - 1;
+        var notifications = queryService.getUserNotifications(userId, type, read, pageIndex, size);
         var total = queryService.countUserNotifications(userId, type, read);
-        return ResponseEntity.ok(Map.of(
-                "content", notifications,
-                "page", page,
-                "size", size,
-                "totalElements", total,
-                "totalPages", (int) Math.ceil((double) total / size)
-        ));
+        var paginated = new Paginated(safePage, size, total, (int) Math.ceil((double) total / size));
+        return ResponseEntity.ok(ApiResponse.success(notifications, paginated));
     }
 
     @PatchMapping("/{id}/read")
