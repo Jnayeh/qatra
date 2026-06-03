@@ -27,7 +27,7 @@ class UserControllerIntegrationTest {
 
     private MockMvc mockMvc;
 
-    private final String baseUrl = "/api/admin/users";
+    private final String baseUrl = "/api/v1/admin/users";
 
     @BeforeEach
     void setUp() {

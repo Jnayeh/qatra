@@ -1,5 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
+import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.web.ApiResponse;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/users")
+@RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('SUPER_ADMIN')")
 public class UserController {
@@ -72,14 +73,14 @@ public class UserController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<ApiResponse<Void>> updateStatus(
             @PathVariable Long id, @Valid @RequestBody UpdateUserStatusRequest request) {
-        commandUseCases.updateStatus(id, request.status());
+        commandUseCases.updateStatus(id, request.status(), AuditUtils.currentUserId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PostMapping("/{id}/roles")
     public ResponseEntity<ApiResponse<Void>> assignRole(
             @PathVariable Long id, @Valid @RequestBody AssignRoleRequest request) {
-        commandUseCases.assignRole(id, request.role());
+        commandUseCases.assignRole(id, request.role(), AuditUtils.currentUserId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

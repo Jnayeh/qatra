@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/internal/users")
+@RequestMapping("/api/v1/internal/users")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
 public class InternalUserController {

@@ -4,7 +4,7 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditPublisher;
-import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
+import com.zayenha.qatra.user.domain.exception.CannotDeleteUserException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.user.domain.exception.UserErrorCode;
@@ -36,6 +36,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
+    public static final String USER_ROLES = "userRoles:*";
     private final UserRepositoryPort userRepository;
     private final UserRoleRepositoryPort userRoleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -87,14 +88,14 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
     @Override
     @Transactional
-    public void updateStatus(Long id, UserStatus status) {
+    public void updateStatus(Long id, UserStatus status, Long actorID) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         var oldStatus = user.getStatus();
         user.updateStatus(status);
         userRepository.save(user);
         cacheService.evictByPattern("users:*");
-        auditPublisher.publish("USER_STATUS_CHANGED", id, "User",
+        auditPublisher.publish(actorID, "USER_STATUS_CHANGED", id, "User",
             Map.of("status", oldStatus.name()),
             Map.of("status", status.name()));
     }
@@ -107,7 +108,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user.changePassword(newEncodedPassword);
         userRepository.save(user);
         cacheService.evictByPattern("users:*");
-        auditPublisher.publish("USER_PASSWORD_CHANGED", userId, "User", null, null);
+        auditPublisher.publish(userId, "USER_PASSWORD_CHANGED", userId, "User", null, null);
     }
 
     @Override
@@ -124,18 +125,18 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
     @Override
     @Transactional
-    public void assignRole(Long userId, Role role) {
+    public void assignRole(Long userId, Role role, Long actorID) {
         var user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        if (!user.isActive()) {
-            throw new InvalidRoleAssignmentException("Cannot assign roles to inactive user");
+        if (user.isDisabled()) {
+            throw new InvalidRoleAssignmentException("Cannot assign roles to a disabled user");
         }
         if (userRoleRepository.existsByUserIdAndRole(userId, role)) {
             throw new InvalidRoleAssignmentException("User already has role: " + role);
         }
 
         userRoleRepository.save(new UserRole(userId, role));
-        cacheService.evictByPattern("userRoles:*");
-        auditPublisher.publish("ROLE_ASSIGNED", userId, "User", null, Map.of("role", role.name(), "userId", userId));
+        cacheService.evictByPattern(USER_ROLES);
+        auditPublisher.publish(userId, "ROLE_ASSIGNED", userId, "User", null, Map.of("role", role.name(), "userId", userId));
     }
 
     @Override
@@ -148,7 +149,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
             throw new InvalidRoleAssignmentException("User does not have role: " + role);
         }
         userRoleRepository.deleteByUserIdAndRole(userId, role);
-        cacheService.evictByPattern("userRoles:*");
+        cacheService.evictByPattern(USER_ROLES);
         auditPublisher.publish("ROLE_REVOKED", userId, "User", Map.of("role", role.name()), null);
     }
 
@@ -164,7 +165,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user.updateStatus(UserStatus.ACTIVE);
         userRepository.save(user);
         cacheService.evictByPattern("users:*");
-        auditPublisher.publish("USER_EMAIL_VERIFIED", userId, "User",
+        auditPublisher.publish(userId, "USER_EMAIL_VERIFIED", userId, "User",
             Map.of("status", user.getStatus().name()),
             Map.of("emailVerified", true));
     }
@@ -174,15 +175,15 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
     public void delete(Long id) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
-        if (user.isActive()) {
-            throw new CannotDeleteActiveUserException(id);
+        if (user.isDeleted()) {
+            throw new CannotDeleteUserException(id);
         }
         user.markDeleted();
         userRepository.save(user);
         userRoleRepository.deleteByUserId(id);
         cacheService.evictByPattern("users:*");
         cacheService.evictByPattern("userExists:*");
-        cacheService.evictByPattern("userRoles:*");
+        cacheService.evictByPattern(USER_ROLES);
         auditPublisher.publish("USER_DELETED", id, "User", Map.of("email", user.getEmail()), null);
     }
 

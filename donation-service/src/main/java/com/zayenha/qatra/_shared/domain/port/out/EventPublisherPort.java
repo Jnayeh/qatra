@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface EventPublisherPort {
 
-    void publishEmergencyCreated(Long emergencyId, List<Long> matchedDonorIds);
+    void publishEmergencyCreated(Long emergencyId, List<Long> matchedUserIds);
 
     void publishAppointmentReminder(Long appointmentId, Long donorId, String slotTime);
 

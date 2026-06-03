@@ -8,7 +8,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record EmergencyCreatedEvent(
     Long emergencyId,
-    List<Long> matchedDonorIds,
+    List<Long> matchedUserIds,
     String correlationId,
     Instant occurredAt,
     List<String> channels

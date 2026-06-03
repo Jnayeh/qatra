@@ -4,8 +4,6 @@ import jakarta.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.NonTransientDataAccessException;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -19,9 +17,14 @@ public class AuditPublisher {
 
     public void publish(String action, Long entityId, String entityType,
                         Map<String, Object> oldValue, Map<String, Object> newValue) {
+        publish(AuditUtils.currentUserId(), action, entityId, entityType, oldValue, newValue);
+    }
+
+    public void publish(Long actorId, String action, Long entityId, String entityType,
+                        Map<String, Object> oldValue, Map<String, Object> newValue) {
         try {
             eventPublisher.publishEvent(new AuditEvent(
-                    AuditUtils.currentUserId(), action, entityType, entityId,
+                    actorId, action, entityType, entityId,
                     oldValue, newValue, null, null));
         } catch (PersistenceException e) {
             log.error("Failed to publish audit event due to exception: {}", e.getMessage());

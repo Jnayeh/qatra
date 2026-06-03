@@ -48,16 +48,16 @@ public class NotificationEventPublisher implements EventPublisherPort {
     @Value("${notification.eligibility-channels:IN_APP,EMAIL}")
     private List<String> eligibilityChannels;
 
-    @Value("${notification.password-reset-channels:IN_APP,EMAIL}")
+    @Value("${notification.password-reset-channels:IN_APP}")
     private List<String> passwordResetChannels;
 
-    @Value("${notification.email-verification-channels:IN_APP,EMAIL}")
+    @Value("${notification.email-verification-channels:IN_APP}")
     private List<String> emailVerificationChannels;
 
     @Override
-    public void publishEmergencyCreated(Long emergencyId, List<Long> matchedDonorIds) {
+    public void publishEmergencyCreated(Long emergencyId, List<Long> matchedUserIds) {
         var event = new EmergencyCreatedEvent(
-            emergencyId, matchedDonorIds,
+            emergencyId, matchedUserIds,
             UUID.randomUUID().toString(), Instant.now(),
             emergencyChannels);
         eventPublisher.publish(emergencyCreatedTopic, "emerg-notif-" + emergencyId, event);

@@ -4,7 +4,7 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditPublisher;
-import com.zayenha.qatra.user.domain.exception.CannotDeleteActiveUserException;
+import com.zayenha.qatra.user.domain.exception.CannotDeleteUserException;
 import com.zayenha.qatra.user.domain.exception.EmailAlreadyExistsException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
 import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
@@ -139,7 +139,7 @@ class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenReturn(user);
 
-        userService.updateStatus(1L, UserStatus.SUSPENDED);
+        userService.updateStatus(1L, UserStatus.SUSPENDED, 1L);
 
         assertThat(user.getStatus()).isEqualTo(UserStatus.SUSPENDED);
     }
@@ -148,7 +148,7 @@ class UserServiceTest {
     void updateStatusThrowsWhenUserNotFound() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.updateStatus(99L, UserStatus.INACTIVE))
+        assertThatThrownBy(() -> userService.updateStatus(99L, UserStatus.INACTIVE, 1L))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
@@ -160,7 +160,7 @@ class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRoleRepository.existsByUserIdAndRole(1L, Role.DONOR)).thenReturn(false);
 
-        userService.assignRole(1L, Role.DONOR);
+        userService.assignRole(1L, Role.DONOR, 1L);
 
         verify(userRoleRepository).save(any(UserRole.class));
     }
@@ -170,9 +170,9 @@ class UserServiceTest {
         var user = anInactiveUser();
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
 
-        assertThatThrownBy(() -> userService.assignRole(2L, Role.DONOR))
+        assertThatThrownBy(() -> userService.assignRole(2L, Role.DONOR, 1L))
                 .isInstanceOf(InvalidRoleAssignmentException.class)
-                .hasMessageContaining("inactive");
+                .hasMessageContaining("disabled");
         verify(userRoleRepository, never()).save(any());
     }
 
@@ -182,7 +182,7 @@ class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRoleRepository.existsByUserIdAndRole(1L, Role.DONOR)).thenReturn(true);
 
-        assertThatThrownBy(() -> userService.assignRole(1L, Role.DONOR))
+        assertThatThrownBy(() -> userService.assignRole(1L, Role.DONOR, 1L))
                 .isInstanceOf(InvalidRoleAssignmentException.class)
                 .hasMessageContaining("already has role");
         verify(userRoleRepository, never()).save(any());
@@ -234,12 +234,13 @@ class UserServiceTest {
     }
 
     @Test
-    void deleteThrowsWhenUserIsActive() {
+    void deleteThrowsWhenUserIsAlreadyDeleted() {
         var user = aUser();
+        user.setStatus(UserStatus.DELETED);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> userService.delete(1L))
-                .isInstanceOf(CannotDeleteActiveUserException.class);
+                .isInstanceOf(CannotDeleteUserException.class);
         verify(userRoleRepository, never()).deleteByUserId(anyLong());
     }
 

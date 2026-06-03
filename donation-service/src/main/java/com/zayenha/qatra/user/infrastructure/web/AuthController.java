@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -78,7 +78,7 @@ public class AuthController {
                 sanitizeIp(ipAddress), userAgent, Instant.now().plus(Duration.ofDays(30)));
         sessionRepository.save(session);
         if (UserStatus.PENDING_DELETION.equals(user.getStatus())) {
-            userCommandUseCases.updateStatus(user.getId(), UserStatus.ACTIVE);
+            userCommandUseCases.updateStatus(user.getId(), UserStatus.ACTIVE, user.getId());
         }
         if (UserStatus.PENDING_DELETION.equals(user.getStatus()) && roleNameStrings.contains(Role.DONOR.name())) {
             applicationEventPublisher.publishEvent(new UserLoggedInEvent(this, user.getId(), user.getEmail()));
@@ -93,7 +93,7 @@ public class AuthController {
             @RequestHeader(name = HttpHeaders.USER_AGENT, required = false) String userAgent,
             @RequestHeader(name = "X-Forwarded-For", required = false) String ipAddress) {
         var user = userCommandUseCases.create(request.email(), request.phone(), request.password(), request.displayName(), request.firstName(), request.familyName());
-        userCommandUseCases.assignRole(user.getId(), Role.DONOR);
+        userCommandUseCases.assignRole(user.getId(), Role.DONOR, user.getId());
         var roles = userQueryUseCases.getUserRoles(user.getId());
         var roleNameStrings = roles.stream().map(Enum::name).toList();
 

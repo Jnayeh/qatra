@@ -93,7 +93,7 @@ public class MatchingService {
                 .limit(emergency.getUnitsNeeded())
                 .toList();
 
-        var matchedDonorIds = selected.stream()
+        var matchedUserIds = selected.stream()
                 .map(md -> md.donor().getUserId())
                 .toList();
 
@@ -108,7 +108,7 @@ public class MatchingService {
             emergencyRepository.saveMatchResult(matchResult);
         }
 
-        eventPublisherPort.publishEmergencyCreated(emergency.getId(), matchedDonorIds);
+        eventPublisherPort.publishEmergencyCreated(emergency.getId(), matchedUserIds);
 
         if (radius > emergency.getMatchRadius()) {
             emergency.setMatchRadius(radius);

@@ -1,6 +1,7 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.exception.GlobalExceptionHandler;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.user.domain.exception.*;
@@ -142,7 +143,7 @@ class UserControllerTest {
         var response = controller.updateStatus(1L, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        verify(commandUseCases).updateStatus(1L, UserStatus.INACTIVE);
+        verify(commandUseCases).updateStatus(1L, UserStatus.INACTIVE, AuditUtils.currentUserId());
     }
 
     @Test
@@ -151,7 +152,7 @@ class UserControllerTest {
         var response = controller.assignRole(1L, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        verify(commandUseCases).assignRole(1L, Role.DONOR);
+        verify(commandUseCases).assignRole(1L, Role.DONOR, AuditUtils.currentUserId());
     }
 
     @Test
@@ -202,12 +203,12 @@ class UserControllerTest {
 
     @Test
     void cannotDeleteActiveUserReturns422() {
-        var ex = new CannotDeleteActiveUserException(1L);
+        var ex = new CannotDeleteUserException(1L);
         var response = exceptionHandler.handleBase(ex);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().success()).isFalse();
-        assertThat(response.getBody().message()).contains("Cannot delete active user");
+        assertThat(response.getBody().message()).contains("Cannot delete user");
     }
 }
