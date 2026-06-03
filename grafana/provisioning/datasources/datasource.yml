@@ -3,17 +3,17 @@ apiVersion: 1
 datasources:
   - name: Prometheus
     type: prometheus
+    uid: prometheus
     access: proxy
     url: http://prometheus:9090
-    uid: PBFA97CFB590B2093
     isDefault: true
     editable: false
 
   - name: Loki
     type: loki
+    uid: loki
     access: proxy
     url: http://loki:3100
-    uid: P8E80F9AEF21F6940
     isDefault: false
     editable: false
     jsonData:
@@ -21,12 +21,31 @@ datasources:
         - matcherRegex: "trace_id[=,\\s]+([0-9a-f]{32})"
           name: TraceID
           url: "http://jaeger:16686/trace/$${__value.raw}"
-          datasourceUid: pddcnpesu7j40c
+          datasourceUid: jaeger
+
+  - name: Jaeger
+    type: jaeger
+    uid: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    isDefault: false
+    editable: false
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: false
+    editable: false
+    jsonData:
+      derivedFields:
+        - matcherRegex: "trace_id[=,\\s]+([0-9a-f]{32})"
+          name: TraceID
+          url: "http://jaeger:16686/trace/$${__value.raw}"
 
   - name: Jaeger
     type: jaeger
     access: proxy
     url: http://jaeger:16686
-    uid: pddcnpesu7j40c
     isDefault: false
     editable: false

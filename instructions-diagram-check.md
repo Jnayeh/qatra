@@ -111,7 +111,6 @@ UC-CA06 Add or remove center staff
 UC-CA07 View staff activity log
 
 Reporting & Oversight
-UC-CA08 View daily & weekly schedule (oversight)
 
 UC-CA09 View analytics (trends, peak hours, blood type inventory)
 
@@ -569,6 +568,7 @@ class User {
 	    +Integer escalationLevel
 	    +Instant expiresAt
 	    +Instant createdAt
+	    +Instant updatedAt
 	    +Instant resolvedAt
 	    +Long resolvedByUserId
 	    +matchDonors()
