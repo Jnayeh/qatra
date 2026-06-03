@@ -1,6 +1,7 @@
 package com.zayenha.qatra.user.infrastructure.security;
 
 import com.zayenha.qatra.user.domain.model.User;
+import com.zayenha.qatra.user.domain.model.UserStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,7 +34,7 @@ public record UserDetailsAdapter(User user) implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return user.isActive();
+        return user.isEnabled();
     }
 
     @Override
@@ -43,6 +44,6 @@ public record UserDetailsAdapter(User user) implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.isActive();
+        return user.isEnabled();
     }
 }

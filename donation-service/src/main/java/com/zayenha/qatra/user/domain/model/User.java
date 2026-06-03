@@ -77,5 +77,9 @@ public class User {
     public void verifyEmail() { this.emailVerified = true; }
 
     public boolean isActive() { return status == UserStatus.ACTIVE; }
+    public boolean isEnabled() { return !isDisabled(); }
+    public boolean isDisabled() { return status == UserStatus.INACTIVE
+        || status == UserStatus.SUSPENDED
+        || status == UserStatus.DELETED; }
     public boolean isDeleted() { return status == UserStatus.DELETED; }
 }
