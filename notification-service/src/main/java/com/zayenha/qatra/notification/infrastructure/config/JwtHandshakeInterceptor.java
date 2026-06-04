@@ -3,6 +3,7 @@ package com.zayenha.qatra.notification.infrastructure.config;
 import com.zayenha.qatra.notification.infrastructure.security.JwtTokenProvider;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -27,12 +28,12 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
-        var token = request.getURI().getQuery();
-        if (token == null || !token.startsWith("token=")) {
+        var queryParams = UriComponentsBuilder.fromUri(request.getURI()).build().getQueryParams();
+        var token = queryParams.getFirst("token");
+        if (token == null || token.isBlank()) {
             log.debug("WebSocket handshake rejected: missing token");
             return false;
         }
-        token = token.substring("token=".length());
         if (!jwtTokenProvider.validateToken(token)) {
             log.debug("WebSocket handshake rejected: invalid token");
             return false;
