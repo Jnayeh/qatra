@@ -48,10 +48,10 @@ public class NotificationEventPublisher implements EventPublisherPort {
     @Value("${notification.eligibility-channels:IN_APP,EMAIL}")
     private List<String> eligibilityChannels;
 
-    @Value("${notification.password-reset-channels:IN_APP}")
+    @Value("${notification.password-reset-channels:IN_APP,EMAIL}")
     private List<String> passwordResetChannels;
 
-    @Value("${notification.email-verification-channels:IN_APP}")
+    @Value("${notification.email-verification-channels:IN_APP,EMAIL}")
     private List<String> emailVerificationChannels;
 
     @Override
