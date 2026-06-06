@@ -10,6 +10,7 @@ import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterStaffProfileEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.SlotEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterJpaRepository;
+import com.zayenha.qatra.center.infrastructure.web.dto.response.CenterAdminDTO;
 import com.zayenha.qatra.center.infrastructure.web.dto.response.CenterResponse;
 import com.zayenha.qatra.center.infrastructure.web.dto.response.SlotResponse;
 import com.zayenha.qatra.center.infrastructure.web.dto.response.StaffSummaryResponse;
@@ -54,4 +55,6 @@ public abstract class CenterMapper {
     @Mapping(target = "centerId", source = "center.id")
     @Mapping(target = "userId", source = "user.id")
     public abstract CenterAdminProfile toAdminDomain(CenterAdminProfileEntity entity);
+
+    public abstract CenterAdminDTO toAdminDTO(CenterAdminProfile admin);
 }

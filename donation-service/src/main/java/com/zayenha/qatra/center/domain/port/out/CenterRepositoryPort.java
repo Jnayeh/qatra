@@ -23,6 +23,7 @@ public interface CenterRepositoryPort {
     List<CenterStaffProfile> findStaffByCenterId(Long centerId);
     Optional<CenterStaffProfile> findStaffByCenterIdAndUserId(Long centerId, Long userId);
     boolean existsStaffByCenterIdAndUserId(Long centerId, Long userId);
+    Optional<CenterStaffProfile> findStaffByUserId(Long userId);
     void deleteStaff(CenterStaffProfile staff);
 
     CenterAdminProfile saveAdmin(CenterAdminProfile admin);

@@ -15,4 +15,6 @@ public interface CenterStaffJpaRepository extends JpaRepository<CenterStaffProfi
     boolean existsByCenter_IdAndUser_Id(Long centerId, Long userId);
 
     void deleteByCenter_IdAndUser_Id(Long centerId, Long userId);
+
+    Optional<CenterStaffProfileEntity> findByUser_Id(Long userId);
 }

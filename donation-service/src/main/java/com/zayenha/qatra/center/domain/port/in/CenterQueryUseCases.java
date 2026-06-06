@@ -6,6 +6,7 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface CenterQueryUseCases {
     DonationCenter getById(Long id);
@@ -14,5 +15,7 @@ public interface CenterQueryUseCases {
     PageResult<DonationCenter> getPending(SearchCriteria criteria);
     List<Slot> getSlots(Long centerId, LocalDate date, String slotType, boolean fetchJoins);
     List<CenterStaffProfile> getStaff(Long centerId);
+    CenterStaffProfile getStaffByUserId(Long userId);
+    CenterAdminProfile getAdminByUserId(Long userId);
     String generateCenterReport(Long centerId, LocalDate startDate, LocalDate endDate);
 }

@@ -136,6 +136,11 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
     }
 
     @Override
+    public Optional<CenterStaffProfile> findStaffByUserId(Long userId) {
+        return staffJpaRepository.findByUser_Id(userId).map(mapper::toStaffDomain);
+    }
+
+    @Override
     public boolean existsStaffByCenterIdAndUserId(Long centerId, Long userId) {
         return staffJpaRepository.existsByCenter_IdAndUser_Id(centerId, userId);
     }

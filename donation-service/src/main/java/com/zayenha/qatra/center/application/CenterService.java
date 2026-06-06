@@ -25,6 +25,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -290,6 +291,20 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         var result = centerRepository.findStaffByCenterId(centerId);
         cacheService.put(key, result);
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CenterStaffProfile getStaffByUserId(Long userId) {
+        return centerRepository.findStaffByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Staff profile not found for user: " + userId, "STAFF_NOT_FOUND"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CenterAdminProfile getAdminByUserId(Long userId) {
+        return centerRepository.findAdminByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Admin profile not found for user: " + userId, "ADMIN_NOT_FOUND"));
     }
 
     @Override
