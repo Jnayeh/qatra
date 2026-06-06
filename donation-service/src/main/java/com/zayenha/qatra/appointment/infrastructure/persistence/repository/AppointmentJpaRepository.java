@@ -22,4 +22,11 @@ public interface AppointmentJpaRepository extends JpaRepository<AppointmentEntit
 
     @Query("SELECT a FROM AppointmentEntity a JOIN FETCH a.slot s WHERE a.status = 'SCHEDULED' AND s.date = :targetDate")
     List<AppointmentEntity> findScheduledAppointmentsBySlotDate(@org.springframework.data.repository.query.Param("targetDate") java.time.LocalDate targetDate);
+
+    @Query("SELECT a FROM AppointmentEntity a JOIN FETCH a.slot s WHERE a.center.id = :centerId AND s.date = :targetDate ORDER BY s.startTime ASC")
+    List<AppointmentEntity> findByCenterIdAndSlotDate(@org.springframework.data.repository.query.Param("centerId") Long centerId, @org.springframework.data.repository.query.Param("targetDate") java.time.LocalDate targetDate);
+
+    @Query(value = "SELECT a FROM AppointmentEntity a JOIN FETCH a.slot s WHERE a.center.id = :centerId AND s.date BETWEEN :fromDate AND :toDate ORDER BY s.date ASC, s.startTime ASC",
+            countQuery = "SELECT COUNT(a) FROM AppointmentEntity a JOIN a.slot s WHERE a.center.id = :centerId AND s.date BETWEEN :fromDate AND :toDate")
+    Page<AppointmentEntity> findByCenterIdAndSlotDateBetween(@org.springframework.data.repository.query.Param("centerId") Long centerId, @org.springframework.data.repository.query.Param("fromDate") java.time.LocalDate fromDate, @org.springframework.data.repository.query.Param("toDate") java.time.LocalDate toDate, Pageable pageable);
 }

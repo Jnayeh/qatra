@@ -13,6 +13,8 @@ public interface AppointmentQueryUseCases {
     Optional<Appointment> findById(Long id);
     List<Appointment> findByDonorId(Long donorId);
     List<Appointment> findByCenterIdAndDate(Long centerId, LocalDate date);
+    PageResult<Appointment> findByCenterIdAndDateRange(
+        Long centerId, LocalDate fromDate, LocalDate toDate, int page, int size);
     PageResult<Appointment> findAll(SearchCriteria criteria);
     Optional<HealthScreening> findScreeningByAppointmentId(Long appointmentId);
 }

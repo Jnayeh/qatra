@@ -320,6 +320,13 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
     @Override
     @Transactional(readOnly = true)
+    public PageResult<Appointment> findByCenterIdAndDateRange(
+        Long centerId, LocalDate fromDate, LocalDate toDate, int page, int size) {
+        return repository.findByCenterIdAndDateRange(centerId, fromDate, toDate, page, size);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public PageResult<Appointment> findAll(SearchCriteria criteria) {
         return repository.findAll(criteria);
     }

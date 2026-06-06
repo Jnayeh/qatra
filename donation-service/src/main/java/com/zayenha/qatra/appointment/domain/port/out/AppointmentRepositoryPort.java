@@ -14,6 +14,8 @@ public interface AppointmentRepositoryPort {
     Optional<Appointment> findById(Long id);
     List<Appointment> findByDonorId(Long donorId);
     List<Appointment> findByCenterIdAndDate(Long centerId, LocalDate date);
+    PageResult<Appointment> findByCenterIdAndDateRange(
+        Long centerId, LocalDate fromDate, LocalDate toDate, int page, int size);
     PageResult<Appointment> findAll(SearchCriteria criteria);
     boolean existsByDonorIdAndStatusIn(Long donorId, List<com.zayenha.qatra.appointment.domain.model.AppointmentStatus> statuses);
     HealthScreening saveScreening(HealthScreening screening);

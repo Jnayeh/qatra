@@ -21,7 +21,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/appointments")
@@ -120,6 +122,23 @@ public class AppointmentController {
         var appointments = queryUseCases.findByCenterIdAndDate(centerId, date);
         return ResponseEntity.ok(ApiResponse.success(
             appointments.stream().map(mapper::toResponse).toList()));
+    }
+
+    @GetMapping("/queue")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
+    public ResponseEntity<ApiResponse<List<AppointmentResponse>>> getQueue(
+            @RequestParam Long centerId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var today = LocalDate.now(ZoneId.systemDefault());
+        var from = Optional.ofNullable(fromDate).orElse(today);
+        var to = Optional.ofNullable(toDate).orElse(today);
+        var result = queryUseCases.findByCenterIdAndDateRange(centerId, from, to, PageHelper.toPageIndex(page), size);
+        return ResponseEntity.ok(ApiResponse.success(
+            result.content().stream().map(mapper::toResponse).toList(),
+            PageHelper.fromDomain(result)));
     }
 
     @PostMapping("/{id}/screening-results")
