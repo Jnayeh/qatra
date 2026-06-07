@@ -171,6 +171,23 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
     }
 
     @Override
+    @Transactional
+    public EmergencyRequest resolve(Long id, Long resolvedByUserId) {
+        var request = findOrThrow(id);
+        if (request.getStatus() != EmergencyStatus.OPEN) {
+            throw new ValidationException("Only open emergencies can be resolved",
+                    EmergencyErrorCode.EMERGENCY_ALREADY_FULFILLED.name());
+        }
+        request.resolve(resolvedByUserId);
+        var saved = repository.save(request);
+        cacheService.evictByPattern("emergencies:*");
+        auditPublisher.publish("EMERGENCY_RESOLVED", saved.getId(), "EmergencyRequest",
+            Map.of("status", EmergencyStatus.OPEN.name()),
+            Map.of("status", EmergencyStatus.FULFILLED.name(), "resolvedByUserId", resolvedByUserId));
+        return saved;
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Optional<EmergencyRequest> findById(Long id) {
         var key = "emergencies:" + id;

@@ -13,4 +13,5 @@ public interface EmergencyCommandUseCases {
     EmergencyRequest cancel(Long id);
     DonorResponse acceptResponse(Long emergencyId, Long userId, Long slotId);
     DonorResponse declineResponse(Long emergencyId, Long userId, String reason);
+    EmergencyRequest resolve(Long id, Long resolvedByUserId);
 }

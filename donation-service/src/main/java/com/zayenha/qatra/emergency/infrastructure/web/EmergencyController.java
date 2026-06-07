@@ -10,6 +10,7 @@ import com.zayenha.qatra.emergency.domain.port.in.EmergencyQueryUseCases;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.AcceptResponseRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.CreateEmergencyRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.DeclineResponseRequest;
+import com.zayenha.qatra.emergency.infrastructure.web.dto.request.ResolveEmergencyRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.UpdateEmergencyRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.response.DonorResponseDTO;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.response.EmergencyResponse;
@@ -56,6 +57,14 @@ public class EmergencyController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<EmergencyResponse>> cancel(@PathVariable Long id) {
         var emergency = commandUseCases.cancel(id);
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(emergency)));
+    }
+
+    @PostMapping("/{id}/resolve")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
+    public ResponseEntity<ApiResponse<EmergencyResponse>> resolve(
+            @PathVariable Long id, @RequestBody ResolveEmergencyRequest request) {
+        var emergency = commandUseCases.resolve(id, AuditUtils.currentUserId());
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(emergency)));
     }
 
