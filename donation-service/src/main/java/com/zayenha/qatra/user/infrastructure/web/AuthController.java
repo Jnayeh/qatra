@@ -184,6 +184,19 @@ public class AuthController {
                 new LoginResponse(newAccessToken, newRefreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request) {
+        var userId = AuditUtils.currentUserId();
+        var user = userQueryUseCases.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found", UserErrorCode.USER_NOT_FOUND.name()));
+        if (!passwordEncoder.matches(request.currentPassword(), user.getHashedPassword())) {
+            throw new ValidationException("Current password is incorrect", "INVALID_CURRENT_PASSWORD");
+        }
+        userCommandUseCases.updatePassword(userId, passwordEncoder.encode(request.newPassword()));
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         var userOpt = userQueryUseCases.findByEmail(request.email());
