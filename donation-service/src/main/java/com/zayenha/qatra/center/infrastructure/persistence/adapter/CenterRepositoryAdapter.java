@@ -88,7 +88,7 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
         return new PageResult<>(
                 page.getContent().stream().map(mapper::toDomain).toList(),
                 page.getNumber(), page.getSize(),
-                total, (int) Math.ceil((double) total / criteria.size())
+                total, page.getTotalPages()
         );
     }
 
@@ -106,7 +106,7 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
         return new PageResult<>(
             page.getContent().stream().map(mapper::toDomain).toList(),
             page.getNumber(), page.getSize(),
-            total, (int) Math.ceil((double) total / criteria.size())
+            total, page.getTotalPages()
         );
     }
 
