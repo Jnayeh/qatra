@@ -581,7 +581,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (job) (rate(http_server_requests_seconds_count[5m]))",
+          "expr": "sum by (job) (rate(http_server_requests_seconds_count[5m]) * 300)",
           "legendFormat": "{{job}}",
           "interval": "15s",
           "refId": "A",
@@ -685,7 +685,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (job, uri) (rate(http_server_requests_seconds_count[5m]))",
+          "expr": "sum by (job, uri) (rate(http_server_requests_seconds_count[5m]) * 300)",
           "legendFormat": "{{job}} {{uri}}",
           "interval": "15s",
           "refId": "A",
@@ -789,7 +789,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (status) (rate(http_server_requests_seconds_count{job=\"donation-service\"}[5m]))",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{job=\"donation-service\"}[5m]) * 300)",
           "legendFormat": "{{status}}",
           "interval": "15s",
           "refId": "A",
@@ -893,7 +893,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (status) (rate(http_server_requests_seconds_count{job=\"notification-service\"}[5m]))",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{job=\"notification-service\"}[5m]) * 300)",
           "legendFormat": "{{status}}",
           "interval": "15s",
           "refId": "A",
@@ -1002,7 +1002,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"donation-service\", status=~\"[45]..\"}[5m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"donation-service\", status=~\"[45]..\"}[5m]) * 300)",
           "legendFormat": "errors/s",
           "interval": "15s",
           "refId": "A",
@@ -1014,7 +1014,7 @@
           "editorMode": "code"
         },
         {
-          "expr": "sum by (status) (rate(http_server_requests_seconds_count{job=\"donation-service\", status=~\"[45]..\"}[5m]))",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{job=\"donation-service\", status=~\"[45]..\"}[5m]) * 300)",
           "legendFormat": "{{status}}",
           "interval": "15s",
           "refId": "B",
@@ -1123,7 +1123,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"notification-service\", status=~\"[45]..\"}[5m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"notification-service\", status=~\"[45]..\"}[5m]) * 300)",
           "legendFormat": "errors/s",
           "interval": "15s",
           "refId": "A",
@@ -1135,7 +1135,7 @@
           "editorMode": "code"
         },
         {
-          "expr": "sum by (status) (rate(http_server_requests_seconds_count{job=\"notification-service\", status=~\"[45]..\"}[5m]))",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{job=\"notification-service\", status=~\"[45]..\"}[5m]) * 300)",
           "legendFormat": "{{status}}",
           "interval": "15s",
           "refId": "B",
@@ -1252,7 +1252,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (job) (rate(kafka_consumer_fetch_manager_records_consumed_rate[5m]))",
+          "expr": "sum by (job) (rate(kafka_consumer_fetch_manager_records_consumed_rate[5m]) * 300)",
           "legendFormat": "{{job}}",
           "interval": "15s",
           "refId": "A",
@@ -1357,7 +1357,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (job) (rate(kafka_consumer_fetch_manager_bytes_consumed_rate[5m]))",
+          "expr": "sum by (job) (rate(kafka_consumer_fetch_manager_bytes_consumed_rate[5m]) * 300)",
           "legendFormat": "{{job}}",
           "interval": "15s",
           "refId": "A",
@@ -1462,7 +1462,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (job) (rate(kafka_consumer_fetch_manager_fetch_latency_avg[5m]))",
+          "expr": "sum by (job) (rate(kafka_consumer_fetch_manager_fetch_latency_avg[5m]) * 300)",
           "legendFormat": "{{job}} avg",
           "interval": "15s",
           "refId": "A",
@@ -1579,7 +1579,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (job) (rate(kafka_producer_record_send_rate[5m]))",
+          "expr": "sum by (job) (rate(kafka_producer_record_send_rate[5m]) * 300)",
           "legendFormat": "{{job}}",
           "interval": "15s",
           "refId": "A",
@@ -2219,7 +2219,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (job) (rate(spring_kafka_listener_seconds_count[5m]))",
+          "expr": "sum by (job) (rate(spring_kafka_listener_seconds_count[5m]) * 300)",
           "legendFormat": "{{job}} count",
           "interval": "15s",
           "refId": "A",
@@ -2231,7 +2231,7 @@
           "editorMode": "code"
         },
         {
-          "expr": "histogram_quantile(0.95, sum by (job, le) (rate(spring_kafka_listener_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (job, le) (rate(spring_kafka_listener_seconds_bucket[5m]) * 300))",
           "legendFormat": "{{job}} p95",
           "interval": "15s",
           "refId": "B",
@@ -2933,7 +2933,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (job) (rate(hikaricp_connections_timeout_total[5m]))",
+          "expr": "sum by (job) (rate(hikaricp_connections_timeout_total[5m]) * 300)",
           "legendFormat": "{{job}}",
           "interval": "15s",
           "refId": "A",
