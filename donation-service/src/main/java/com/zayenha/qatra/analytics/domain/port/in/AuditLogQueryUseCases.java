@@ -11,6 +11,8 @@ public interface AuditLogQueryUseCases {
 
     PageResult<AuditLog> findAll(SearchCriteria criteria);
 
+    PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate);
+
     List<AuditLog> findByAction(String action);
 
     List<AuditLog> findByUserId(Long userId);

@@ -10,6 +10,7 @@ import java.util.List;
 public interface AuditLogRepositoryPort {
     AuditLog save(AuditLog log);
     PageResult<AuditLog> findAll(SearchCriteria criteria);
+    PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate);
     List<AuditLog> findByAction(String action);
     List<AuditLog> findByUserId(Long userId);
     List<AuditLog> findByTimestampBetween(Instant from, Instant to);

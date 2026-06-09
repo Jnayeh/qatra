@@ -32,6 +32,10 @@ public class AuditLogService implements AuditLogQueryUseCases {
         return repository.findAll(criteria);
     }
 
+    public PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate) {
+        return repository.findFiltered(criteria, action, fromDate, toDate);
+    }
+
     public List<AuditLog> findByAction(String action) {
         return repository.findByAction(action);
     }

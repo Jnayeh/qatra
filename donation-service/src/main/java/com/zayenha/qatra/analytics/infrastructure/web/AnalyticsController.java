@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
@@ -40,9 +41,14 @@ public class AnalyticsController {
     @GetMapping("/audit-logs")
     public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getAuditLogs(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate) {
         var criteria = new SearchCriteria(null, "timestamp", "desc", page, size);
-        var result = auditLogQueryUseCases.findAll(criteria);
+        var parsedFromDate = parseDate(fromDate);
+        var parsedToDate = parseDate(toDate);
+        var result = auditLogQueryUseCases.findFiltered(criteria, action, parsedFromDate, parsedToDate);
         return ResponseEntity.ok(ApiResponse.success(
             result.content().stream().map(mapper::toResponse).toList(),
             PageHelper.fromDomain(result)
@@ -89,4 +95,11 @@ public class AnalyticsController {
     }
 
     record CacheableMetricsList(List<MetricsResponse> metrics) {}
+
+    private static Instant parseDate(String date) {
+        if (date == null || date.isBlank()) return null;
+        return LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE)
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant();
+    }
 }

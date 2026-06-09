@@ -39,6 +39,18 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
         );
     }
 
+    @Override
+    public PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate) {
+        var pageable = PageRequest.of(criteria.page(), criteria.size());
+        var page = jpaRepository.findFiltered(action, fromDate, toDate, pageable);
+        var total = jpaRepository.countFiltered(action, fromDate, toDate);
+        return new PageResult<>(
+            page.getContent().stream().map(mapper::toDomain).toList(),
+            page.getNumber(), page.getSize(),
+            total, page.getTotalPages()
+        );
+    }
+
     private long cachedCount(String key) {
         var cached = cacheService.get(key, Long.class);
         if (cached.isPresent()) return cached.get();
