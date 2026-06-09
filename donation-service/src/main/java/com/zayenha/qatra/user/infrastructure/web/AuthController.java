@@ -110,7 +110,7 @@ public class AuthController {
     }
 
     @PostMapping("/request-verification")
-    @PreAuthorize("hasAnyRole('DONOR', 'SUPER_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<VerifyEmailResponse>> requestVerification() {
         var userId = AuditUtils.currentUserId();
         var user = userQueryUseCases.findById(userId)
