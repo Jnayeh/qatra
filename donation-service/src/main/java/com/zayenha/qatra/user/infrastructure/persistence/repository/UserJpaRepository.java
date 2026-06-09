@@ -1,5 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.persistence.repository;
 
+import com.zayenha.qatra.user.domain.model.UserStatus;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserJpaRepository extends JpaRepository<UserEntity, Long>,
@@ -23,4 +25,5 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, Long>,
     boolean existsByEmail(String email);
     boolean existsByPhone(String phone);
     boolean existsByIdNotAndEmailOrPhone(Long id, String email, String phone);
+    List<UserEntity> findByStatus(UserStatus status);
 }

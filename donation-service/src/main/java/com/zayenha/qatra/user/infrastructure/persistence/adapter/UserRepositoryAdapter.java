@@ -4,6 +4,7 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.user.domain.model.User;
+import com.zayenha.qatra.user.domain.model.UserStatus;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
 import com.zayenha.qatra.user.infrastructure.mapper.UserMapper;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
@@ -78,6 +79,13 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
             count,
             page.getTotalPages()
         );
+    }
+
+    @Override
+    public List<User> findByStatus(UserStatus status) {
+        return jpaRepository.findByStatus(status).stream()
+                .map(e -> toDomain(e, false))
+                .toList();
     }
 
     private long getTotalCount() {

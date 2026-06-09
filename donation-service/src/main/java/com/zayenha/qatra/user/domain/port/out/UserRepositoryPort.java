@@ -3,7 +3,9 @@ package com.zayenha.qatra.user.domain.port.out;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.user.domain.model.User;
+import com.zayenha.qatra.user.domain.model.UserStatus;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepositoryPort {
@@ -15,6 +17,7 @@ public interface UserRepositoryPort {
     boolean existsByEmail(String email);
     boolean existsByPhone(String phone);
     PageResult<User> findAll(SearchCriteria criteria);
+    List<User> findByStatus(UserStatus status);
     User save(User user);
     void deleteById(Long id);
 }
