@@ -1,4 +1,4 @@
-package com.zayenha.qatra._config.config;
+package com.zayenha.qatra._config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
