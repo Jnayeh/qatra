@@ -47,9 +47,9 @@ class AnalyticsControllerTest {
         log.setAction("APPOINTMENT_CREATED");
         log.setTimestamp(Instant.now());
         var pageResult = new PageResult<AuditLog>(List.of(log), 0, 20, 1, 1);
-        when(auditLogQueryUseCases.findAll(any(SearchCriteria.class))).thenReturn(pageResult);
+        when(auditLogQueryUseCases.findFiltered(any(SearchCriteria.class), any(), any(), any())).thenReturn(pageResult);
 
-        var response = controller.getAuditLogs(0, 20);
+        var response = controller.getAuditLogs(0, 20, null, null, null);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().data()).hasSize(1);
