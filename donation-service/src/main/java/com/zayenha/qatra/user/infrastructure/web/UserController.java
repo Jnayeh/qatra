@@ -6,6 +6,7 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
 import com.zayenha.qatra.user.domain.exception.UserErrorCode;
+import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import com.zayenha.qatra.user.infrastructure.web.dto.request.*;
@@ -86,8 +87,9 @@ public class UserController {
 
     @DeleteMapping("/{id}/roles")
     public ResponseEntity<ApiResponse<String>> revokeRole(
-            @PathVariable Long id, @Valid @RequestBody RevokeRoleRequest request) {
-        commandUseCases.revokeRole(id, request.role());
+            @PathVariable Long id,
+            @RequestParam Role role) {
+        commandUseCases.revokeRole(id, role);
         return ResponseEntity.ok(ApiResponse.success("Role revoked"));
     }
 

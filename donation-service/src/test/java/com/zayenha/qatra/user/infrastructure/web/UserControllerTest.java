@@ -157,8 +157,7 @@ class UserControllerTest {
 
     @Test
     void revokeRoleReturnsOk() {
-        var request = new RevokeRoleRequest(Role.DONOR);
-        var response = controller.revokeRole(1L, request);
+        var response = controller.revokeRole(1L, Role.DONOR);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
