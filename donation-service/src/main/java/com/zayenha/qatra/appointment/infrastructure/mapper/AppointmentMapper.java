@@ -50,7 +50,7 @@ public abstract class AppointmentMapper {
     @Mapping(target = "completedByStaff", expression = "java(appointment.getCompletedByStaffId() != null ? userProxy.getUserReference(appointment.getCompletedByStaffId()) : null)")
     public abstract AppointmentEntity toEntity(Appointment appointment);
 
-    @Mapping(target = "donorId", source = "donor.id")
+    @Mapping(target = "userId", source = "donor.id")
     @Mapping(target = "slotId", source = "slot.id")
     @Mapping(target = "centerId", source = "center.id")
     @Mapping(target = "emergencyId", source = "emergency.id")
@@ -63,7 +63,7 @@ public abstract class AppointmentMapper {
     public abstract HealthScreeningEntity toScreeningEntity(HealthScreening screening);
 
     @Mapping(target = "appointmentId", source = "appointment.id")
-    @Mapping(target = "donorId", source = "donor.id")
+    @Mapping(target = "userId", source = "donor.id")
     @Mapping(target = "screenedByStaffId", source = "screenedByStaff.id")
     public abstract HealthScreening toScreeningDomain(HealthScreeningEntity entity);
 }

@@ -30,13 +30,13 @@ public class EventPublisher {
             kafkaTemplate.send(topic, key, payload)
                     .whenComplete((result, ex) -> {
                         if (ex != null) {
-                            log.error("[SAGA] Failed to publish event to topic {}: {}", topic, ex.getMessage(), ex);
+                            log.error("Failed to publish event to topic {}: {}", topic, ex.getMessage(), ex);
                         } else {
-                            log.info("[SAGA] Event published successfully to topic={} key={}", topic, key);
+                            log.info("Event published successfully to topic={} key={}", topic, key);
                         }
                     });
         } catch (JsonProcessingException e) {
-            log.error("[SAGA] Failed to serialize event: {}", e.getMessage(), e);
+            log.error("Failed to serialize event: {}", e.getMessage(), e);
         }
     }
 

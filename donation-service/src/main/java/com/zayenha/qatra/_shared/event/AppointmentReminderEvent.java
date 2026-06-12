@@ -8,7 +8,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record AppointmentReminderEvent(
     Long appointmentId,
-    Long donorId,
+    Long userId,
     String slotTime,
     String correlationId,
     Instant occurredAt,

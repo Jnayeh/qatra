@@ -33,18 +33,18 @@ public class NotificationResultListener {
     public void consumeResult(String message) {
         try {
             var result = objectMapper.readValue(message, NotificationResultEvent.class);
-            log.info("[SAGA] Received result: userId={} status={} eventType={}",
+            log.info("Received result: userId={} status={} eventType={}",
                     result.userId(), result.status(), result.originalEventType());
 
             if ("DELIVERY_FAILED".equals(result.status())) {
-                log.warn("[SAGA] Delivery FAILED for user {} — compensating: deleting verification token",
+                log.warn("Delivery FAILED for user {} — compensating: deleting verification token",
                         result.userId());
                 compensate(result.userId(), result.originalEventType());
             } else {
-                log.info("[SAGA] Delivery SUCCESS for user {} — saga complete", result.userId());
+                log.info("Delivery SUCCESS for user {} — saga complete", result.userId());
             }
         } catch (Exception e) {
-            log.error("[SAGA] Failed to process notification result: {}", e.getMessage(), e);
+            log.error("Failed to process notification result: {}", e.getMessage(), e);
         }
     }
 

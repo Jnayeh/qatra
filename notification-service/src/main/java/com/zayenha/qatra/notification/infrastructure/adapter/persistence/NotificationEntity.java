@@ -1,6 +1,5 @@
 package com.zayenha.qatra.notification.infrastructure.adapter.persistence;
 
-import com.zayenha.qatra.notification.domain.model.NotificationChannel;
 import com.zayenha.qatra.notification.domain.model.NotificationStatus;
 import com.zayenha.qatra.notification.domain.model.NotificationType;
 import jakarta.persistence.*;
@@ -48,9 +47,8 @@ public class NotificationEntity {
 
     private String correlationId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private NotificationChannel channel;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String channels;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

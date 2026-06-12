@@ -40,7 +40,7 @@ public class AppointmentReminderScheduler {
             var startTime = (java.time.LocalTime) row[3];
             var slotTime = slotDate + " " + startTime;
             eventPublisher.publishAppointmentReminder(appointmentId, donorId, slotTime);
-            log.info("Sent appointment reminder for appointmentId={}, donorId={}", appointmentId, donorId);
+            log.info("Sent appointment reminder for appointmentId={}, userId={}", appointmentId, donorId);
         }
         if (!results.isEmpty()) {
             log.info("AppointmentReminderScheduler: sent {} reminders", results.size());

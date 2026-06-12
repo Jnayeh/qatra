@@ -37,7 +37,7 @@ class NotificationDispatchServiceTest {
     void shouldSkipDuplicateByCorrelationId() {
         when(notificationRepository.existsByCorrelationId("dup-corr")).thenReturn(true);
 
-        var payload = new NotificationPayload(1L, null, null, null, null, null, "Title", "Body", null, null, "dup-corr", Instant.now(), List.of());
+        var payload = new NotificationPayload(1L, null, null, null, null, "Title", "Body", null, null, "dup-corr", Instant.now(), List.of());
         dispatchService.dispatch(payload, "IN_APP");
 
         verify(notificationRepository, never()).save(any());
@@ -48,7 +48,7 @@ class NotificationDispatchServiceTest {
         when(notificationRepository.existsByCorrelationId(any())).thenReturn(false);
         when(notificationRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var payload = new NotificationPayload(1L, null, null, null, null, null, "Title", "Body", null, null, "corr-1", Instant.now(), List.of(com.zayenha.qatra.notification.domain.model.NotificationChannel.IN_APP));
+        var payload = new NotificationPayload(1L, null, null, null, null, "Title", "Body", null, null, "corr-1", Instant.now(), List.of(com.zayenha.qatra.notification.domain.model.NotificationChannel.IN_APP));
         dispatchService.dispatch(payload, "IN_APP");
 
         verify(notificationRepository, times(2)).save(any()); // save + update status
@@ -60,7 +60,7 @@ class NotificationDispatchServiceTest {
         when(notificationRepository.existsByCorrelationId(any())).thenReturn(false);
         when(notificationRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var payload = new NotificationPayload(1L, null, null, null, null, null, "Title", "Body", null, null, "corr-2", Instant.now(), List.of());
+        var payload = new NotificationPayload(1L, null, null, null, null, "Title", "Body", null, null, "corr-2", Instant.now(), List.of());
         dispatchService.dispatch(payload, "EMAIL");
 
         verify(inAppChannel, never()).deliver(any(), any());

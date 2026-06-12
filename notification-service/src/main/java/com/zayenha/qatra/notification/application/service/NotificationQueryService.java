@@ -44,7 +44,7 @@ public class NotificationQueryService implements NotificationQueryUseCases {
         var notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotificationNotFoundException(notificationId));
         if (!notification.getUserId().equals(userId)) {
-            throw new NotificationDeliveryException("Notification does not belong to user " + userId, null);
+            throw new NotificationDeliveryException("Notification does not belong to userId " + userId, null);
         }
         notification.markRead();
         notificationRepository.save(notification);
@@ -59,7 +59,7 @@ public class NotificationQueryService implements NotificationQueryUseCases {
     private NotificationResponse toResponse(Notification n) {
         return new NotificationResponse(
                 n.getId(), n.getUserId(), n.getEmergencyId(), n.getAppointmentId(),
-                n.getType(), n.getChannel(),
+                n.getType(), n.getChannels(),
                 n.getTitle(), n.getBody(), n.getData(), n.getStatus().name(),
                 n.getCreatedAt(), n.getSentAt(), n.getReadAt());
     }

@@ -133,7 +133,7 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         cacheService.evictByPattern("responses:*");
         auditPublisher.publish("RESPONSE_ACCEPTED", response.getId(), "EmergencyRequest",
             null,
-            Map.of("emergencyId", emergencyId, "donorId", userId, "status", "ACCEPTED", "slotId", slotId));
+            Map.of("emergencyId", emergencyId, "userId", userId, "status", "ACCEPTED", "slotId", slotId));
         return saved;
     }
 
@@ -166,7 +166,7 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         cacheService.evictByPattern("responses:*");
         auditPublisher.publish("RESPONSE_DECLINED", emergencyId, "EmergencyRequest",
             null,
-            Map.of("emergencyId", emergencyId, "donorId", userId, "status", "DECLINED", "reason", reason));
+            Map.of("emergencyId", emergencyId, "userId", userId, "status", "DECLINED", "reason", reason));
         return saved;
     }
 

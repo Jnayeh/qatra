@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,7 +48,7 @@ public class NotificationDispatchService implements NotificationCommandUseCases 
         var notification = notificationRepository.save(
                 new Notification(payload.userId(), payload.email(), payload.emergencyId(), payload.appointmentId(),
                         payload.type(), payload.title(), payload.body(), payload.data(),
-                        payload.correlationId(), payload.channel()));
+                        payload.correlationId(), List.copyOf(requestedChannels)));
         log.info("[SAGA] Notification saved: id={} type={} userId={} correlationId={}",
                 notification.getId(), payload.type(), payload.userId(), payload.correlationId());
 

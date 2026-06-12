@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -21,7 +22,7 @@ public class Notification {
     private String body;
     private Map<String, Object> data;
     private String correlationId;
-    private NotificationChannel channel;
+    private List<NotificationChannel> channels;
     private NotificationStatus status;
     private Instant createdAt;
     private Instant sentAt;
@@ -29,7 +30,7 @@ public class Notification {
 
     public Notification(Long userId, String email, Long emergencyId, Long appointmentId,
                         NotificationType type, String title, String body,
-                        Map<String, Object> data, String correlationId, NotificationChannel channel) {
+                        Map<String, Object> data, String correlationId, List<NotificationChannel> channels) {
         this.userId = userId;
         this.email = email;
         this.emergencyId = emergencyId;
@@ -39,7 +40,7 @@ public class Notification {
         this.body = body;
         this.data = data;
         this.correlationId = correlationId;
-        this.channel = channel;
+        this.channels = channels != null ? channels : List.of();
         this.status = NotificationStatus.PENDING;
         this.createdAt = Instant.now();
     }

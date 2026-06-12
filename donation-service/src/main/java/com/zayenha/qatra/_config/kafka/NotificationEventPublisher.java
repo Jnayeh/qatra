@@ -56,55 +56,43 @@ public class NotificationEventPublisher implements EventPublisherPort {
 
     @Override
     public void publishEmergencyCreated(Long emergencyId, List<Long> matchedUserIds) {
-        var event = new EmergencyCreatedEvent(
-            emergencyId, matchedUserIds,
-            UUID.randomUUID().toString(), Instant.now(),
-            emergencyChannels);
+        var event = new EmergencyCreatedEvent(emergencyId, matchedUserIds,
+            UUID.randomUUID().toString(), Instant.now(), emergencyChannels);
         eventPublisher.publish(emergencyCreatedTopic, "emerg-notif-" + emergencyId, event);
     }
 
     @Override
-    public void publishAppointmentReminder(Long appointmentId, Long donorId, String slotTime) {
-        var event = new AppointmentReminderEvent(
-            appointmentId, donorId, slotTime,
-            UUID.randomUUID().toString(), Instant.now(),
-            appointmentChannels);
+    public void publishAppointmentReminder(Long appointmentId, Long userId, String slotTime) {
+        var event = new AppointmentReminderEvent(appointmentId, userId, slotTime,
+            UUID.randomUUID().toString(), Instant.now(), appointmentChannels);
         eventPublisher.publish(appointmentReminderTopic, "appt-remind-" + appointmentId, event);
     }
 
     @Override
-    public void publishEligibilityRestored(Long donorId, String eligibleFromDate) {
-        var event = new EligibilityRestoredEvent(
-            donorId, eligibleFromDate,
-            UUID.randomUUID().toString(), Instant.now(),
-            eligibilityChannels);
-        eventPublisher.publish(eligibilityRestoredTopic, "elig-" + donorId, event);
+    public void publishEligibilityRestored(Long userId, String eligibleFromDate) {
+        var event = new EligibilityRestoredEvent(userId, eligibleFromDate,
+            UUID.randomUUID().toString(), Instant.now(), eligibilityChannels);
+        eventPublisher.publish(eligibilityRestoredTopic, "elig-" + userId, event);
     }
 
     @Override
-    public void publishEligibilityReminder(Long donorId, String eligibleFromDate) {
-        var event = new EligibilityReminderEvent(
-            donorId, eligibleFromDate,
-            UUID.randomUUID().toString(), Instant.now(),
-            eligibilityChannels);
-        eventPublisher.publish(eligibilityReminderTopic, "elig-remind-" + donorId, event);
+    public void publishEligibilityReminder(Long userId, String eligibleFromDate) {
+        var event = new EligibilityReminderEvent(userId, eligibleFromDate,
+            UUID.randomUUID().toString(), Instant.now(), eligibilityChannels);
+        eventPublisher.publish(eligibilityReminderTopic, "elig-remind-" + userId, event);
     }
 
     @Override
     public void publishPasswordReset(Long userId, String email, String resetToken, String resetLink) {
-        var event = new PasswordResetEvent(
-            userId, email, resetToken, resetLink,
-            UUID.randomUUID().toString(), Instant.now(),
-            passwordResetChannels);
+        var event = new PasswordResetEvent(userId, email, resetToken, resetLink,
+            UUID.randomUUID().toString(), Instant.now(), passwordResetChannels);
         eventPublisher.publish(passwordResetTopic, "pwd-reset-" + userId, event);
     }
 
     @Override
     public void publishEmailVerification(Long userId, String email, String verificationToken, String verificationLink) {
-        var event = new EmailVerificationEvent(
-            userId, email, verificationToken, verificationLink,
-            UUID.randomUUID().toString(), Instant.now(),
-            emailVerificationChannels);
+        var event = new EmailVerificationEvent(userId, email, verificationToken, verificationLink,
+            UUID.randomUUID().toString(), Instant.now(), emailVerificationChannels);
         eventPublisher.publish(emailVerificationTopic, "email-verify-" + userId, event);
     }
 }

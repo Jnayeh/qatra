@@ -46,7 +46,7 @@ public class NotificationEventConsumer {
     public void consumeEmergencyCreated(String message) {
         handle(message, EmergencyCreatedEvent.class, event -> {
             var requestedChannels = mapChannels(event.correlationId(), event.channels());
-            for (var donorId : event.matchedUserIds()) {
+            for (var userId : event.matchedUserIds()) {
                 var html = """
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2 style="color: #c0392b;">Blood Donation Needed</h2>
@@ -54,13 +54,13 @@ public class NotificationEventConsumer {
                         <p style="font-weight: bold;">Please respond immediately.</p>
                     </div>""";
                 var payload = new NotificationPayload(
-                        donorId, null, event.emergencyId(), null,
-                        NotificationType.EMERGENCY_ALERT, NotificationChannel.IN_APP,
+                        userId, null, event.emergencyId(), null,
+                        NotificationType.EMERGENCY_ALERT,
                         "Blood Donation Needed",
                         "An emergency blood request has been created in your area and you are a good match. Please respond immediately.",
                         html,
                         Map.of("emergencyId", event.emergencyId()),
-                        event.correlationId() + "-" + donorId,
+                        event.correlationId() + "-" + userId,
                         event.occurredAt(),
                         requestedChannels);
                 dispatchService.dispatch(payload, channelConfig);
@@ -79,7 +79,7 @@ public class NotificationEventConsumer {
                 </div>""".formatted(event.slotTime());
             var payload = new NotificationPayload(
                     event.donorId(), null, null, event.appointmentId(),
-                    NotificationType.APPOINTMENT_REMINDER, NotificationChannel.IN_APP,
+                    NotificationType.APPOINTMENT_REMINDER,
                     "Appointment Reminder",
                     "You have an appointment scheduled at " + event.slotTime(),
                     html,
@@ -100,8 +100,8 @@ public class NotificationEventConsumer {
                     <p>Your eligibility to donate blood has been restored. You can now schedule a new donation.</p>
                 </div>""";
             var payload = new NotificationPayload(
-                    event.donorId(), null, null, null,
-                    NotificationType.ELIGIBILITY_REMINDER, NotificationChannel.EMAIL,
+                    event.userId(), null, null, null,
+                    NotificationType.ELIGIBILITY_REMINDER,
                     "You Can Donate Again",
                     "Your eligibility to donate blood has been restored. You can now schedule a new donation.",
                     html,
@@ -122,8 +122,8 @@ public class NotificationEventConsumer {
                     <p>Your eligibility to donate blood has been restored. Schedule your next donation today!</p>
                 </div>""";
             var payload = new NotificationPayload(
-                    event.donorId(), null, null, null,
-                    NotificationType.ELIGIBILITY_REMINDER, NotificationChannel.IN_APP,
+                    event.userId(), null, null, null,
+                    NotificationType.ELIGIBILITY_REMINDER,
                     "You Can Donate Again",
                     "Your eligibility to donate blood has been restored. Schedule your next donation today!",
                     html,
@@ -149,7 +149,7 @@ public class NotificationEventConsumer {
                 </div>""".formatted(event.resetLink());
             var payload = new NotificationPayload(
                     event.userId(), event.email(), null, null,
-                    NotificationType.PASSWORD_RESET, NotificationChannel.EMAIL,
+                    NotificationType.PASSWORD_RESET,
                     "Password Reset Request",
                     "Click the link to reset your password: " + event.resetLink(),
                     html,
@@ -175,7 +175,7 @@ public class NotificationEventConsumer {
                 </div>""".formatted(event.verificationLink());
             var payload = new NotificationPayload(
                     event.userId(), event.email(), null, null,
-                    NotificationType.EMAIL_VERIFICATION, NotificationChannel.EMAIL,
+                    NotificationType.EMAIL_VERIFICATION,
                     "Verify your email",
                     "Click the link to verify your email: " + event.verificationLink(),
                     html,

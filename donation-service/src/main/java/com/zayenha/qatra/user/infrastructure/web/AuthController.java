@@ -201,7 +201,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         var userOpt = userQueryUseCases.findByEmail(request.email());
         if (userOpt.isEmpty()) {
-            log.info("[SAGA] Password reset requested for unknown email — ignoring silently");
+            log.info("Password reset requested for unknown email — ignoring silently");
             return ResponseEntity.ok(ApiResponse.success(null));
         }
         var user = userOpt.get();
@@ -209,12 +209,12 @@ public class AuthController {
         var token = new VerificationToken(user.getId(), sha256(rawToken), VerificationTokenType.PASSWORD_RESET,
                 Instant.now().plus(Duration.ofHours(1)));
         verificationTokenRepository.save(token);
-        log.info("[SAGA] Password reset token saved for userId={}", user.getId());
+        log.info("Password reset token saved for userId={}", user.getId());
 
         var resetLink = baseUrl + "/reset-password?token=" + rawToken;
         eventPublisherPort.publishPasswordReset(
                 user.getId(), user.getEmail(), rawToken, resetLink);
-        log.info("[SAGA] Password reset event published for userId={} — awaiting notification result", user.getId());
+        log.info("Password reset event published for userId={} — awaiting notification result", user.getId());
 
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -247,12 +247,12 @@ public class AuthController {
         var token = new VerificationToken(user.getId(), sha256(rawToken), VerificationTokenType.EMAIL_VERIFICATION,
                 Instant.now().plus(Duration.ofHours(24)));
         verificationTokenRepository.save(token);
-        log.info("[SAGA] Email verification token saved for userId={}", user.getId());
+        log.info("Email verification token saved for userId={}", user.getId());
 
         var verificationLink = baseUrl + "/verify-email?token=" + rawToken;
         eventPublisherPort.publishEmailVerification(
                 user.getId(), user.getEmail(), rawToken, verificationLink);
-        log.info("[SAGA] Email verification event published for userId={} — awaiting notification result", user.getId());
+        log.info("Email verification event published for userId={} — awaiting notification result", user.getId());
     }
 
     private static String sha256(String value) {

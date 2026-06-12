@@ -4,6 +4,7 @@ import com.zayenha.qatra.notification.domain.model.NotificationChannel;
 import com.zayenha.qatra.notification.domain.model.NotificationType;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 public record NotificationResponse(
@@ -12,7 +13,7 @@ public record NotificationResponse(
     Long emergencyId,
     Long appointmentId,
     NotificationType type,
-    NotificationChannel channel,
+    List<NotificationChannel> channels,
     String title,
     String body,
     Map<String, Object> data,

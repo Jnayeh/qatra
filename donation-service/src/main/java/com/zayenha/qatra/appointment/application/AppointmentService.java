@@ -36,7 +36,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
     public static final String STATUS = "status";
     public static final String APPOINTMENTS_BASE = "appointments:*";
-    public static final String DONOR_ID = "donorId";
+    public static final String DONOR_ID = "userId";
     public static final String APPOINTMENT_CLASSNAME = "Appointment";
     private final AppointmentRepositoryPort repository;
     private final AptCenterProxy centerProxy;
@@ -145,16 +145,6 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
             donorProxy.saveDonor(dto);
             cacheService.evictByPattern("donorProfiles:*");
         });
-
-        if (DonationOutcome.COMPLETED.equals(outcome)) {
-            var centerName = centerProxy.getCenterReference(saved.getCenterId()).getName();
-            var donorName = userProxy.getUserDisplayName(saved.getDonorId());
-            var evt = new DonationCompletedEvent(
-                saved.getId(), saved.getDonorId(), donorName,
-                saved.getCenterId(), centerName, saved.getMlCollected(),
-                saved.getCompletedAt(), UUID.randomUUID().toString(), Instant.now());
-            eventPublisher.publishEvent(evt);
-        }
 
         auditPublisher.publish("APPOINTMENT_COMPLETED", saved.getId(), APPOINTMENT_CLASSNAME,
             Map.of(STATUS, oldStatus.name()),
@@ -277,14 +267,10 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
                    appointment.getDonorId()));
 
         if (!eligible) {
-            // Auto-cancel appointment and release slot when screening fails
             appointment.cancel("Failed health screening");
             repository.save(appointment);
             releaseSlot(appointment);
             cacheService.evictByPattern(APPOINTMENTS_BASE);
-            eventPublisherPort.publishEligibilityRestored(appointment.getDonorId(), "deferred");
-        } else {
-            eventPublisherPort.publishEligibilityRestored(appointment.getDonorId(), "now");
         }
         return saved;
     }

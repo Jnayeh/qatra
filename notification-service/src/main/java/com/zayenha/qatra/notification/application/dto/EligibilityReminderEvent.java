@@ -7,7 +7,7 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record EligibilityReminderEvent(
-    Long donorId,
+    Long userId,
     String eligibleFromDate,
     String correlationId,
     Instant occurredAt,

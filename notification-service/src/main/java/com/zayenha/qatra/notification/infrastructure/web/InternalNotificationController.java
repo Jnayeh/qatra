@@ -23,7 +23,7 @@ public class InternalNotificationController {
 
     private final NotificationQueryService queryService;
 
-    @Operation(summary = "Get notifications for a specific user")
+    @Operation(summary = "Get notifications for a specific userId")
     @GetMapping("/user/{userId}")
     public ResponseEntity<ApiResponse<List<NotificationResponse>>> listNotifications(
             @PathVariable Long userId,
@@ -39,7 +39,7 @@ public class InternalNotificationController {
         return ResponseEntity.ok(ApiResponse.success(notifications, paginated));
     }
 
-    @Operation(summary = "Get unread notification count for a user")
+    @Operation(summary = "Get unread notification count for a userId")
     @GetMapping("/user/{userId}/unread-count")
     public ResponseEntity<Map<String, Long>> unreadCount(@PathVariable Long userId) {
         var count = queryService.countUnread(userId);
@@ -55,7 +55,7 @@ public class InternalNotificationController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Mark all notifications as read for a user")
+    @Operation(summary = "Mark all notifications as read for a userId")
     @PatchMapping("/user/{userId}/read-all")
     public ResponseEntity<Map<String, Integer>> markAllAsRead(@PathVariable Long userId) {
         var count = queryService.markAllAsRead(userId);

@@ -10,7 +10,6 @@ public record NotificationPayload(
     Long emergencyId,
     Long appointmentId,
     NotificationType type,
-    NotificationChannel channel,
     String title,
     String body,
     String htmlBody,

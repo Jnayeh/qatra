@@ -32,25 +32,25 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
         var pageable = PageRequest.of(page, size);
         if (type != null && read != null) {
             if (read) {
-                return jpaRepository.findReadByUserIdAndType(userId, type, pageable)
+                return jpaRepository.findReadInAppByUserIdAndType(userId, type, pageable)
                         .stream().map(mapper::toDomain).toList();
             }
-            return jpaRepository.findUnreadByUserIdAndType(userId, type, pageable)
+            return jpaRepository.findUnreadInAppByUserIdAndType(userId, type, pageable)
                     .stream().map(mapper::toDomain).toList();
         }
         if (type != null) {
-            return jpaRepository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, type, pageable)
+            return jpaRepository.findInAppByUserIdAndType(userId, type, pageable)
                     .stream().map(mapper::toDomain).toList();
         }
         if (Boolean.TRUE.equals(read)) {
-            return jpaRepository.findReadByUserId(userId, pageable)
+            return jpaRepository.findReadInAppByUserId(userId, pageable)
                     .stream().map(mapper::toDomain).toList();
         }
         if (Boolean.FALSE.equals(read)) {
-            return jpaRepository.findUnreadByUserId(userId, pageable)
+            return jpaRepository.findUnreadInAppByUserId(userId, pageable)
                     .stream().map(mapper::toDomain).toList();
         }
-        return jpaRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+        return jpaRepository.findInAppByUserId(userId, pageable)
                 .stream().map(mapper::toDomain).toList();
     }
 
@@ -58,30 +58,30 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
     public long countByUserId(Long userId, NotificationType type, Boolean read) {
         if (type != null && read != null) {
             if (read) {
-                return jpaRepository.countByUserIdAndType(userId, type) - jpaRepository.countUnreadByUserIdAndType(userId, type);
+                return jpaRepository.countInAppByUserIdAndType(userId, type) - jpaRepository.countUnreadInAppByUserIdAndType(userId, type);
             }
-            return jpaRepository.countUnreadByUserIdAndType(userId, type);
+            return jpaRepository.countUnreadInAppByUserIdAndType(userId, type);
         }
         if (type != null) {
-            return jpaRepository.countByUserIdAndType(userId, type);
+            return jpaRepository.countInAppByUserIdAndType(userId, type);
         }
         if (read != null) {
             if (read) {
-                return jpaRepository.countByUserId(userId) - jpaRepository.countUnreadByUserId(userId);
+                return jpaRepository.countInAppByUserId(userId) - jpaRepository.countUnreadInAppByUserId(userId);
             }
-            return jpaRepository.countUnreadByUserId(userId);
+            return jpaRepository.countUnreadInAppByUserId(userId);
         }
-        return jpaRepository.countByUserId(userId);
+        return jpaRepository.countInAppByUserId(userId);
     }
 
     @Override
     public long countUnreadByUserId(Long userId) {
-        return jpaRepository.countUnreadByUserId(userId);
+        return jpaRepository.countUnreadInAppByUserId(userId);
     }
 
     @Override
     public int markAllAsReadByUserId(Long userId) {
-        return jpaRepository.markAllAsReadByUserId(userId);
+        return jpaRepository.markAllInAppAsReadByUserId(userId);
     }
 
     @Override
