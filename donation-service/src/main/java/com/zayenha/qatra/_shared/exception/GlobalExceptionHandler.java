@@ -2,7 +2,6 @@ package com.zayenha.qatra._shared.exception;
 
 import com.zayenha.qatra._shared.web.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -51,7 +50,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException ex) {
         log.error("Access denied error: ExceptionType {}", ex.getClass(), ex);
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error(StringUtils.defaultIfBlank(ex.getMessage(), "Access denied")));
+                .body(ApiResponse.error("Access denied"));
     }
 
     @ExceptionHandler(AuthenticationException.class)
