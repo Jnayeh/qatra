@@ -10,10 +10,10 @@ import java.util.List;
 public interface AuditLogRepositoryPort {
     AuditLog save(AuditLog log);
     PageResult<AuditLog> findAll(SearchCriteria criteria);
-    PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate);
+    PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate, Long centerId);
     List<AuditLog> findByAction(String action);
     List<AuditLog> findByUserId(Long userId);
     List<AuditLog> findByTimestampBetween(Instant from, Instant to);
     long countByAction(String action);
-    long countByActionAndTimestampBetween(String action, Instant from, Instant to);
+    long countByActionBetween(String action, Instant from, Instant to);
 }

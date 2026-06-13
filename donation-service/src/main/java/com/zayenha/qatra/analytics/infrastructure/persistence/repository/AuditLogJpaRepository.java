@@ -4,35 +4,29 @@ import com.zayenha.qatra.analytics.infrastructure.persistence.entity.AuditLogEnt
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
 
-public interface AuditLogJpaRepository extends JpaRepository<AuditLogEntity, Long> {
+public interface AuditLogJpaRepository extends JpaRepository<AuditLogEntity, Long>, JpaSpecificationExecutor<AuditLogEntity> {
+
     Page<AuditLogEntity> findAllByOrderByTimestampDesc(Pageable pageable);
+
     List<AuditLogEntity> findByActionOrderByTimestampDesc(String action);
+
     List<AuditLogEntity> findByUser_IdOrderByTimestampDesc(Long userId);
+
     List<AuditLogEntity> findByTimestampBetweenOrderByTimestampDesc(Instant from, Instant to);
-    long countByAction(String action);
-    long countByActionAndTimestampBetween(String action, Instant from, Instant to);
 
-    @Query("SELECT a FROM AuditLogEntity a WHERE " +
-           "(:action IS NULL OR a.action = :action) AND " +
-           "(:fromDate IS NULL OR a.timestamp >= :fromDate) AND " +
-           "(:toDate IS NULL OR a.timestamp <= :toDate) " +
-           "ORDER BY a.timestamp DESC")
-    Page<AuditLogEntity> findFiltered(@Param("action") String action,
-                                       @Param("fromDate") Instant fromDate,
-                                       @Param("toDate") Instant toDate,
-                                       Pageable pageable);
-
-    @Query("SELECT COUNT(a) FROM AuditLogEntity a WHERE " +
-           "(:action IS NULL OR a.action = :action) AND " +
-           "(:fromDate IS NULL OR a.timestamp >= :fromDate) AND " +
-           "(:toDate IS NULL OR a.timestamp <= :toDate)")
-    long countFiltered(@Param("action") String action,
-                       @Param("fromDate") Instant fromDate,
-                       @Param("toDate") Instant toDate);
+    @Query(value = "SELECT DATE(timestamp) as day, COUNT(*) as cnt FROM audit_logs al " +
+           "WHERE al.action = :action AND al.timestamp >= :from AND al.timestamp < :to AND " +
+           "(al.entity_id IN (SELECT id FROM emergency_requests WHERE center_id = :cid) OR " +
+           "al.entity_id IN (SELECT id FROM appointments WHERE center_id = :cid)) " +
+           "GROUP BY DATE(timestamp) ORDER BY day",
+           nativeQuery = true)
+    List<Object[]> countByCenterAndActionByDay(@Param("action") String action, @Param("cid") Long centerId,
+                                               @Param("from") Instant from, @Param("to") Instant to);
 }

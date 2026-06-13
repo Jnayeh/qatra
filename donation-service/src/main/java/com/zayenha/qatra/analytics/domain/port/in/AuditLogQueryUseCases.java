@@ -3,6 +3,7 @@ package com.zayenha.qatra.analytics.domain.port.in;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.analytics.domain.model.AuditLog;
+import com.zayenha.qatra.analytics.domain.model.CenterMetrics;
 
 import java.time.Instant;
 import java.util.List;
@@ -11,7 +12,7 @@ public interface AuditLogQueryUseCases {
 
     PageResult<AuditLog> findAll(SearchCriteria criteria);
 
-    PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate);
+    PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate, Long centerId);
 
     List<AuditLog> findByAction(String action);
 
@@ -20,4 +21,6 @@ public interface AuditLogQueryUseCases {
     long countByAction(String action);
 
     long countByActionBetween(String action, Instant from, Instant to);
+
+    CenterMetrics getCenterMetrics(Long centerId);
 }

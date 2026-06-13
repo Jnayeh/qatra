@@ -6,8 +6,10 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.analytics.domain.model.AuditLog;
 import com.zayenha.qatra.analytics.domain.port.out.AuditLogRepositoryPort;
 import com.zayenha.qatra.analytics.infrastructure.persistence.repository.AuditLogJpaRepository;
+import com.zayenha.qatra.analytics.infrastructure.persistence.repository.AuditLogSpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -31,32 +33,23 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
     public PageResult<AuditLog> findAll(SearchCriteria criteria) {
         var pageable = PageRequest.of(criteria.page(), criteria.size());
         var page = jpaRepository.findAllByOrderByTimestampDesc(pageable);
-        var total = cachedCount("count:auditLogs");
         return new PageResult<>(
             page.getContent().stream().map(mapper::toDomain).toList(),
             page.getNumber(), page.getSize(),
-            total, page.getTotalPages()
+            page.getTotalElements(), page.getTotalPages()
         );
     }
 
     @Override
-    public PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate) {
-        var pageable = PageRequest.of(criteria.page(), criteria.size());
-        var page = jpaRepository.findFiltered(action, fromDate, toDate, pageable);
-        var total = jpaRepository.countFiltered(action, fromDate, toDate);
+    public PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate, Long centerId) {
+        var spec = AuditLogSpec.build(action, fromDate, toDate, centerId);
+        var pageable = PageRequest.of(criteria.page(), criteria.size(), Sort.by(Sort.Direction.DESC, "timestamp"));
+        var page = jpaRepository.findAll(spec, pageable);
         return new PageResult<>(
             page.getContent().stream().map(mapper::toDomain).toList(),
             page.getNumber(), page.getSize(),
-            total, page.getTotalPages()
+            page.getTotalElements(), page.getTotalPages()
         );
-    }
-
-    private long cachedCount(String key) {
-        var cached = cacheService.get(key, Long.class);
-        if (cached.isPresent()) return cached.get();
-        var count = jpaRepository.count();
-        cacheService.put(key, count, Duration.ofSeconds(6800));
-        return count;
     }
 
     @Override
@@ -76,11 +69,11 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
 
     @Override
     public long countByAction(String action) {
-        return jpaRepository.countByAction(action);
+        return jpaRepository.count(AuditLogSpec.build(action, null, null, null));
     }
 
     @Override
-    public long countByActionAndTimestampBetween(String action, Instant from, Instant to) {
-        return jpaRepository.countByActionAndTimestampBetween(action, from, to);
+    public long countByActionBetween(String action, Instant from, Instant to) {
+        return jpaRepository.count(AuditLogSpec.build(action, from, to, null));
     }
 }
