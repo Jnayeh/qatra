@@ -1,7 +1,7 @@
 package com.zayenha.qatra.analytics.application;
 
-import com.zayenha.qatra.analytics.domain.model.AuditLog;
 import com.zayenha.qatra.analytics.domain.port.out.AuditLogRepositoryPort;
+import com.zayenha.qatra.analytics.domain.port.out.CenterMetricsRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,12 +20,14 @@ class AuditLogServiceTest {
 
     @Mock
     private AuditLogRepositoryPort repository;
+    @Mock
+    private CenterMetricsRepositoryPort centerMetricsRepo;
 
     private AuditLogService service;
 
     @BeforeEach
     void setUp() {
-        service = new AuditLogService(repository);
+        service = new AuditLogService(repository, centerMetricsRepo);
     }
 
     @Test
@@ -48,7 +50,7 @@ class AuditLogServiceTest {
     void countByActionBetweenReturnsCountInRange() {
         var from = Instant.parse("2026-01-01T00:00:00Z");
         var to = Instant.parse("2026-02-01T00:00:00Z");
-        when(repository.countByActionAndTimestampBetween("APPOINTMENT_CREATED", from, to)).thenReturn(3L);
+        when(repository.countByActionBetween("APPOINTMENT_CREATED", from, to)).thenReturn(3L);
 
         assertThat(service.countByActionBetween("APPOINTMENT_CREATED", from, to)).isEqualTo(3L);
     }
