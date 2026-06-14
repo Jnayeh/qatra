@@ -31,6 +31,8 @@ public class AppointmentEntity {
     @JoinColumn(name = "donor_id", nullable = false)
     private DonorProfileEntity donor;
 
+    private Long userId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "slot_id", nullable = false)
     private SlotEntity slot;

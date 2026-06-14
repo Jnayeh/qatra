@@ -55,7 +55,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
             throw new ConflictException("Donor already has an active appointment", AppointmentErrorCode.DONOR_ALREADY_BOOKED.name());
         }
 
-        // Validate slot capacity and increment counts
+
         var slot = centerProxy.findSlotById(slotId);
         validateSlot(slot, type);
         slot.setBookedCount(slot.getBookedCount() + 1);
@@ -131,7 +131,6 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         var saved = repository.save(appointment);
         cacheService.evictByPattern(APPOINTMENTS_BASE);
 
-        // Update donor profile stats
         donorProxy.findOptionalByDonorId(saved.getDonorId()).ifPresent(dto -> {
             if (outcome == DonationOutcome.COMPLETED) {
                 dto.setTotalDonations(dto.getTotalDonations() + 1);
@@ -196,7 +195,6 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         var saved = repository.save(appointment);
         cacheService.evictByPattern(APPOINTMENTS_BASE);
 
-        // Release slot capacity
         releaseSlot(saved);
 
         auditPublisher.publish("APPOINTMENT_CANCELLED", saved.getId(), APPOINTMENT_CLASSNAME,
@@ -326,6 +324,12 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         var result = repository.findScreeningByAppointmentId(appointmentId);
         result.ifPresent(r -> cacheService.put(key, r));
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Appointment> findScheduledAppointmentsByDate(LocalDate targetDate) {
+        return repository.findScheduledAppointmentsByDate(targetDate);
     }
 
     private void releaseSlot(Appointment saved) {

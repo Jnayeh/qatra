@@ -10,7 +10,6 @@ import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.appointment.application.proxy.AptCenterProxy;
 import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
 import com.zayenha.qatra.appointment.application.proxy.AptUserProxy;
-import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.zayenha.qatra.center.application.api.dto.SlotDTO;
@@ -116,10 +115,6 @@ class AppointmentServiceTest {
         appointment.setCenterId(100L);
         appointment.setMlCollected(450);
         appointment.setStatus(AppointmentStatus.CHECKED_IN);
-        var centerEntity = mock(CenterEntity.class);
-        when(centerEntity.getName()).thenReturn("Main Center");
-        when(centerProxy.getCenterReference(any())).thenReturn(centerEntity);
-        when(userProxy.getUserDisplayName(any())).thenReturn("John Doe");
         when(repository.findById(1L)).thenReturn(Optional.of(appointment));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 

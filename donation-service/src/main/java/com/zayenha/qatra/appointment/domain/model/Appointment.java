@@ -6,12 +6,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Getter
 @Setter
 public class Appointment {
     private Long id;
     private Long slotId;
+    private Long userId;
     private Long donorId;
     private Long centerId;
     private Long emergencyId;
@@ -30,6 +33,8 @@ public class Appointment {
     private Instant cancelledAt;
     private String cancellationReason;
     private DonationOutcome outcome;
+    private LocalDate slotDate;
+    private LocalTime slotTime;
 
     public Appointment() {}
 

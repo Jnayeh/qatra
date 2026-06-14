@@ -17,4 +17,5 @@ public interface AppointmentQueryUseCases {
         Long centerId, LocalDate fromDate, LocalDate toDate, int page, int size);
     PageResult<Appointment> findAll(SearchCriteria criteria);
     Optional<HealthScreening> findScreeningByAppointmentId(Long appointmentId);
+    List<Appointment> findScheduledAppointmentsByDate(LocalDate targetDate);
 }

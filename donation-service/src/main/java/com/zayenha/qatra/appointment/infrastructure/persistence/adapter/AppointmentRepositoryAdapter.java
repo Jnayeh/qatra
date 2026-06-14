@@ -3,6 +3,7 @@ package com.zayenha.qatra.appointment.infrastructure.persistence.adapter;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra.appointment.domain.model.Appointment;
 import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
 import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
@@ -37,6 +38,7 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
             merge(existing, appointment);
             return mapper.toDomain(jpaRepository.save(existing));
         }
+        appointment.setUserId(AuditUtils.currentUserId());
         return mapper.toDomain(jpaRepository.save(mapper.toEntity(appointment)));
     }
 
