@@ -17,5 +17,4 @@ public interface CenterQueryUseCases {
     List<CenterStaffProfile> getStaff(Long centerId);
     CenterStaffProfile getStaffByUserId(Long userId);
     CenterAdminProfile getAdminByUserId(Long userId);
-    String generateCenterReport(Long centerId, LocalDate startDate, LocalDate endDate);
 }

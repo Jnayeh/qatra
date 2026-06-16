@@ -40,14 +40,12 @@ class CenterServiceTest {
     private CacheService cacheService;
     @Mock
     private AuditPublisher auditPublisher;
-    @Mock
-    private CenterReportService reportService;
 
     private CenterService centerService;
 
     @BeforeEach
     void setUp() {
-        centerService = new CenterService(centerRepository, slotRepository, reportService, eventPublisher, cacheService, auditPublisher);
+        centerService = new CenterService(centerRepository, slotRepository, eventPublisher, cacheService, auditPublisher);
     }
 
     private DonationCenter aCenter() {
@@ -79,7 +77,7 @@ class CenterServiceTest {
                 150, 75, 30);
     }
 
-    // --- create ---
+
 
     @Test
     void createSavesAndReturnsCenter() {
@@ -108,7 +106,7 @@ class CenterServiceTest {
         verify(centerRepository, never()).save(any());
     }
 
-    // --- update ---
+
 
     @Test
     void updateUpdatesExistingCenter() {
@@ -144,7 +142,7 @@ class CenterServiceTest {
         verify(centerRepository, never()).save(any());
     }
 
-    // --- updateStatus ---
+
 
     @Test
     void updateStatusChangesStatus() {
@@ -166,7 +164,7 @@ class CenterServiceTest {
                 .hasMessageContaining("99");
     }
 
-    // --- delete ---
+
 
     @Test
     void deleteDeletesExistingCenter() {
@@ -187,7 +185,7 @@ class CenterServiceTest {
         verify(centerRepository, never()).deleteById(any());
     }
 
-    // --- getById ---
+
 
     @Test
     void getByIdReturnsCenter() {
@@ -218,7 +216,7 @@ class CenterServiceTest {
                 .hasMessageContaining("99");
     }
 
-    // --- getAll ---
+
 
     @Test
     void getAllDelegatesToRepository() {
@@ -232,7 +230,7 @@ class CenterServiceTest {
         assertThat(result.totalElements()).isEqualTo(1);
     }
 
-    // --- addStaff ---
+
 
     @Test
     void addStaffSavesAndReturnsStaff() {
@@ -246,7 +244,7 @@ class CenterServiceTest {
         assertThat(result.getCenterId()).isEqualTo(1L);
     }
 
-    // --- approve ---
+
 
     @Test
     void approveSetsActiveWhenApproved() {

@@ -45,6 +45,9 @@ public class CenterApi implements EntityApi<CenterEntity> {
         return centerRepositoryPort.findById(id).map(c ->
             new CenterDTO(c.getId(), c.getLatitude(), c.getLongitude()));
     }
+    public boolean existsById(Long id) {
+        return centerRepositoryPort.existsById(id);
+    }
 
     public Optional<CenterDTO> findCenterByIdWithJoins(Long id) {
         return centerRepositoryPort.findById(id, true).map(c ->

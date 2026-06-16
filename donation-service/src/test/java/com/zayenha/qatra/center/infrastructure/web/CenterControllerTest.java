@@ -300,7 +300,7 @@ class CenterControllerTest {
         assertThat(response.getBody().data().status()).isEqualTo(CenterStatus.ACTIVE);
     }
 
-    // --- ExceptionHandler tests ---
+
 
     @Test
     void notFoundReturns404() {
