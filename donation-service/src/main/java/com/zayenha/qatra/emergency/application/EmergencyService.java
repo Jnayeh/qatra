@@ -114,14 +114,13 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         response.accept(slotId);
         var saved = repository.saveResponse(response);
         var newAcceptedCount = acceptedResponses +1;
-        // Update MatchResult status
+
         repository.findMatchResultByEmergencyIdAndDonorId(
             response.getEmergencyId(), response.getDonorId()).ifPresent(mr -> {
             mr.setStatus(MatchStatus.RESPONDED);
             repository.saveMatchResult(mr);
         });
 
-        // Reset consecutive declines on accept
         donor.setConsecutiveEmergencyDeclines(0);
         donor.setLastAcceptAt(Instant.now());
         donor.setUpdatedAt(Instant.now());
@@ -145,14 +144,14 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         response.decline(reason);
         var saved = repository.saveResponse(response);
         var profile = donorProxy.findByUserId(userId);
-        // Update MatchResult status
+
         repository.findMatchResultByEmergencyIdAndDonorId(
             response.getEmergencyId(), response.getDonorId()).ifPresent(mr -> {
             mr.setStatus(MatchStatus.RESPONDED);
             repository.saveMatchResult(mr);
         });
 
-        // Track consecutive declines
+
         var declines = profile.getConsecutiveEmergencyDeclines() != null
             ? profile.getConsecutiveEmergencyDeclines() + 1 : 1;
         profile.setConsecutiveEmergencyDeclines(declines);
@@ -223,7 +222,6 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<DonorResponse> findResponsesByEmergencyId(Long emergencyId) {
         var key = "responses:emergency:" + emergencyId;
         return cacheService.get(key, new TypeReference<List<DonorResponse>>() {})

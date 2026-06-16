@@ -52,7 +52,7 @@ public abstract class EmergencyMapper {
     public abstract DonorResponseEntity toResponseEntity(DonorResponse response);
 
     @Mapping(target = "emergencyId", source = "emergency.id")
-    @Mapping(target = "userId", source = "donor.id")
+    @Mapping(target = "donorId", source = "donor.id")
     @Mapping(target = "slotId", source = "slot.id")
     public abstract DonorResponse toResponseDomain(DonorResponseEntity entity);
 
@@ -63,6 +63,6 @@ public abstract class EmergencyMapper {
 
     @Mapping(target = "emergencyId", source = "emergency.id")
     @Mapping(target = "centerId", source = "center.id")
-    @Mapping(target = "userId", source = "donor.id")
+    @Mapping(target = "donorId", source = "donor.id")
     public abstract MatchResult toMatchResultDomain(MatchResultEntity entity);
 }
