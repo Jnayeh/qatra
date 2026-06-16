@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/internal/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
+@PreAuthorize("hasAnyRole('SUPER_ADMIN')")
 public class InternalUserController {
 
     private final UserQueryUseCases userQueryUseCases;

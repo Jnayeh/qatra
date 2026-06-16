@@ -334,7 +334,7 @@ class DonorControllerTest {
         assertThat(response.getBody().success()).isTrue();
     }
 
-    // --- ExceptionHandler tests ---
+
 
     @Test
     void notFoundReturns404() {

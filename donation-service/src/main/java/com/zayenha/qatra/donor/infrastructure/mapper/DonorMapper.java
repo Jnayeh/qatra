@@ -87,6 +87,6 @@ public abstract class DonorMapper {
     @Mapping(target = "onMedication", source = "onMedication")
     public abstract HealthQuestionnaireEntity toQuestionnaireEntity(HealthQuestionnaire questionnaire);
 
-    @Mapping(target = "userId", source = "donor.id")
+    @Mapping(target = "donorId", source = "donor.id")
     public abstract HealthQuestionnaire toQuestionnaireDomain(HealthQuestionnaireEntity entity);
 }

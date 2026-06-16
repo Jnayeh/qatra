@@ -63,7 +63,7 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         var saved = donorRepository.saveQuestionnaire(questionnaire);
 
         auditPublisher.publish("HEALTH_QUESTIONNAIRE_UPDATED", saved.getId(), "HealthQuestionnaire", null,
-            Map.of("userId", userId, "userId", profile.getId(),
+            Map.of("userId", userId, "donorId", profile.getId(),
                    "hasChronicIllness", command.hasChronicIllness(),
                    "onMedication", command.onMedication()));
         return saved;
@@ -94,7 +94,7 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         }
     }
 
-    // ponytail: fallback default for test-created instances bypassing @Value
+
     private boolean containsPermanentMedicationKeyword(String details) {
         if (details == null) return false;
         var src = restrictionKeywords != null ? restrictionKeywords : "insulin,chemo,immunosuppressant";

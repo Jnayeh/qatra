@@ -54,7 +54,7 @@ class DonorServiceTest {
         return profile;
     }
 
-    // --- getMyProfile ---
+
 
     @Test
     void getMyProfileReturnsExistingProfile() {
@@ -76,7 +76,7 @@ class DonorServiceTest {
                 .hasMessageContaining("1");
     }
 
-    // --- updateBloodType ---
+
 
     @Test
     void updateBloodTypeSetsBloodType() {
@@ -113,7 +113,7 @@ class DonorServiceTest {
                 .hasMessageContaining("already verified");
     }
 
-    // --- updateBloodTypeAdmin ---
+
 
     @Test
     void updateBloodTypeAdminOverridesVerification() {
@@ -127,7 +127,7 @@ class DonorServiceTest {
         assertThat(result.getBloodTypeVerified()).isTrue();
     }
 
-    // --- updateLocation ---
+
 
     @Test
     void updateLocationSetsCoordinates() {
@@ -145,7 +145,7 @@ class DonorServiceTest {
         assertThat(result.getCity()).isEqualTo("NYC");
     }
 
-    // --- updateAvailability ---
+
 
     @Test
     void updateAvailabilityChangesStatus() {
@@ -158,7 +158,7 @@ class DonorServiceTest {
         assertThat(result.getAvailability()).isEqualTo(AvailabilityStatus.TEMPORARILY_UNAVAILABLE);
     }
 
-    // --- requestDeletion ---
+
 
     @Test
     void requestDeletionSetsStatusToInactive() {
@@ -171,7 +171,7 @@ class DonorServiceTest {
         assertThat(profile.getStatus()).isEqualTo(DonorStatus.PENDING_DELETION);
     }
 
-    // --- updateRestriction ---
+
 
     @Test
     void updateRestrictionChangesRestriction() {
@@ -185,7 +185,7 @@ class DonorServiceTest {
         assertThat(result.getRestrictionReason()).isEqualTo("Manual override");
     }
 
-    // --- updateFlag ---
+
 
     @Test
     void updateFlagChangesFlag() {
@@ -198,7 +198,7 @@ class DonorServiceTest {
         assertThat(result.getFlaggedForManualReview()).isTrue();
     }
 
-    // --- getDonorById ---
+
 
     @Test
     void getDonorByIdReturnsProfile() {
@@ -219,7 +219,7 @@ class DonorServiceTest {
                 .hasMessageContaining("99");
     }
 
-    // --- getImpact ---
+
 
     @Test
     void getImpactReturnsImpactResult() {
@@ -233,7 +233,7 @@ class DonorServiceTest {
         assertThat(result.milestones()).contains("First donation completed");
     }
 
-    // --- updateNotificationPrefs ---
+
 
     @Test
     void updateNotificationPrefsSavesPreferences() {

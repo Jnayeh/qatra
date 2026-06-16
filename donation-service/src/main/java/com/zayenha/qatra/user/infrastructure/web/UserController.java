@@ -11,6 +11,7 @@ import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import com.zayenha.qatra.user.infrastructure.web.dto.request.*;
 import com.zayenha.qatra.user.infrastructure.web.dto.response.UserDetailResponse;
+import com.zayenha.qatra.user.infrastructure.web.dto.response.RestrictedUserResponse;
 import com.zayenha.qatra.user.infrastructure.mapper.UserMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

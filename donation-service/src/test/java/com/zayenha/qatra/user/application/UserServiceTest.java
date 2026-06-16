@@ -76,7 +76,7 @@ class UserServiceTest {
         return user;
     }
 
-    // --- create ---
+
 
     @Test
     void createSavesUserAndPublishesEvent() {
@@ -106,7 +106,7 @@ class UserServiceTest {
         verify(eventPublisher, never()).publishEvent(any());
     }
 
-    // --- update ---
+
 
     @Test
     void updateUpdatesExistingUser() {
@@ -131,7 +131,7 @@ class UserServiceTest {
                 .isInstanceOf(UserNotFoundException.class);
     }
 
-    // --- updateStatus ---
+
 
     @Test
     void updateStatusChangesStatus() {
@@ -152,7 +152,7 @@ class UserServiceTest {
                 .isInstanceOf(UserNotFoundException.class);
     }
 
-    // --- assignRole ---
+
 
     @Test
     void assignRoleSavesRoleWhenValid() {
@@ -188,7 +188,7 @@ class UserServiceTest {
         verify(userRoleRepository, never()).save(any());
     }
 
-    // --- revokeRole ---
+
 
     @Test
     void revokeRoleDeletesRoleWhenValid() {
@@ -218,7 +218,7 @@ class UserServiceTest {
                 .hasMessageContaining("does not have role");
     }
 
-    // --- delete ---
+
 
     @Test
     void deleteMarksInactiveUserAsDeleted() {
@@ -252,7 +252,7 @@ class UserServiceTest {
                 .isInstanceOf(UserNotFoundException.class);
     }
 
-    // --- findById ---
+
 
     @Test
     void findByIdReturnsUser() {
@@ -271,7 +271,7 @@ class UserServiceTest {
         assertThat(userService.findById(99L)).isEmpty();
     }
 
-    // --- findByEmail / findByPhone ---
+
 
     @Test
     void findByEmailDelegatesToRepository() {
@@ -289,7 +289,7 @@ class UserServiceTest {
         verify(userRepository).findByPhone("1234567890");
     }
 
-    // --- existsByEmail / existsByPhone ---
+
 
     @Test
     void existsByEmailDelegatesToRepository() {
@@ -305,7 +305,7 @@ class UserServiceTest {
         assertThat(userService.existsByPhone("1234567890")).isTrue();
     }
 
-    // --- getUserRoles ---
+
 
     @Test
     void getUserRolesReturnsMappedRoles() {
@@ -320,7 +320,7 @@ class UserServiceTest {
         assertThat(result).containsExactly(Role.DONOR, Role.CENTER_STAFF);
     }
 
-    // --- findAll ---
+
 
     @Test
     void findAllDelegatesToRepository() {
@@ -334,7 +334,7 @@ class UserServiceTest {
         assertThat(result.totalElements()).isEqualTo(1);
     }
 
-    // --- seedSuperAdminIfAbsent ---
+
 
     @Test
     void seedSuperAdminSkipsWhenEnvVarsMissing() {

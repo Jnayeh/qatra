@@ -176,7 +176,7 @@ class UserControllerTest {
         verify(commandUseCases).delete(1L);
     }
 
-    // --- ExceptionHandler tests ---
+
 
     @Test
     void userNotFoundReturns404() {

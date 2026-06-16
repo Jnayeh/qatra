@@ -9,6 +9,7 @@ import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
+import com.zayenha.qatra.user.domain.model.RestrictedDonor;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserRole;
@@ -189,7 +190,6 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
     @Override
     @Transactional
-    // ponytail: null-safe for test-created instances bypassing @Value
     public void seedSuperAdminIfAbsent() {
         if (superAdminEmail == null || superAdminEmail.isBlank()
                 || superAdminPhone == null || superAdminPhone.isBlank()
