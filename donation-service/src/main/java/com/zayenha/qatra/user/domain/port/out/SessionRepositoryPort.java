@@ -17,4 +17,6 @@ public interface SessionRepositoryPort {
     Optional<Session> findActiveByUserId(Long userId);
 
     void deleteById(Long id);
+
+    void deleteExpiredSessions(java.time.Instant cutoff);
 }

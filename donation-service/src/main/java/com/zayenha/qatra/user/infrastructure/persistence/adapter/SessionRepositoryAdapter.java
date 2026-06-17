@@ -53,6 +53,11 @@ public class SessionRepositoryAdapter implements SessionRepositoryPort {
         jpaRepository.deleteById(id);
     }
 
+    @Override
+    public void deleteExpiredSessions(java.time.Instant cutoff) {
+        jpaRepository.deleteByExpiresAtBefore(cutoff);
+    }
+
     private Session toDomain(SessionEntity e) {
         return Session.reconstruct(
             e.getId(), e.getUser().getId(),
