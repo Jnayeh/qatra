@@ -1,11 +1,9 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
 import com.zayenha.qatra._shared.event.AuditUtils;
-import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
-import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
@@ -50,8 +48,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserDetailResponse>> getDetails(@PathVariable Long id) {
-        var user = queryUseCases.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found: " + id, UserErrorCode.USER_NOT_FOUND.name()));
+        var user = queryUseCases.findById(id);
         return ResponseEntity.ok(ApiResponse.success(mapper.toDetail(user)));
     }
 

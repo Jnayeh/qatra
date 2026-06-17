@@ -1,8 +1,6 @@
 package com.zayenha.qatra.user.api;
 
-import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.infrastructure.EntityApi;
-import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import com.zayenha.qatra.user.infrastructure.mapper.UserMapper;
@@ -25,8 +23,8 @@ public class UserApi implements EntityApi<UserEntity> {
         return userJpaRepository.getReferenceById(id);
     }
     public UserDetailResponse getUser(Long id) {
-        return userQuery.findById(id).map(mapper::toDetail)
-            .orElseThrow(() -> new NotFoundException("User not found", UserErrorCode.USER_NOT_FOUND.name()));
+        var user = userQuery.findById(id);
+        return mapper.toDetail(user);
     }
     public void requestDeletion(Long id) {
         userCommand.requestDeletion(id);

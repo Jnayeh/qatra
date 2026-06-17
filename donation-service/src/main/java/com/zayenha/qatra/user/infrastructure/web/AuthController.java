@@ -113,8 +113,7 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<VerifyEmailResponse>> requestVerification() {
         var userId = AuditUtils.currentUserId();
-        var user = userQueryUseCases.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found", UserErrorCode.USER_NOT_FOUND.name()));
+        var user = userQueryUseCases.findById(userId);
         if (user.getStatus() != UserStatus.PENDING_VERIFICATION) {
             throw new ValidationException("Email already verified", UserErrorCode.USER_NOT_FOUND.name());
         }
@@ -134,8 +133,7 @@ public class AuthController {
             throw new NotFoundException("Verification token expired", "VERIFICATION_TOKEN_EXPIRED");
         }
 
-        var user = userQueryUseCases.findById(token.getUserId())
-                .orElseThrow(() -> new NotFoundException("User not found", UserErrorCode.USER_NOT_FOUND.name()));
+        var user = userQueryUseCases.findById(token.getUserId());
 
         if (user.getStatus() != UserStatus.PENDING_VERIFICATION) {
             throw new ValidationException("Email already verified", UserErrorCode.USER_NOT_FOUND.name());
@@ -169,8 +167,7 @@ public class AuthController {
             throw new NotFoundException("Refresh token expired", "REFRESH_TOKEN_EXPIRED");
         }
 
-        var user = userQueryUseCases.findById(session.getUserId())
-                .orElseThrow(() -> new NotFoundException("User not found", UserErrorCode.USER_NOT_FOUND.name()));
+        var user = userQueryUseCases.findById(session.getUserId());
 
         var roles = userQueryUseCases.getUserRoles(user.getId());
         var roleNameStrings = roles.stream().map(Enum::name).toList();
@@ -188,8 +185,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @Valid @RequestBody ChangePasswordRequest request) {
         var userId = AuditUtils.currentUserId();
-        var user = userQueryUseCases.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found", UserErrorCode.USER_NOT_FOUND.name()));
+        var user = userQueryUseCases.findById(userId);
         if (!passwordEncoder.matches(request.currentPassword(), user.getHashedPassword())) {
             throw new ValidationException("Current password is incorrect", "INVALID_CURRENT_PASSWORD");
         }
@@ -199,12 +195,11 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        var userOpt = userQueryUseCases.findByEmail(request.email());
-        if (userOpt.isEmpty()) {
+        if (!userQueryUseCases.existsByEmail(request.email())) {
             log.info("Password reset requested for unknown email — ignoring silently");
             return ResponseEntity.ok(ApiResponse.success(null));
         }
-        var user = userOpt.get();
+        var user = userQueryUseCases.findByEmail(request.email());
         var rawToken = UUID.randomUUID().toString();
         var token = new VerificationToken(user.getId(), sha256(rawToken), VerificationTokenType.PASSWORD_RESET,
                 Instant.now().plus(Duration.ofHours(1)));

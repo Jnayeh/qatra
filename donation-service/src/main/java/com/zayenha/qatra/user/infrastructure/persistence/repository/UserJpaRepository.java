@@ -1,6 +1,5 @@
 package com.zayenha.qatra.user.infrastructure.persistence.repository;
 
-import com.zayenha.qatra.user.domain.model.RestrictedDonor;
 import com.zayenha.qatra.user.domain.model.UserStatus;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import org.springframework.data.domain.Page;

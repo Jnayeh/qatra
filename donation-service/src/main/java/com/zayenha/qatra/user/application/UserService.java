@@ -9,7 +9,6 @@ import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
-import com.zayenha.qatra.user.domain.model.RestrictedDonor;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserRole;
@@ -30,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
 
 @Slf4j
 @Service
@@ -200,32 +199,35 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
     }
 
     @Override
-    public Optional<User> findById(Long id) {
+    public User findById(Long id) {
         var key = "users:" + id;
         var cached = cacheService.get(key, User.class);
-        if (cached.isPresent()) return cached;
-        var result = userRepository.findById(id);
-        result.ifPresent(r -> cacheService.put(key, r));
+        if (cached.isPresent()) return cached.get();
+        var result = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        cacheService.put(key, result);
         return result;
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
+    public User findByEmail(String email) {
         var key = "users:email:" + email;
         var cached = cacheService.get(key, User.class);
-        if (cached.isPresent()) return cached;
-        var result = userRepository.findByEmail(email);
-        result.ifPresent(r -> cacheService.put(key, r));
+        if (cached.isPresent()) return cached.get();
+        var result = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+        cacheService.put(key, result);
         return result;
     }
 
     @Override
-    public Optional<User> findByPhone(String phone) {
+    public User findByPhone(String phone) {
         var key = "users:phone:" + phone;
         var cached = cacheService.get(key, User.class);
-        if (cached.isPresent()) return cached;
-        var result = userRepository.findByPhone(phone);
-        result.ifPresent(r -> cacheService.put(key, r));
+        if (cached.isPresent()) return cached.get();
+        var result = userRepository.findByPhone(phone)
+                .orElseThrow(() -> new UserNotFoundException(phone));
+        cacheService.put(key, result);
         return result;
     }
 

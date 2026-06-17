@@ -261,31 +261,36 @@ class UserServiceTest {
 
         var result = userService.findById(1L);
 
-        assertThat(result).isPresent().contains(user);
+        assertThat(result).isEqualTo(user);
     }
 
     @Test
-    void findByIdReturnsEmptyWhenNotFound() {
+    void findByIdThrowsWhenNotFound() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThat(userService.findById(99L)).isEmpty();
+        assertThatThrownBy(() -> userService.findById(99L))
+                .isInstanceOf(UserNotFoundException.class);
     }
 
 
 
     @Test
     void findByEmailDelegatesToRepository() {
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(aUser()));
+        var user = aUser();
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
 
-        assertThat(userService.findByEmail("test@example.com")).isPresent();
+        var result = userService.findByEmail("test@example.com");
+        assertThat(result).isSameAs(user);
         verify(userRepository).findByEmail("test@example.com");
     }
 
     @Test
     void findByPhoneDelegatesToRepository() {
-        when(userRepository.findByPhone("1234567890")).thenReturn(Optional.of(aUser()));
+        var user = aUser();
+        when(userRepository.findByPhone("1234567890")).thenReturn(Optional.of(user));
 
-        assertThat(userService.findByPhone("1234567890")).isPresent();
+        var result = userService.findByPhone("1234567890");
+        assertThat(result).isSameAs(user);
         verify(userRepository).findByPhone("1234567890");
     }
 

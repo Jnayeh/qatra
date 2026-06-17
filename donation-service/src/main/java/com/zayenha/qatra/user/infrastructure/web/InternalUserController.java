@@ -1,10 +1,8 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
-import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra.user.application.mapper.UserDomainMapper;
 import com.zayenha.qatra.user.application.mapper.UserDomainMapper.UserSummary;
-import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import lombok.RequiredArgsConstructor;
@@ -23,24 +21,21 @@ public class InternalUserController {
     private final UserQueryUseCases userQueryUseCases;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserSummary>> findById(@PathVariable Long id) {
-        return userQueryUseCases.findById(id)
-                .map(u -> ResponseEntity.ok(ApiResponse.success(UserDomainMapper.toSummary(u))))
-                .orElseThrow(() -> new NotFoundException("User not found: " + id, UserErrorCode.USER_NOT_FOUND.name()));
+    public ResponseEntity<ApiResponse<UserSummary>> getUserById(@PathVariable Long id) {
+        var user = userQueryUseCases.findById(id);
+        return ResponseEntity.ok(ApiResponse.success(UserDomainMapper.toSummary(user)));
     }
 
     @GetMapping("/by-email")
     public ResponseEntity<ApiResponse<UserSummary>> findByEmail(@RequestParam String email) {
-        return userQueryUseCases.findByEmail(email)
-                .map(u -> ResponseEntity.ok(ApiResponse.success(UserDomainMapper.toSummary(u))))
-                .orElseThrow(() -> new NotFoundException("User not found: " + email, UserErrorCode.USER_NOT_FOUND.name()));
+        var user = userQueryUseCases.findByEmail(email);
+        return ResponseEntity.ok(ApiResponse.success(UserDomainMapper.toSummary(user)));
     }
 
     @GetMapping("/by-phone")
     public ResponseEntity<ApiResponse<UserSummary>> findByPhone(@RequestParam String phone) {
-        return userQueryUseCases.findByPhone(phone)
-                .map(u -> ResponseEntity.ok(ApiResponse.success(UserDomainMapper.toSummary(u))))
-                .orElseThrow(() -> new NotFoundException("User not found: " + phone, UserErrorCode.USER_NOT_FOUND.name()));
+        var user = userQueryUseCases.findByPhone(phone);
+        return ResponseEntity.ok(ApiResponse.success(UserDomainMapper.toSummary(user)));
     }
 
     @GetMapping("/{id}/roles")

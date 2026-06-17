@@ -22,7 +22,6 @@ import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -79,7 +78,7 @@ class UserControllerTest {
     @Test
     void getDetailsReturnsUser() {
         var user = aUser();
-        when(queryUseCases.findById(1L)).thenReturn(Optional.of(user));
+        when(queryUseCases.findById(1L)).thenReturn(user);
         when(mapper.toDetail(user)).thenReturn(
             new UserDetailResponse(user.getId(), user.getEmail(), user.getPhone(),
                 user.getDisplayName(), user.getStatus(), user.isEmailVerified(),
@@ -98,7 +97,7 @@ class UserControllerTest {
 
     @Test
     void getDetailsThrowsWhenNotFound() {
-        when(queryUseCases.findById(99L)).thenReturn(Optional.empty());
+        when(queryUseCases.findById(99L)).thenThrow(new NotFoundException("User not found", "USER_NOT_FOUND"));
 
         assertThatThrownBy(() -> controller.getDetails(99L))
                 .isInstanceOf(NotFoundException.class);
