@@ -5,6 +5,7 @@ import com.zayenha.qatra.notification.domain.model.NotificationType;
 import com.zayenha.qatra.notification.domain.port.out.NotificationRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,54 +30,20 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
 
     @Override
     public List<Notification> findByUserId(Long userId, NotificationType type, Boolean read, int page, int size) {
-        var pageable = PageRequest.of(page, size);
-        if (type != null && read != null) {
-            if (read) {
-                return jpaRepository.findReadInAppByUserIdAndType(userId, type, pageable)
-                        .stream().map(mapper::toDomain).toList();
-            }
-            return jpaRepository.findUnreadInAppByUserIdAndType(userId, type, pageable)
-                    .stream().map(mapper::toDomain).toList();
-        }
-        if (type != null) {
-            return jpaRepository.findInAppByUserIdAndType(userId, type, pageable)
-                    .stream().map(mapper::toDomain).toList();
-        }
-        if (Boolean.TRUE.equals(read)) {
-            return jpaRepository.findReadInAppByUserId(userId, pageable)
-                    .stream().map(mapper::toDomain).toList();
-        }
-        if (Boolean.FALSE.equals(read)) {
-            return jpaRepository.findUnreadInAppByUserId(userId, pageable)
-                    .stream().map(mapper::toDomain).toList();
-        }
-        return jpaRepository.findInAppByUserId(userId, pageable)
+        var spec = NotificationSpec.build(userId, type, read);
+        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return jpaRepository.findAll(spec, pageable)
                 .stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public long countByUserId(Long userId, NotificationType type, Boolean read) {
-        if (type != null && read != null) {
-            if (read) {
-                return jpaRepository.countInAppByUserIdAndType(userId, type) - jpaRepository.countUnreadInAppByUserIdAndType(userId, type);
-            }
-            return jpaRepository.countUnreadInAppByUserIdAndType(userId, type);
-        }
-        if (type != null) {
-            return jpaRepository.countInAppByUserIdAndType(userId, type);
-        }
-        if (read != null) {
-            if (read) {
-                return jpaRepository.countInAppByUserId(userId) - jpaRepository.countUnreadInAppByUserId(userId);
-            }
-            return jpaRepository.countUnreadInAppByUserId(userId);
-        }
-        return jpaRepository.countInAppByUserId(userId);
+        return jpaRepository.count(NotificationSpec.build(userId, type, read));
     }
 
     @Override
     public long countUnreadByUserId(Long userId) {
-        return jpaRepository.countUnreadInAppByUserId(userId);
+        return jpaRepository.count(NotificationSpec.build(userId, null, false));
     }
 
     @Override

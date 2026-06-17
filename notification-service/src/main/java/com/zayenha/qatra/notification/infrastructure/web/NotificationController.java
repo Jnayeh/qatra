@@ -21,12 +21,12 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/notifications")
+@PreAuthorize("isAuthenticated()")
 public class NotificationController {
 
     private final NotificationQueryService queryService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('DONOR', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<List<NotificationResponse>>> listNotifications(
             Authentication auth,
             @RequestParam(required = false) String type,
@@ -43,7 +43,6 @@ public class NotificationController {
     }
 
     @PatchMapping("/{id}/read")
-    @PreAuthorize("hasAnyRole('DONOR', 'CENTER_STAFF')")
     public ResponseEntity<NotificationResponse> markAsRead(
             Authentication auth,
             @PathVariable Long id) {
@@ -53,7 +52,6 @@ public class NotificationController {
     }
 
     @PatchMapping("/read-all")
-    @PreAuthorize("hasAnyRole('DONOR', 'CENTER_STAFF')")
     public ResponseEntity<Map<String, Integer>> markAllAsRead(Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
         var count = queryService.markAllAsRead(userId);
@@ -61,7 +59,6 @@ public class NotificationController {
     }
 
     @GetMapping("/unread-count")
-    @PreAuthorize("hasAnyRole('DONOR', 'CENTER_STAFF')")
     public ResponseEntity<Map<String, Long>> unreadCount(Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
         var count = queryService.countUnread(userId);

@@ -22,6 +22,8 @@ class NotificationDispatchServiceTest {
     @Mock
     private NotificationRepositoryPort notificationRepository;
     @Mock
+    private NotificationDeliveryService deliveryService;
+    @Mock
     private ChannelHandler inAppChannel;
 
     private NotificationDispatchService dispatchService;
@@ -30,7 +32,7 @@ class NotificationDispatchServiceTest {
     void setUp() {
         lenient().when(inAppChannel.type()).thenReturn(com.zayenha.qatra.notification.domain.model.NotificationChannel.IN_APP);
         dispatchService = new NotificationDispatchService(
-                notificationRepository, List.of(inAppChannel));
+                notificationRepository, deliveryService, List.of(inAppChannel));
     }
 
     @Test
@@ -51,8 +53,8 @@ class NotificationDispatchServiceTest {
         var payload = new NotificationPayload(1L, null, null, null, null, "Title", "Body", null, null, "corr-1", Instant.now(), List.of(com.zayenha.qatra.notification.domain.model.NotificationChannel.IN_APP));
         dispatchService.dispatch(payload, "IN_APP");
 
-        verify(notificationRepository, times(2)).save(any()); // save + update status
-        verify(inAppChannel).deliver(eq(payload), any(Notification.class));
+        verify(notificationRepository, times(1)).save(any());
+        verify(deliveryService).deliverWithRetry(eq(inAppChannel), eq(payload), any(Notification.class));
     }
 
     @Test
