@@ -217,6 +217,19 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
     }
 
     @Override
+    public void activateProfile(Long userId) {
+        var profile = donorRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        "Donor not found by userID: " + userId,
+                        DonorErrorCode.DONOR_NOT_FOUND.name()));
+        profile.setStatus(DonorStatus.ACTIVE);
+        profile.setUpdatedAt(Instant.now());
+        donorRepository.save(profile);
+        cacheService.evictByPattern("donorProfiles:*");
+        auditPublisher.publish("DONOR_PROFILE_ACTIVATED", profile.getId(), "DonorProfile", null, Map.of("userId", userId));
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public DonorProfile getMyProfile(Long userId) {
         var key = "donorProfiles:userId:" + userId;

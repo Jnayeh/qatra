@@ -3,6 +3,7 @@ package com.zayenha.qatra.donor.application;
 import com.zayenha.qatra.donor.domain.exception.DonorErrorCode;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
+import com.zayenha.qatra.donor.domain.model.DonorStatus;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireQueryUseCases;
@@ -57,7 +58,11 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         evaluatePermanentRestriction(profile, command);
         profile.setUpdatedAt(Instant.now());
         boolean hasLocation = profile.getLatitude() != null && profile.getLongitude() != null;
-        profile.setProfileComplete(hasLocation);
+        boolean complete = hasLocation;
+        profile.setProfileComplete(complete);
+        if (complete && profile.getStatus() == DonorStatus.INACTIVE) {
+            profile.setStatus(DonorStatus.ACTIVE);
+        }
 
         donorRepository.save(profile);
         var saved = donorRepository.saveQuestionnaire(questionnaire);

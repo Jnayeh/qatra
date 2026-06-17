@@ -43,7 +43,7 @@ public class DonorProfile {
         this.bloodType = BloodType.UNKNOWN;
         this.bloodTypeVerified = false;
         this.profileComplete = false;
-        this.status = DonorStatus.ACTIVE;
+        this.status = DonorStatus.INACTIVE;
         this.availability = AvailabilityStatus.AVAILABLE;
         this.notificationPreferences = new NotificationPreferences(
             NotificationFrequency.IMMEDIATE, null, true, 25

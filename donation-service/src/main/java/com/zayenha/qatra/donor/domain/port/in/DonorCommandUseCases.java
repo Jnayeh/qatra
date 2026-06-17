@@ -16,6 +16,7 @@ public interface DonorCommandUseCases {
     void         reactivateDonor(Long userId);
     DonorProfile updateRestriction(Long donorId, boolean permanentlyRestricted, String reason);
     DonorProfile updateFlag(Long donorId, boolean flagged);
+    void activateProfile(Long userId);
 
     record UpdateProfileCommand(String displayName, String phone) {}
     record UpdateLocationCommand(Double latitude, Double longitude, String city, String country) {}
