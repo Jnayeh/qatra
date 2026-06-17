@@ -184,15 +184,16 @@ class AppointmentServiceTest {
 
         var result = service.findById(1L);
 
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(1L);
+        assertThat(result).isEqualTo(appointment);
+        assertThat(result.getId()).isEqualTo(1L);
     }
 
     @Test
-    void findByIdReturnsEmptyWhenNotFound() {
+    void findByIdThrowsWhenNotFound() {
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThat(service.findById(99L)).isEmpty();
+        assertThatThrownBy(() -> service.findById(99L))
+                .isInstanceOf(NotFoundException.class);
     }
 
     @Test

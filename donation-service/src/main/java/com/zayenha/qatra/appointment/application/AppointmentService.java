@@ -1,22 +1,26 @@
 package com.zayenha.qatra.appointment.application;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.AppointmentType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
-import com.zayenha.qatra._shared.exception.*;
-import com.zayenha.qatra._shared.event.DonationCompletedEvent;
+import com.zayenha.qatra._shared.exception.ConflictException;
+import com.zayenha.qatra._shared.exception.NotFoundException;
+import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.appointment.application.proxy.AptCenterProxy;
 import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
 import com.zayenha.qatra.appointment.application.proxy.AptUserProxy;
 import com.zayenha.qatra.appointment.domain.exception.AppointmentErrorCode;
-import com.zayenha.qatra.appointment.domain.model.*;
+import com.zayenha.qatra.appointment.domain.model.Appointment;
+import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
+import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentQueryUseCases;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.zayenha.qatra.center.application.api.dto.SlotDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,8 +31,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +38,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
     public static final String STATUS = "status";
     public static final String APPOINTMENTS_BASE = "appointments:*";
-    public static final String DONOR_ID = "userId";
+    public static final String DONOR_ID = "donorId";
     public static final String APPOINTMENT_CLASSNAME = "Appointment";
     private final AppointmentRepositoryPort repository;
     private final AptCenterProxy centerProxy;
@@ -54,7 +56,6 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
                 List.of(AppointmentStatus.SCHEDULED, AppointmentStatus.CHECKED_IN, AppointmentStatus.IN_SCREENING))) {
             throw new ConflictException("Donor already has an active appointment", AppointmentErrorCode.DONOR_ALREADY_BOOKED.name());
         }
-
 
         var slot = centerProxy.findSlotById(slotId);
         validateSlot(slot, type);
@@ -275,12 +276,14 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Appointment> findById(Long id) {
+    public Appointment findById(Long id) {
         var key = "appointments:" + id;
         var cached = cacheService.get(key, Appointment.class);
-        if (cached.isPresent()) return cached;
-        var result = repository.findById(id);
-        result.ifPresent(r -> cacheService.put(key, r));
+        if (cached.isPresent()) return cached.get();
+        var result = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Appointment not found: " + id,
+                        AppointmentErrorCode.APPOINTMENT_NOT_FOUND.name()));
+        cacheService.put(key, result);
         return result;
     }
 
@@ -317,12 +320,14 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<HealthScreening> findScreeningByAppointmentId(Long appointmentId) {
+    public HealthScreening findScreeningByAppointmentId(Long appointmentId) {
         var key = "screenings:" + appointmentId;
         var cached = cacheService.get(key, HealthScreening.class);
-        if (cached.isPresent()) return cached;
-        var result = repository.findScreeningByAppointmentId(appointmentId);
-        result.ifPresent(r -> cacheService.put(key, r));
+        if (cached.isPresent()) return cached.get();
+        var result = repository.findScreeningByAppointmentId(appointmentId)
+                .orElseThrow(() -> new NotFoundException("Screening not found for appointment: " + appointmentId,
+                        AppointmentErrorCode.SCREENING_NOT_FOUND.name()));
+        cacheService.put(key, result);
         return result;
     }
 

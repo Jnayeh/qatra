@@ -7,15 +7,14 @@ import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public interface AppointmentQueryUseCases {
-    Optional<Appointment> findById(Long id);
+    Appointment findById(Long id);
     List<Appointment> findByDonorId(Long donorId);
     List<Appointment> findByCenterIdAndDate(Long centerId, LocalDate date);
     PageResult<Appointment> findByCenterIdAndDateRange(
         Long centerId, LocalDate fromDate, LocalDate toDate, int page, int size);
     PageResult<Appointment> findAll(SearchCriteria criteria);
-    Optional<HealthScreening> findScreeningByAppointmentId(Long appointmentId);
+    HealthScreening findScreeningByAppointmentId(Long appointmentId);
     List<Appointment> findScheduledAppointmentsByDate(LocalDate targetDate);
 }

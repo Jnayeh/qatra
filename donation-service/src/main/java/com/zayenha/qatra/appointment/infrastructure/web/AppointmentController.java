@@ -89,9 +89,8 @@ public class AppointmentController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<AppointmentResponse>> getById(@PathVariable Long id) {
-        return queryUseCases.findById(id)
-                .map(a -> ResponseEntity.ok(ApiResponse.success(mapper.toResponse(a))))
-                .orElse(ResponseEntity.notFound().build());
+        var appointment = queryUseCases.findById(id);
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(appointment)));
     }
 
     @GetMapping
@@ -152,8 +151,7 @@ public class AppointmentController {
 
     @GetMapping("/{id}/screening")
     public ResponseEntity<ApiResponse<HealthScreeningResponse>> getScreening(@PathVariable Long id) {
-        return queryUseCases.findScreeningByAppointmentId(id)
-                .map(s -> ResponseEntity.ok(ApiResponse.success(mapper.toScreeningResponse(s))))
-                .orElse(ResponseEntity.notFound().build());
+        var screening = queryUseCases.findScreeningByAppointmentId(id);
+        return ResponseEntity.ok(ApiResponse.success(mapper.toScreeningResponse(screening)));
     }
 }

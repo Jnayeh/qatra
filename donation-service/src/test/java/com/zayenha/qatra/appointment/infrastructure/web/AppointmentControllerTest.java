@@ -21,9 +21,9 @@ import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -132,7 +132,7 @@ class AppointmentControllerTest {
     @Test
     void getByIdReturnsAppointment() {
         var appointment = anAppointment();
-        when(queryUseCases.findById(1L)).thenReturn(Optional.of(appointment));
+        when(queryUseCases.findById(1L)).thenReturn(appointment);
         when(mapper.toResponse(appointment)).thenReturn(aResponse());
 
         var response = controller.getById(1L);
@@ -142,12 +142,11 @@ class AppointmentControllerTest {
     }
 
     @Test
-    void getByIdReturns404WhenNotFound() {
-        when(queryUseCases.findById(99L)).thenReturn(Optional.empty());
+    void getByIdThrowsWhenNotFound() {
+        when(queryUseCases.findById(99L)).thenThrow(new com.zayenha.qatra._shared.exception.NotFoundException("Not found", "APPOINTMENT_NOT_FOUND"));
 
-        var response = controller.getById(99L);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThatThrownBy(() -> controller.getById(99L))
+                .isInstanceOf(com.zayenha.qatra._shared.exception.NotFoundException.class);
     }
 
     @Test
@@ -195,7 +194,7 @@ class AppointmentControllerTest {
         var screening = new HealthScreening();
         screening.setId(1L);
         screening.setAppointmentId(1L);
-        when(queryUseCases.findScreeningByAppointmentId(1L)).thenReturn(Optional.of(screening));
+        when(queryUseCases.findScreeningByAppointmentId(1L)).thenReturn(screening);
         when(mapper.toScreeningResponse(screening)).thenReturn(aScreeningResponse());
 
         var response = controller.getScreening(1L);
