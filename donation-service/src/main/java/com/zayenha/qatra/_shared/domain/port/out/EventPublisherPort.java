@@ -15,4 +15,6 @@ public interface EventPublisherPort {
     void publishPasswordReset(Long userId, String email, String resetToken, String resetLink);
 
     void publishEmailVerification(Long userId, String email, String verificationToken, String verificationLink);
+
+    void publishProfileCompletionNudge(Long userId);
 }

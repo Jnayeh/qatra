@@ -89,4 +89,11 @@ public class DonorRepositoryAdapter implements DonorRepositoryPort {
                 .map(mapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public List<DonorProfile> findIncompleteProfiles() {
+        return donorJpaRepository.findIncompleteProfiles().stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

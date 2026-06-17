@@ -7,6 +7,7 @@ import com.zayenha.qatra._shared.event.EligibilityRestoredEvent;
 import com.zayenha.qatra._shared.event.EmergencyCreatedEvent;
 import com.zayenha.qatra._shared.event.EmailVerificationEvent;
 import com.zayenha.qatra._shared.event.PasswordResetEvent;
+import com.zayenha.qatra._shared.event.ProfileCompletionNudgeEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -39,6 +40,9 @@ public class NotificationEventPublisher implements EventPublisherPort {
     @Value("${kafka.topic.email-verification.name:email.verification}")
     private String emailVerificationTopic;
 
+    @Value("${kafka.topic.profile-completion-nudge.name:profile.completion.nudge}")
+    private String profileCompletionNudgeTopic;
+
     @Value("${notification.emergency-channels:IN_APP}")
     private List<String> emergencyChannels;
 
@@ -53,6 +57,9 @@ public class NotificationEventPublisher implements EventPublisherPort {
 
     @Value("${notification.email-verification-channels:IN_APP,EMAIL}")
     private List<String> emailVerificationChannels;
+
+    @Value("${notification.profile-completion-channels:IN_APP}")
+    private List<String> profileCompletionChannels;
 
     @Override
     public void publishEmergencyCreated(Long emergencyId, List<Long> matchedUserIds) {
@@ -94,5 +101,12 @@ public class NotificationEventPublisher implements EventPublisherPort {
         var event = new EmailVerificationEvent(userId, email, verificationToken, verificationLink,
             UUID.randomUUID().toString(), Instant.now(), emailVerificationChannels);
         eventPublisher.publish(emailVerificationTopic, "email-verify-" + userId, event);
+    }
+
+    @Override
+    public void publishProfileCompletionNudge(Long userId) {
+        var event = new ProfileCompletionNudgeEvent(userId,
+            UUID.randomUUID().toString(), Instant.now(), profileCompletionChannels);
+        eventPublisher.publish(profileCompletionNudgeTopic, "profile-nudge-" + userId, event);
     }
 }

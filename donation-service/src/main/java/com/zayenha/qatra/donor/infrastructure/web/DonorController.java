@@ -172,6 +172,15 @@ public class DonorController {
         return ResponseEntity.ok(ApiResponse.success(mapper.toDetailResponse(profile, healthQuestionnaire)));
     }
 
+    @GetMapping("/api/v1/donors/{id}/health-questionnaire")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
+    public ResponseEntity<ApiResponse<DonorHealthResponse>> getDonorHealthQuestionnaire(
+            @PathVariable Long id) {
+        var profile = donorQueryUseCases.getDonorById(id);
+        var questionnaire = healthQueryUseCases.getHealthQuestionnaire(profile.getUserId());
+        return ResponseEntity.ok(ApiResponse.success(mapper.toHealthResponse(questionnaire)));
+    }
+
     @PatchMapping("/api/v1/donors/{id}/restriction")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<DonorProfileResponse>> updateRestriction(

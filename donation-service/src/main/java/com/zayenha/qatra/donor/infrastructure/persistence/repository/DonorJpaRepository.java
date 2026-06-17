@@ -31,4 +31,7 @@ public interface DonorJpaRepository extends JpaRepository<DonorProfileEntity, Lo
 
     @Query("SELECT d FROM DonorProfileEntity d WHERE d.eligibleFromDate = :date AND d.permanentlyRestricted = false AND d.status = 'ACTIVE'")
     List<DonorProfileEntity> findByEligibleFromDate(@Param("date") LocalDate date);
+
+    @Query("SELECT d FROM DonorProfileEntity d WHERE d.profileComplete = false AND d.status = 'ACTIVE' AND d.deletedAt IS NULL")
+    List<DonorProfileEntity> findIncompleteProfiles();
 }

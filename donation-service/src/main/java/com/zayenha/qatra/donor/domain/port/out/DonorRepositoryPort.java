@@ -19,4 +19,6 @@ public interface DonorRepositoryPort {
     List<DonorProfile> findEligibleForEmergency();
     List<DonorProfile> findEligibilityRestoredDonors();
     List<DonorProfile> findByEligibleFromDate(java.time.LocalDate date);
+
+    List<DonorProfile> findIncompleteProfiles();
 }

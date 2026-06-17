@@ -7,6 +7,7 @@ import com.zayenha.qatra.notification.application.dto.EligibilityRestoredEvent;
 import com.zayenha.qatra.notification.application.dto.EmailVerificationEvent;
 import com.zayenha.qatra.notification.application.dto.EmergencyCreatedEvent;
 import com.zayenha.qatra.notification.application.dto.PasswordResetEvent;
+import com.zayenha.qatra.notification.application.dto.ProfileCompletionNudgeEvent;
 import com.zayenha.qatra.notification.application.service.NotificationDispatchService;
 import com.zayenha.qatra.notification.domain.model.NotificationChannel;
 import com.zayenha.qatra.notification.domain.model.NotificationPayload;
@@ -180,6 +181,28 @@ public class NotificationEventConsumer {
                     "Click the link to verify your email: " + event.verificationLink(),
                     html,
                     Map.of("verificationToken", event.verificationToken(), "email", event.email()),
+                    event.correlationId(), event.occurredAt(),
+                    requestedChannels);
+            dispatchService.dispatch(payload, channelConfig);
+        });
+    }
+
+    @KafkaListener(topics = "#{'${kafka.topic.profile-completion-nudge.name:profile.completion.nudge}'}")
+    public void consumeProfileCompletionNudge(String message) {
+        handle(message, ProfileCompletionNudgeEvent.class, event -> {
+            var requestedChannels = mapChannels(event.correlationId(), event.channels());
+            var html = """
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #8e44ad;">Complete Your Profile</h2>
+                    <p>Complete your donor profile to become eligible for blood donation requests.</p>
+                </div>""";
+            var payload = new NotificationPayload(
+                    event.userId(), null, null, null,
+                    NotificationType.PROFILE_COMPLETION,
+                    "Complete Your Profile",
+                    "Complete your donor profile to become eligible for blood donation requests.",
+                    html,
+                    Map.of(),
                     event.correlationId(), event.occurredAt(),
                     requestedChannels);
             dispatchService.dispatch(payload, channelConfig);
