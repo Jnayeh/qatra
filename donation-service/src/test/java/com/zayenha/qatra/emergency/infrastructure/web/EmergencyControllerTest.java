@@ -23,9 +23,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
@@ -84,7 +84,7 @@ class EmergencyControllerTest {
     @Test
     void getByIdReturnsEmergency() {
         var emergency = anEmergency();
-        when(queryUseCases.findById(1L)).thenReturn(Optional.of(emergency));
+        when(queryUseCases.findById(1L)).thenReturn(emergency);
         when(mapper.toResponse(emergency)).thenReturn(
                 new EmergencyResponse(
                         emergency.getId(),
@@ -111,12 +111,11 @@ class EmergencyControllerTest {
     }
 
     @Test
-    void getByIdReturns404WhenNotFound() {
-        when(queryUseCases.findById(99L)).thenReturn(Optional.empty());
+    void getByIdThrowsWhenNotFound() {
+        when(queryUseCases.findById(99L)).thenThrow(new com.zayenha.qatra._shared.exception.NotFoundException("Not found", "EMERGENCY_NOT_FOUND"));
 
-        var response = controller.getById(99L);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThatThrownBy(() -> controller.getById(99L))
+                .isInstanceOf(com.zayenha.qatra._shared.exception.NotFoundException.class);
     }
 
     @Test

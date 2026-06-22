@@ -69,11 +69,9 @@ public class EmergencyController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<EmergencyResponse>> getById(@PathVariable Long id) {
-        return queryUseCases.findById(id)
-                .map(e -> ResponseEntity.ok(ApiResponse.success(mapper.toResponse(e))))
-                .orElse(ResponseEntity.notFound().build());
+        var emergency = queryUseCases.findById(id);
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(emergency)));
     }
 
     @GetMapping

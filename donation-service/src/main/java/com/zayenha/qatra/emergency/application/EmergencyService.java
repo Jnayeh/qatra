@@ -28,7 +28,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -188,12 +188,14 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<EmergencyRequest> findById(Long id) {
+    public EmergencyRequest findById(Long id) {
         var key = "emergencies:" + id;
         var cached = cacheService.get(key, EmergencyRequest.class);
-        if (cached.isPresent()) return cached;
-        var result = repository.findById(id);
-        result.ifPresent(r -> cacheService.put(key, r));
+        if (cached.isPresent()) return cached.get();
+        var result = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Emergency not found: " + id,
+                        EmergencyErrorCode.EMERGENCY_NOT_FOUND.name()));
+        cacheService.put(key, result);
         return result;
     }
 

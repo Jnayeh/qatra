@@ -166,13 +166,14 @@ class EmergencyServiceTest {
         request.setId(1L);
         when(repository.findById(1L)).thenReturn(Optional.of(request));
 
-        assertThat(service.findById(1L)).isPresent();
+        assertThat(service.findById(1L)).isEqualTo(request);
     }
 
     @Test
-    void findByIdReturnsEmptyWhenNotFound() {
+    void findByIdThrowsWhenNotFound() {
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThat(service.findById(99L)).isEmpty();
+        assertThatThrownBy(() -> service.findById(99L))
+                .isInstanceOf(com.zayenha.qatra._shared.exception.NotFoundException.class);
     }
 }
