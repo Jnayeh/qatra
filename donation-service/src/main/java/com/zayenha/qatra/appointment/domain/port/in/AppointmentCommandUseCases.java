@@ -9,7 +9,7 @@ public interface AppointmentCommandUseCases {
     Appointment book(Long donorId, Long slotId, Long emergencyId, AppointmentType type);
     Appointment checkIn(Long appointmentId);
     Appointment startScreening(Long appointmentId);
-    Appointment complete(Long appointmentId, DonationOutcome outcome, String notes);
+    Appointment complete(Long appointmentId, DonationOutcome outcome, Integer mlCollected, String notes);
     Appointment cancel(Long appointmentId);
     Appointment cancelByDonor(Long appointmentId, Long donorId);
     Appointment reschedule(Long appointmentId, Long newSlotId);

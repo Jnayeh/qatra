@@ -7,6 +7,7 @@ import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
+import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
@@ -121,14 +122,14 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
     @Override
     @Transactional
-    public Appointment complete(Long appointmentId, DonationOutcome outcome, String notes) {
+    public Appointment complete(Long appointmentId, DonationOutcome outcome, Integer mlCollected, String notes) {
         var appointment = findOrThrow(appointmentId);
         if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
             throw new ValidationException("Appointment already completed",
                     AppointmentErrorCode.APPOINTMENT_ALREADY_COMPLETED.name());
         }
         var oldStatus = appointment.getStatus();
-        appointment.complete(outcome, notes);
+        appointment.complete(outcome, notes, mlCollected, AuditUtils.currentUserId());
         var saved = repository.save(appointment);
         cacheService.evictByPattern(APPOINTMENTS_BASE);
 

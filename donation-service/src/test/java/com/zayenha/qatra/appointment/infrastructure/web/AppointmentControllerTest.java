@@ -102,12 +102,12 @@ class AppointmentControllerTest {
         appointment.setStatus(AppointmentStatus.COMPLETED);
         appointment.setOutcome(DonationOutcome.COMPLETED);
         when(mapper.toOutcome("FULL_DONATION")).thenReturn(DonationOutcome.COMPLETED);
-        when(commandUseCases.complete(eq(1L), eq(DonationOutcome.COMPLETED), eq("Good"))).thenReturn(appointment);
+        when(commandUseCases.complete(eq(1L), eq(DonationOutcome.COMPLETED), eq(450), eq("Good"))).thenReturn(appointment);
         when(mapper.toResponse(appointment)).thenReturn(new AppointmentResponse(1L, 1L, 100L, 1000L, null, null,
             AppointmentType.REGULAR, AppointmentStatus.COMPLETED, null, DonationOutcome.COMPLETED,
             null, null, null, null, null, null, null, null, Instant.now(), Instant.now()));
 
-        var request = new CompleteAppointmentRequest("FULL_DONATION", "Good");
+        var request = new CompleteAppointmentRequest("FULL_DONATION", 450, "Good");
         var response = controller.complete(1L, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

@@ -118,7 +118,7 @@ class AppointmentServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(appointment));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        var result = service.complete(1L, DonationOutcome.COMPLETED, "Good");
+        var result = service.complete(1L, DonationOutcome.COMPLETED, 450, "Good");
 
         assertThat(result.getStatus()).isEqualTo(AppointmentStatus.COMPLETED);
         assertThat(result.getOutcome()).isEqualTo(DonationOutcome.COMPLETED);

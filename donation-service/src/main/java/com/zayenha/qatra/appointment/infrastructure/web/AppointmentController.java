@@ -61,7 +61,7 @@ public class AppointmentController {
     public ResponseEntity<ApiResponse<AppointmentResponse>> complete(
             @PathVariable Long id, @Valid @RequestBody CompleteAppointmentRequest request) {
         var outcome = mapper.toOutcome(request.outcome());
-        var appointment = commandUseCases.complete(id, outcome, request.notes());
+        var appointment = commandUseCases.complete(id, outcome, request.mlCollected(), request.notes());
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(appointment)));
     }
 
