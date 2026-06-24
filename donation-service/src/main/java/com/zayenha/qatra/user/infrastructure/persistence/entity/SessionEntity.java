@@ -13,7 +13,8 @@ import java.time.Instant;
 public class SessionEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "session_seq")
+    @SequenceGenerator(name = "session_seq", sequenceName = "session_seq", allocationSize = 1)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -17,7 +17,8 @@ import java.time.LocalTime;
 public class SlotEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "slot_seq")
+    @SequenceGenerator(name = "slot_seq", sequenceName = "slot_seq", allocationSize = 1)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

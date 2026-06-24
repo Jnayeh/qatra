@@ -15,7 +15,8 @@ import java.time.Instant;
 public class HealthQuestionnaireEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "health_questionnaire_seq")
+    @SequenceGenerator(name = "health_questionnaire_seq", sequenceName = "health_questionnaire_seq", allocationSize = 1)
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)

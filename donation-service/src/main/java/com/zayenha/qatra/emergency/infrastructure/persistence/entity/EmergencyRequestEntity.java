@@ -20,7 +20,8 @@ import java.time.Instant;
 public class EmergencyRequestEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "emergency_request_seq")
+    @SequenceGenerator(name = "emergency_request_seq", sequenceName = "emergency_request_seq", allocationSize = 1)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

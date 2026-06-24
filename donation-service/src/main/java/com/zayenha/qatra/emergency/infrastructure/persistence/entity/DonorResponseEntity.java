@@ -18,7 +18,8 @@ import java.time.Instant;
 public class DonorResponseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "donor_response_seq")
+    @SequenceGenerator(name = "donor_response_seq", sequenceName = "donor_response_seq", allocationSize = 1)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

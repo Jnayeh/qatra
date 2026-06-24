@@ -19,7 +19,8 @@ import java.time.Instant;
 public class MatchResultEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "match_result_seq")
+    @SequenceGenerator(name = "match_result_seq", sequenceName = "match_result_seq", allocationSize = 1)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -16,7 +16,8 @@ import java.time.Instant;
 public class CenterAdminProfileEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "center_admin_profile_seq")
+    @SequenceGenerator(name = "center_admin_profile_seq", sequenceName = "center_admin_profile_seq", allocationSize = 1)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

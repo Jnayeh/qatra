@@ -26,7 +26,8 @@ import java.util.List;
 public class CenterEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "center_seq")
+    @SequenceGenerator(name = "center_seq", sequenceName = "center_seq", allocationSize = 1)
     private Long id;
 
     @Column(nullable = false, unique = true)
