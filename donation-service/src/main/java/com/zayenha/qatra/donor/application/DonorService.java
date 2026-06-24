@@ -1,5 +1,6 @@
 package com.zayenha.qatra.donor.application;
 
+import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra.donor.domain.exception.DonorErrorCode;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
@@ -171,11 +172,12 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
                 "Donor not found by userID: " + userId,
                 DonorErrorCode.DONOR_NOT_FOUND.name()));
         if (profile.getStatus() == DonorStatus.PENDING_DELETION) {
+            var actor = AuditUtils.currentUserId()==0 ? userId : AuditUtils.currentUserId();
             profile.setStatus(DonorStatus.ACTIVE);
             profile.setUpdatedAt(Instant.now());
             donorRepository.save(profile);
             cacheService.evictByPattern("donorProfiles:*");
-            auditPublisher.publish("DONOR_REACTIVATED", profile.getId(), "DonorProfile", null, Map.of("userId", userId, "previousStatus", "PENDING_DELETION"));
+            auditPublisher.publish(actor, "DONOR_REACTIVATED", profile.getId(), "DonorProfile", null, Map.of("userId", userId, "previousStatus", "PENDING_DELETION"));
         }
     }
 
