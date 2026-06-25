@@ -30,6 +30,6 @@ public class NotificationDeliveryService {
         channel.deliver(payload, notification);
         notification.markSent();
         notificationRepository.save(notification);
-        log.info("[SAGA] Channel {} delivery confirmed for notification id={}", channel.type(), notification.getId());
+        log.info("Channel {} delivery confirmed for notification id={}", channel.type(), notification.getId());
     }
 }

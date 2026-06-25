@@ -37,14 +37,14 @@ public class NotificationResultPublisher {
             kafkaTemplate.send(resultTopic, "result-" + userId, payload)
                     .whenComplete((result, ex) -> {
                         if (ex != null) {
-                            log.error("[SAGA] Failed to publish result for userId={}: {}",
+                            log.error("Failed to publish result for userId={}: {}",
                                     userId, ex.getMessage(), ex);
                         } else {
-                            log.info("[SAGA] Published result: userId={} status={}", userId, status);
+                            log.info("Published result: userId={} status={}", userId, status);
                         }
                     });
         } catch (Exception e) {
-            log.error("[SAGA] Failed to serialize result for userId={}: {}", userId, e.getMessage(), e);
+            log.error("Failed to serialize result for userId={}: {}", userId, e.getMessage(), e);
         }
     }
 }

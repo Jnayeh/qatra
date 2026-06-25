@@ -7,6 +7,8 @@ import com.zayenha.qatra.notification.domain.exception.NotificationDeliveryExcep
 import com.zayenha.qatra.notification.domain.model.Notification;
 import com.zayenha.qatra.notification.domain.model.NotificationChannel;
 import com.zayenha.qatra.notification.domain.model.NotificationPayload;
+import com.zayenha.qatra.notification.domain.model.NotificationStatus;
+import com.zayenha.qatra.notification.infrastructure.adapter.persistence.JpaNotificationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +20,14 @@ import org.springframework.stereotype.Component;
 public class ResendEmailChannel implements ChannelHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ResendEmailChannel.class);
-
+    private final JpaNotificationRepository jpaRepository;
     private final Resend resend;
     private final String from;
 
-    public ResendEmailChannel(
+    public ResendEmailChannel(JpaNotificationRepository jpaRepository,
             @Value("${resend.api-key}") String apiKey,
             @Value("${email.channel.from}") String from) {
+        this.jpaRepository = jpaRepository;
         this.resend = new Resend(apiKey);
         this.from = from;
     }
@@ -50,9 +53,11 @@ public class ResendEmailChannel implements ChannelHandler {
                     .build();
 
             var response = resend.emails().send(params);
-            log.info("[SAGA] Resend email sent to {} (id={})", toEmail, response.getId());
+            notification.setStatus(NotificationStatus.DELIVERED);
+            log.info("Resend email sent to {} (id={})", toEmail, response.getId());
         } catch (Exception e) {
-            log.error("[SAGA] Resend email failed for email {}, exception: {}", toEmail, e.getMessage(), e);
+            log.error("Resend email failed for email {}, exception: {}", toEmail, e.getMessage(), e);
+            notification.setStatus(NotificationStatus.FAILED);
             throw new NotificationDeliveryException("Resend delivery failed", e);
         }
     }

@@ -49,14 +49,14 @@ public class NotificationDispatchService implements NotificationCommandUseCases 
                 new Notification(payload.userId(), payload.email(), payload.emergencyId(), payload.appointmentId(),
                         payload.type(), payload.title(), payload.body(), payload.data(),
                         payload.correlationId(), List.copyOf(requestedChannels)));
-        log.info("[SAGA] Notification saved: id={} type={} userId={} correlationId={}",
+        log.info("Notification saved: id={} type={} userId={} correlationId={}",
                 notification.getId(), payload.type(), payload.userId(), payload.correlationId());
 
         for (var channel : channels) {
             if (!requestedChannels.contains(channel.type())) {
                 continue;
             }
-            log.info("[SAGA] Delivering via {} for userId={}", channel.type(), payload.userId());
+            log.info("Delivering via {} for userId={}", channel.type(), payload.userId());
             deliveryService.deliverWithRetry(channel, payload, notification);
         }
     }

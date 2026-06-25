@@ -251,12 +251,12 @@ public class NotificationEventConsumer {
             event = objectMapper.readValue(message, type);
             var userId = userIdExtractor.extract(event);
             var corrId = correlationExtractor.extract(event);
-            log.info("[SAGA] Received {} for userId={} correlationId={}", eventType, userId, corrId);
+            log.info("Received {} for userId={} correlationId={}", eventType, userId, corrId);
             action.accept(event);
             resultPublisher.publishResult(corrId, eventType, userId, "DELIVERY_SUCCESS", null);
-            log.info("[SAGA] {} delivered successfully for userId={}", eventType, userId);
+            log.info("{} delivered successfully for userId={}", eventType, userId);
         } catch (Exception e) {
-            log.error("[SAGA] Failed to process {} event: {}", eventType, e.getMessage(), e);
+            log.error("Failed to process {} event: {}", eventType, e.getMessage(), e);
             if (event != null) {
                 resultPublisher.publishResult(
                         correlationExtractor.extract(event), eventType,
