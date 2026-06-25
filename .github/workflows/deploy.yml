@@ -1,0 +1,76 @@
+name: Deploy
+
+on:
+  push:
+    branches: [qatra_test]
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      donation: ${{ steps.filter.outputs.donation }}
+      notification: ${{ steps.filter.outputs.notification }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            donation:
+              - 'donation-service/**'
+            notification:
+              - 'notification-service/**'
+
+  deploy-donation:
+    needs: detect
+    if: needs.detect.outputs.donation == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./donation-service
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/qatra-donation:latest
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker pull ghcr.io/${{ github.repository_owner }}/qatra-donation:latest
+            docker save ghcr.io/${{ github.repository_owner }}/qatra-donation:latest | sudo k3s ctr images import -
+            sudo k3s ctr images tag ghcr.io/${{ github.repository_owner }}/qatra-donation:latest qatra/donation-service:latest
+            sudo k3s kubectl rollout restart deployment/donation-service -n qatra
+
+  deploy-notification:
+    needs: detect
+    if: needs.detect.outputs.notification == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./notification-service
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/qatra-notification:latest
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker pull ghcr.io/${{ github.repository_owner }}/qatra-notification:latest
+            docker save ghcr.io/${{ github.repository_owner }}/qatra-notification:latest | sudo k3s ctr images import -
+            sudo k3s ctr images tag ghcr.io/${{ github.repository_owner }}/qatra-notification:latest qatra/notification-service:latest
+            sudo k3s kubectl rollout restart deployment/notification-service -n qatra
