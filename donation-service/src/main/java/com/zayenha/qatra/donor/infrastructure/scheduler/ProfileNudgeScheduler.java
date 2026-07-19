@@ -16,7 +16,7 @@ public class ProfileNudgeScheduler {
     private final DonorRepositoryPort donorRepository;
     private final EventPublisherPort eventPublisher;
 
-    @Scheduled(cron = "${profile.nudge.cron:0 0 10 * * *}")
+    @Scheduled(cron = "${profile.nudge.cron:0 10 */4  * * *}")
     @Transactional(readOnly = true)
     public void sendProfileCompletionNudges() {
         var donors = donorRepository.findIncompleteProfiles();
