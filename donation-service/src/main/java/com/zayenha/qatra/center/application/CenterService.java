@@ -1,6 +1,13 @@
 package com.zayenha.qatra.center.application;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.zayenha.qatra._shared.cache.CacheService;
+import com.zayenha.qatra._shared.domain.PageResult;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.event.AuditPublisher;
+import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.exception.ConflictException;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.center.domain.exception.CenterErrorCode;
 import com.zayenha.qatra.center.domain.model.*;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases;
@@ -8,13 +15,6 @@ import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
 import com.zayenha.qatra.center.domain.service.CenterDomainValidator;
-import com.zayenha.qatra._shared.domain.PageResult;
-import com.zayenha.qatra._shared.domain.SearchCriteria;
-import com.zayenha.qatra._shared.event.AuditPublisher;
-import com.zayenha.qatra._shared.event.AuditUtils;
-import com.zayenha.qatra._shared.exception.ConflictException;
-import com.zayenha.qatra._shared.exception.NotFoundException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
