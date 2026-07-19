@@ -4,3 +4,7 @@ target/
 .gitignore
 .idea/
 *.md
+.env
+Dockerfile
+.dockerignore
+.mvn/
