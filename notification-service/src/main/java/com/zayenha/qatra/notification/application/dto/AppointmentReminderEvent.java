@@ -1,7 +1,6 @@
 package com.zayenha.qatra.notification.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.time.Instant;
 import java.util.List;
 
