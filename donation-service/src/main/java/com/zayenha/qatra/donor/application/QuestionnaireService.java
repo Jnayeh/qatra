@@ -1,5 +1,8 @@
 package com.zayenha.qatra.donor.application;
 
+import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
+import com.zayenha.qatra._shared.event.AuditPublisher;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.donor.domain.exception.DonorErrorCode;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
@@ -8,19 +11,14 @@ import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.QuestionnaireQueryUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
-import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
-import com.zayenha.qatra._shared.event.AuditPublisher;
-import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.user.api.UserApi;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 
 @Service

@@ -1,13 +1,10 @@
 package com.zayenha.qatra.donor.application;
 
 import com.lowagie.text.Document;
-import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
 import com.lowagie.text.Paragraph;
-import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfWriter;
 import com.zayenha.qatra._shared.exception.NotFoundException;
-import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonationCertificateEntity;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonationCertificateJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
