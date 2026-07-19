@@ -1,9 +1,9 @@
 package com.zayenha.qatra.donor.domain.port.in;
 
+import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.NotificationPreferences;
-import com.zayenha.qatra._shared.domain.BloodType;
 
 public interface DonorCommandUseCases {
     DonorProfile updateProfile(Long userId, UpdateProfileCommand command);

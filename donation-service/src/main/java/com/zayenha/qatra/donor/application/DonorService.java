@@ -1,6 +1,10 @@
 package com.zayenha.qatra.donor.application;
 
+import com.zayenha.qatra._shared.cache.CacheService;
+import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.donor.domain.exception.DonorErrorCode;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
@@ -10,15 +14,9 @@ import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.donor.domain.service.DonorDomainValidator;
-import com.zayenha.qatra._shared.cache.CacheService;
-import com.zayenha.qatra._shared.domain.BloodType;
-import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
-import com.zayenha.qatra._shared.event.AuditPublisher;
-import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonationCertificateJpaRepository;
 import com.zayenha.qatra.user.api.UserApi;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

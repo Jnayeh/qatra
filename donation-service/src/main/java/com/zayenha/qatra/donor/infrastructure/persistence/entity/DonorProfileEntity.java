@@ -1,9 +1,9 @@
 package com.zayenha.qatra.donor.infrastructure.persistence.entity;
 
+import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorStatus;
 import com.zayenha.qatra.donor.domain.model.NotificationPreferences;
-import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;

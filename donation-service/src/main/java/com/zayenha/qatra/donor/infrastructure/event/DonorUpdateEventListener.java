@@ -1,7 +1,7 @@
 package com.zayenha.qatra.donor.infrastructure.event;
 
-import com.zayenha.qatra._shared.event.UserEmailVerifiedEvent;
 import com.zayenha.qatra._shared.event.GDPRDeletionRequestedEvent;
+import com.zayenha.qatra._shared.event.UserEmailVerifiedEvent;
 import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
