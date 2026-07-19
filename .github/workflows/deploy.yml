@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [qatra_test]
+    branches: [master]
 
 jobs:
   detect:
