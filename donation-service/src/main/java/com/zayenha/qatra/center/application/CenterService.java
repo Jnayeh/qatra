@@ -253,7 +253,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
     public List<DonationCenter> getAllActive(Double lat, Double lng) {
         var centers = centerRepository.findAllByStatus(CenterStatus.ACTIVE);
         if (lat != null && lng != null) {
-            centers.sort(java.util.Comparator.comparingDouble(c -> haversineKm(lat, lng, c.getLatitude(), c.getLongitude())));
+            return centers.stream().sorted(java.util.Comparator.comparingDouble(c -> haversineKm(lat, lng, c.getLatitude(), c.getLongitude()))).toList();
         }
         return centers;
     }
