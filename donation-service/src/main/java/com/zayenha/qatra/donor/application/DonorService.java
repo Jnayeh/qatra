@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -94,8 +95,8 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         var profile = donorRepository.findByUserId(userId).orElseThrow(()-> new NotFoundException(
                 "Donor not found by userID: " + userId,
                 DonorErrorCode.DONOR_NOT_FOUND.name()));
-        var oldLat = profile.getLatitude();
-        var oldLon = profile.getLongitude();
+        var oldLat = Optional.ofNullable(profile.getLatitude()).orElse(0D);
+        var oldLon = Optional.ofNullable(profile.getLongitude()).orElse(0D);
         profile.setLatitude(command.latitude());
         profile.setLongitude(command.longitude());
         profile.setCity(command.city());
