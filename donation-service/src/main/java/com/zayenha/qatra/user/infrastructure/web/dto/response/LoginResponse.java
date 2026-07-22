@@ -11,9 +11,10 @@ public record LoginResponse(
     Long userId,
     String email,
     String displayName,
-    List<Role> roles
+    List<Role> roles,
+    boolean emailVerified
 ) {
-    public LoginResponse(String token, String refreshToken, Long userId, String email, String displayName, List<Role> roles) {
-        this(token, "Bearer", refreshToken, userId, email, displayName, roles);
+    public LoginResponse(String token, String refreshToken, Long userId, String email, String displayName, List<Role> roles, boolean emailVerified) {
+        this(token, "Bearer", refreshToken, userId, email, displayName, roles, emailVerified);
     }
 }

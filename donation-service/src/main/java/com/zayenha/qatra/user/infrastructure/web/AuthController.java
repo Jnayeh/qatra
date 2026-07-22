@@ -85,7 +85,7 @@ public class AuthController {
             applicationEventPublisher.publishEvent(new UserLoggedInEvent(this, user.getId(), user.getEmail()));
         }
         return ResponseEntity.ok(ApiResponse.success(
-                new LoginResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
+                new LoginResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles, user.isEmailVerified())));
     }
 
     @PostMapping("/signup")
@@ -108,7 +108,7 @@ public class AuthController {
         sendVerificationEmail(user);
 
         return ResponseEntity.ok(ApiResponse.success(
-                new LoginResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
+                new LoginResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles, user.isEmailVerified())));
     }
 
     @PostMapping("/request-verification")
@@ -180,7 +180,7 @@ public class AuthController {
         sessionRepository.save(session);
 
         return ResponseEntity.ok(ApiResponse.success(
-                new LoginResponse(newAccessToken, newRefreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles)));
+                new LoginResponse(newAccessToken, newRefreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles, user.isEmailVerified())));
     }
 
     @PostMapping("/change-password")
