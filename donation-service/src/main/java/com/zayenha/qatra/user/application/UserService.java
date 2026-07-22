@@ -196,6 +196,9 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         if (userRepository.existsByEmail(superAdminEmail)) return;
         var user = create(superAdminEmail, superAdminPhone, superAdminPassword, "Super Admin", "Mourad Selim", "Jnayeh");
         userRoleRepository.save(new UserRole(user.getId(), Role.SUPER_ADMIN));
+        userRoleRepository.save(new UserRole(user.getId(), Role.CENTER_ADMIN));
+        userRoleRepository.save(new UserRole(user.getId(), Role.CENTER_STAFF));
+        userRoleRepository.save(new UserRole(user.getId(), Role.DONOR));
     }
 
     @Override

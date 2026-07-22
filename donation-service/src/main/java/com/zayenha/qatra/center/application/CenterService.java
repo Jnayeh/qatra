@@ -250,6 +250,27 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
 
     @Override
     @Transactional(readOnly = true)
+    public List<DonationCenter> getAllActive(Double lat, Double lng) {
+        var centers = centerRepository.findAllByStatus(CenterStatus.ACTIVE);
+        if (lat != null && lng != null) {
+            centers.sort(java.util.Comparator.comparingDouble(c -> haversineKm(lat, lng, c.getLatitude(), c.getLongitude())));
+        }
+        return centers;
+    }
+
+    private static double haversineKm(double lat1, double lng1, double lat2, double lng2) {
+        if (lat2 == 0 && lng2 == 0) return Double.MAX_VALUE;
+        final int R = 6371;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLng = Math.toRadians(lng2 - lng1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                 * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Slot> getSlots(Long centerId, LocalDate date, String slotType, boolean fetchJoins) {
         var key = "slots:" + centerId + ":" + date + ":" + slotType + ":" + fetchJoins;
         var cached = cacheService.get(key, new TypeReference<List<Slot>>() {});

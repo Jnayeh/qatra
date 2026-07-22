@@ -5,7 +5,6 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @Getter
 @Setter
@@ -30,7 +29,7 @@ public class User {
         this.email = email;
         this.phone = phone;
         this.hashedPassword = hashedPassword;
-        this.displayName = Optional.ofNullable(displayName).orElse(firstName.concat(" ").concat(familyName));
+        this.displayName = (displayName != null && !displayName.isBlank()) ? displayName : firstName + " " + familyName;
         this.firstName = firstName;
         this.familyName = familyName;
         this.status = UserStatus.PENDING_VERIFICATION;

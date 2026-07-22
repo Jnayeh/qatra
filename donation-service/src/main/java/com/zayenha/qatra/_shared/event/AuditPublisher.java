@@ -24,7 +24,7 @@ public class AuditPublisher {
                         Map<String, Object> oldValue, Map<String, Object> newValue) {
         try {
             eventPublisher.publishEvent(new AuditEvent(
-                    actorId, action, entityType, entityId,
+                    AuditUtils.currentUserId(actorId), action, entityType, entityId,
                     oldValue, newValue, null, null));
         } catch (PersistenceException e) {
             log.error("Failed to publish audit event due to exception: {}", e.getMessage());

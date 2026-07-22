@@ -49,6 +49,16 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── Redis GUI ─────────────────────────────────────────────
+  redisinsight:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight_data:/data
+    depends_on:
+      - redis
+
   # ── Donation Service ──────────────────────────────────────
   donation-service:
     build:
@@ -214,6 +224,7 @@ volumes:
   postgres_data:
   kafka_data:
   redis_data:
+  redisinsight_data:
   prometheus_data:
   loki_data:
   grafana_data:

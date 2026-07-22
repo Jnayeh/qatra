@@ -4,9 +4,10 @@ import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.NotificationPreferences;
+import jakarta.validation.constraints.NotNull;
 
 public interface DonorCommandUseCases {
-    DonorProfile updateProfile(Long userId, UpdateProfileCommand command);
+    DonorProfile updateProfile(Long userId);
     DonorProfile updateBloodType(Long userId, BloodType bloodType);
     DonorProfile updateBloodTypeAdmin(Long donorId, BloodType bloodType);
     DonorProfile updateLocation(Long userId, UpdateLocationCommand command);
@@ -18,6 +19,5 @@ public interface DonorCommandUseCases {
     DonorProfile updateFlag(Long donorId, boolean flagged);
     void activateProfile(Long userId);
 
-    record UpdateProfileCommand(String displayName, String phone) {}
-    record UpdateLocationCommand(Double latitude, Double longitude, String city, String country) {}
+    record UpdateLocationCommand(@NotNull Double latitude, @NotNull Double longitude, String city, String country) {}
 }

@@ -1,5 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
+import com.zayenha.qatra._shared.event.UserSignUpEvent;
 import com.zayenha.qatra.user.domain.model.verification.VerificationTokenType;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.exception.NotFoundException;
@@ -96,6 +97,7 @@ public class AuthController {
         userCommandUseCases.assignRole(user.getId(), Role.DONOR, user.getId());
         var roles = userQueryUseCases.getUserRoles(user.getId());
         var roleNameStrings = roles.stream().map(Enum::name).toList();
+        applicationEventPublisher.publishEvent(new UserSignUpEvent(user.getId()));
 
         var accessToken = tokenProvider.generateToken(user.getId(), user.getEmail(), roleNameStrings);
         var refreshToken = UUID.randomUUID().toString();

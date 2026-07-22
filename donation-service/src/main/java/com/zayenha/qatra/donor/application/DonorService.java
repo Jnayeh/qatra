@@ -40,7 +40,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
 
     @Override
     @Transactional
-    public DonorProfile updateProfile(Long userId, UpdateProfileCommand command) {
+    public DonorProfile updateProfile(Long userId) {
         var profile = donorRepository.findByUserId(userId).orElseGet(() -> {
             var newProfile = new DonorProfile(userId);
             return donorRepository.save(newProfile);
@@ -49,7 +49,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
         cacheService.evictByPattern("impactResults:*");
-        auditPublisher.publish("DONOR_PROFILE_UPDATED", saved.getId(), "DonorProfile", null, Map.of("userId", userId));
+        auditPublisher.publish(userId,"DONOR_PROFILE_UPDATED", saved.getId(), "DonorProfile", null, Map.of("userId", userId));
         return saved;
     }
 
@@ -100,13 +100,14 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setLongitude(command.longitude());
         profile.setCity(command.city());
         profile.setUpdatedAt(Instant.now());
-        var hasQuestionnaire = donorRepository.donorHasQuestionnaire(profile.getId());
-        boolean wasProfileComplete = Boolean.TRUE.equals(profile.getProfileComplete());
-        profile.setProfileComplete(command.latitude() != null && command.longitude() != null && hasQuestionnaire);
+        boolean profileIncomplete = !Boolean.TRUE.equals(profile.getProfileComplete());
+        if(profileIncomplete) {
+            var hasQuestionnaire = donorRepository.donorHasQuestionnaire(profile.getId());
+            profile.setProfileComplete(hasQuestionnaire);
+        }
         var saved = donorRepository.save(profile);
 
         cacheService.evictByPattern("donorProfiles:*");
-        cacheService.evictByPattern("impactResults:*");
         auditPublisher.publish("DONOR_LOCATION_UPDATED", saved.getId(), "DonorProfile",
             Map.of("latitude", oldLat, "longitude", oldLon),
             Map.of("latitude", command.latitude(), "longitude", command.longitude(), "city", command.city()));

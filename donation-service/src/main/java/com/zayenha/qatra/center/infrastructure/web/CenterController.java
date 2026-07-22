@@ -133,6 +133,14 @@ public class CenterController {
         return ResponseEntity.ok(ApiResponse.success("Staff removed"));
     }
 
+    @GetMapping("/public")
+    public ResponseEntity<ApiResponse<List<CenterResponse>>> getPublic(
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lng) {
+        var centers = queryUseCases.getAllActive(lat, lng);
+        return ResponseEntity.ok(ApiResponse.success(centers.stream().map(mapper::toResponse).toList()));
+    }
+
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<CenterResponse>>> getPending(
             @RequestParam(defaultValue = "id") String sortBy,

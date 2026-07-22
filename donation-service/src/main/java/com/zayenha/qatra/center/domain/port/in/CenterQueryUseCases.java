@@ -13,6 +13,7 @@ public interface CenterQueryUseCases {
     DonationCenter getById(Long id, boolean fetchJoins);
     PageResult<DonationCenter> getAll(SearchCriteria criteria);
     PageResult<DonationCenter> getPending(SearchCriteria criteria);
+    List<DonationCenter> getAllActive(Double lat, Double lng);
     List<Slot> getSlots(Long centerId, LocalDate date, String slotType, boolean fetchJoins);
     List<CenterStaffProfile> getStaff(Long centerId);
     CenterStaffProfile getStaffByUserId(Long userId);

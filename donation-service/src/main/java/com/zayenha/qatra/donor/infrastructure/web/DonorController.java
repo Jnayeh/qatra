@@ -53,7 +53,7 @@ public class DonorController {
     }
 
     @GetMapping("/api/v1/donors/me")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
+    @PreAuthorize("hasAnyRole('DONOR')")
     public ResponseEntity<ApiResponse<DonorProfileResponse>> getMyProfile() {
         var userId = AuditUtils.currentUserId();
         var profile = donorQueryUseCases.getMyProfile(userId);
@@ -65,9 +65,7 @@ public class DonorController {
     public ResponseEntity<ApiResponse<DonorProfileResponse>> updateProfile(
             @Valid @RequestBody UpdateDonorRequest request) {
         var userId = AuditUtils.currentUserId();
-        var command = new DonorCommandUseCases.UpdateProfileCommand(
-                request.displayName(), request.phone());
-        var profile = donorCommandUseCases.updateProfile(userId, command);
+        var profile = donorCommandUseCases.updateProfile(userId);
         return ResponseEntity.ok(ApiResponse.success(mapper.toProfileResponse(profile)));
     }
 
@@ -111,7 +109,7 @@ public class DonorController {
     }
 
     @GetMapping("/api/v1/donors/me/eligibility")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
+    @PreAuthorize("hasAnyRole('DONOR')")
     public ResponseEntity<ApiResponse<EligibilityResponse>> getEligibility() {
         var userId = AuditUtils.currentUserId();
         var profile = donorQueryUseCases.getMyProfile(userId);
