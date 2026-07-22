@@ -94,6 +94,10 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
             profile.setPermanentlyRestricted(true);
             profile.setAvailability(AvailabilityStatus.PERMANENTLY_RESTRICTED);
             profile.setFlaggedForManualReview(true);
+        } else {
+            profile.setPermanentlyRestricted(false);
+            profile.setAvailability(AvailabilityStatus.AVAILABLE);
+            profile.setFlaggedForManualReview(false);
         }
     }
 
