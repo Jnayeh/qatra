@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.domain.port.out;
 
-import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra._shared.domain.Role;
 import com.zayenha.qatra.user.domain.model.UserRole;
 import java.util.List;
 

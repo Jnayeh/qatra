@@ -40,8 +40,9 @@ class AuthControllerIntegrationTest {
         jdbcTemplate.execute("DELETE FROM sessions");
         jdbcTemplate.execute("DELETE FROM user_roles");
         jdbcTemplate.execute("DELETE FROM donor_profiles");
+        jdbcTemplate.execute("DELETE FROM center_admin_profiles");
         jdbcTemplate.execute("DELETE FROM users");
-        jdbcTemplate.execute("ALTER TABLE users ALTER COLUMN id RESTART WITH 1");
+        jdbcTemplate.execute("ALTER SEQUENCE user_seq RESTART WITH 1");
         jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY TRUE");
     }
 

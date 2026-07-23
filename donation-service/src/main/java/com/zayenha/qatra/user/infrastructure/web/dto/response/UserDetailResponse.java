@@ -1,7 +1,7 @@
 package com.zayenha.qatra.user.infrastructure.web.dto.response;
 
-import com.zayenha.qatra.user.domain.model.Role;
-import com.zayenha.qatra._shared.UserStatus;
+import com.zayenha.qatra._shared.domain.Role;
+import com.zayenha.qatra._shared.domain.UserStatus;
 import java.time.Instant;
 import java.util.List;
 

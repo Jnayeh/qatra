@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.persistence.repository;
 
-import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra._shared.domain.Role;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserRoleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;

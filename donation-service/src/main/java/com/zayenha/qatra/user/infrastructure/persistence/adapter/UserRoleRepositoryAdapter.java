@@ -1,13 +1,12 @@
 package com.zayenha.qatra.user.infrastructure.persistence.adapter;
 
-import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra._shared.domain.Role;
 import com.zayenha.qatra.user.domain.model.UserRole;
 import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserRoleEntity;
 import com.zayenha.qatra.user.infrastructure.persistence.repository.UserRoleJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

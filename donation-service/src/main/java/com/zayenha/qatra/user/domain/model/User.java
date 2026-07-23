@@ -1,6 +1,7 @@
 package com.zayenha.qatra.user.domain.model;
 
-import com.zayenha.qatra._shared.UserStatus;
+import com.zayenha.qatra._shared.domain.Role;
+import com.zayenha.qatra._shared.domain.UserStatus;
 import lombok.Getter;
 import lombok.Setter;
 
