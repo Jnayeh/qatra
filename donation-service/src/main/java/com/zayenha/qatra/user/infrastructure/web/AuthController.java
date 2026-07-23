@@ -1,6 +1,7 @@
 package com.zayenha.qatra.user.infrastructure.web;
 
-import com.zayenha.qatra._shared.UserStatus;
+import com.zayenha.qatra._shared.domain.Role;
+import com.zayenha.qatra._shared.domain.UserStatus;
 import com.zayenha.qatra._shared.event.UserSignUpEvent;
 import com.zayenha.qatra.user.domain.model.verification.VerificationTokenType;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;

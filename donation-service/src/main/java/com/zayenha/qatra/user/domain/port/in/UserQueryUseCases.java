@@ -2,7 +2,7 @@ package com.zayenha.qatra.user.domain.port.in;
 
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
-import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra._shared.domain.Role;
 import com.zayenha.qatra.user.domain.model.User;
 
 import java.util.List;

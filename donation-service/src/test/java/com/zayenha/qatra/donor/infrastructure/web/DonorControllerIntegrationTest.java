@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -28,6 +29,9 @@ class DonorControllerIntegrationTest {
     @Autowired
     private WebApplicationContext context;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -36,11 +40,27 @@ class DonorControllerIntegrationTest {
                 .webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
+        jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY FALSE");
+        jdbcTemplate.execute("DELETE FROM audit_logs");
+        jdbcTemplate.execute("DELETE FROM donation_certificates");
+        jdbcTemplate.execute("DELETE FROM appointments");
+        jdbcTemplate.execute("DELETE FROM health_questionnaires");
+        jdbcTemplate.execute("DELETE FROM donor_profiles");
+        jdbcTemplate.execute("DELETE FROM center_admin_profiles");
+        jdbcTemplate.execute("DELETE FROM center_staff_profiles");
+        jdbcTemplate.execute("DELETE FROM user_roles");
+        jdbcTemplate.execute("DELETE FROM sessions");
+        jdbcTemplate.execute("DELETE FROM verification_tokens");
+        jdbcTemplate.execute("DELETE FROM donation_centers");
+        jdbcTemplate.execute("DELETE FROM users");
+        jdbcTemplate.execute("ALTER SEQUENCE user_seq RESTART WITH 1");
+        jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY TRUE");
+        counter = 0;
     }
 
     private UsernamePasswordAuthenticationToken auth(long userId) {
         return new UsernamePasswordAuthenticationToken(
-                userId, null, List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN")));
+                userId, null, List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"), new SimpleGrantedAuthority("ROLE_DONOR")));
     }
 
     private void createProfile(long userId) throws Exception {

@@ -3,7 +3,7 @@ package com.zayenha.qatra.user.infrastructure.web;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra.user.application.mapper.UserDomainMapper;
 import com.zayenha.qatra.user.application.mapper.UserDomainMapper.UserSummary;
-import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra._shared.domain.Role;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

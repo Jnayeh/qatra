@@ -1,8 +1,8 @@
 package com.zayenha.qatra.user.infrastructure.web.mapper;
 
-import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra._shared.domain.Role;
 import com.zayenha.qatra.user.domain.model.User;
-import com.zayenha.qatra._shared.UserStatus;
+import com.zayenha.qatra._shared.domain.UserStatus;
 import com.zayenha.qatra.user.infrastructure.mapper.UserMapper;
 import com.zayenha.qatra.user.infrastructure.mapper.UserMapperImpl;
 import org.junit.jupiter.api.BeforeEach;

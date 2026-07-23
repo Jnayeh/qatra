@@ -6,7 +6,7 @@ import com.zayenha.qatra.system.application.proxy.GDPRUserProxy;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionRequest;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionStatus;
 import com.zayenha.qatra.system.domain.port.out.GDPRRepositoryPort;
-import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra._shared.domain.Role;
 import com.zayenha.qatra.user.infrastructure.web.dto.response.UserDetailResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

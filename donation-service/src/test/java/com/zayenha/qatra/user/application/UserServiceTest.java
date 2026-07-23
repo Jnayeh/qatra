@@ -8,10 +8,10 @@ import com.zayenha.qatra.user.domain.exception.CannotDeleteUserException;
 import com.zayenha.qatra.user.domain.exception.EmailAlreadyExistsException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
 import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
-import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra._shared.domain.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserRole;
-import com.zayenha.qatra._shared.UserStatus;
+import com.zayenha.qatra._shared.domain.UserStatus;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
@@ -114,6 +114,7 @@ class UserServiceTest {
         when(userRepository.existsOtherByEmailOrPhone(1L, "new@example.com", "0987654321")).thenReturn(false);
         when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(userRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRoleRepository.existsByUserIdAndRole(0L, Role.SUPER_ADMIN)).thenReturn(true);
 
         var result = userService.update(1L, "new@example.com", "0987654321", "Updated Name", null, null);
 
@@ -126,6 +127,7 @@ class UserServiceTest {
     void updateThrowsWhenUserNotFound() {
         when(userRepository.existsOtherByEmailOrPhone(99L, "x@x.com", "000")).thenReturn(false);
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
+        when(userRoleRepository.existsByUserIdAndRole(0L, Role.SUPER_ADMIN)).thenReturn(true);
 
         assertThatThrownBy(() -> userService.update(99L, "x@x.com", "000", "X", null, null))
                 .isInstanceOf(UserNotFoundException.class);

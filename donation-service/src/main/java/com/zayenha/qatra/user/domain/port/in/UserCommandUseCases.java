@@ -1,8 +1,8 @@
 package com.zayenha.qatra.user.domain.port.in;
 
-import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra._shared.domain.Role;
 import com.zayenha.qatra.user.domain.model.User;
-import com.zayenha.qatra._shared.UserStatus;
+import com.zayenha.qatra._shared.domain.UserStatus;
 
 public interface UserCommandUseCases {
     User create(String email, String phone, String password, String displayName, String firstName, String lastName);

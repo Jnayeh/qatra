@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.persistence.entity;
 
-import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra._shared.domain.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

@@ -8,6 +8,7 @@ import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
+import com.zayenha.qatra.center.application.proxy.CenterUserProxy;
 import com.zayenha.qatra.center.domain.exception.CenterErrorCode;
 import com.zayenha.qatra.center.domain.model.*;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases;
@@ -15,8 +16,7 @@ import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
 import com.zayenha.qatra.center.domain.service.CenterDomainValidator;
-import com.zayenha.qatra.user.domain.model.Role;
-import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
+import com.zayenha.qatra._shared.domain.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -37,7 +37,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
     private final ApplicationEventPublisher eventPublisher;
     private final CacheService cacheService;
     private final AuditPublisher auditPublisher;
-    private final UserRoleRepositoryPort userRoleRepository;
+    private final CenterUserProxy userApi;
 
     private CenterDomainValidator validator() {
         return new CenterDomainValidator(centerRepository);
@@ -61,7 +61,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         auditPublisher.publish("CENTER_CREATED", saved.getId(), "DonationCenter", null, Map.of(
             "name", command.name(), "city", command.city(),
             "facilityType", command.facilityType().name()));
-        if (userId != 0 && userRoleRepository.existsByUserIdAndRole(userId, Role.CENTER_ADMIN)
+        if (userId != 0 && userApi.existsByUserIdAndRole(userId, Role.CENTER_ADMIN)
                 && centerRepository.findAdminByUserId(userId).isEmpty()) {
             centerRepository.saveAdmin(new CenterAdminProfile(userId, saved.getId()));
         }
