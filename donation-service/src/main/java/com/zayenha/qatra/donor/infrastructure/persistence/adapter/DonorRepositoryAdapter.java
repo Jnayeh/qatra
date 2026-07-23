@@ -1,12 +1,15 @@
 package com.zayenha.qatra.donor.infrastructure.persistence.adapter;
 
+import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.donor.infrastructure.mapper.DonorMapper;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonorJpaRepository;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.HealthQuestionnaireJpaRepository;
+import com.zayenha.qatra.user.infrastructure.web.dto.response.RestrictedUserResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -95,5 +98,27 @@ public class DonorRepositoryAdapter implements DonorRepositoryPort {
         return donorJpaRepository.findIncompleteProfiles().stream()
                 .map(mapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public PageResult<RestrictedUserResponse> findPermanentlyRestricted(int page, int size) {
+        var pageable = PageRequest.of(page, size);
+        var result = donorJpaRepository.findPermanentlyRestricted(pageable);
+        return new PageResult<>(
+                result.getContent().stream()
+                        .map(e -> new RestrictedUserResponse(
+                                e.getUser().getId(),
+                                e.getUser().getEmail(),
+                                e.getUser().getDisplayName(),
+                                e.getUser().getStatus().name(),
+                                e.getId(),
+                                e.getPermanentlyRestricted(),
+                                e.getRestrictionReason()))
+                        .toList(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages()
+        );
     }
 }

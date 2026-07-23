@@ -9,6 +9,8 @@ public record UserDetailResponse(
     Long id,
     String email,
     String phone,
+    String firstName,
+    String familyName,
     String displayName,
     UserStatus status,
     boolean emailVerified,

@@ -4,6 +4,8 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditPublisher;
+import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.exception.AuthorizationException;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteUserException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
 import com.zayenha.qatra._shared.exception.ValidationException;
@@ -70,13 +72,17 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
     @Override
     @Transactional
-    public User update(Long id, String email, String phone, String displayName) {
+    public User update(Long id, String email, String phone, String displayName, String firstName, String familyName) {
+        if (!AuditUtils.currentUserId().equals(id)
+            && !userRoleRepository.existsByUserIdAndRole(AuditUtils.currentUserId(), Role.SUPER_ADMIN)) {
+           throw  new AuthorizationException("You can not modify this user", "ACCESS_DENIED");
+        }
         validator().validateUpdate(id, email, phone);
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         var oldEmail = user.getEmail();
         log.info("validated");
-        user.update(email, phone, displayName);
+        user.update(email, phone, displayName, firstName, familyName);
         user = userRepository.save(user);
         cacheService.evictByPattern("users:*");
         cacheService.evictByPattern("userExists:*");

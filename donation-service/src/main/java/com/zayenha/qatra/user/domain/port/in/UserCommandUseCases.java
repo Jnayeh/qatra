@@ -6,7 +6,7 @@ import com.zayenha.qatra.user.domain.model.UserStatus;
 
 public interface UserCommandUseCases {
     User create(String email, String phone, String password, String displayName, String firstName, String lastName);
-    User update(Long id, String email, String phone, String displayName);
+    User update(Long id, String email, String phone, String displayName, String firstName, String familyName);
     void updateStatus(Long id, UserStatus status, Long actorID);
     void assignRole(Long userId, Role role, Long actorID);
     void revokeRole(Long userId, Role role);

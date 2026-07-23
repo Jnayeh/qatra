@@ -2,6 +2,7 @@ package com.zayenha.qatra.donor.application;
 
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.exception.NotFoundException;
@@ -285,6 +286,12 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
                         c.getId(), c.getAppointmentId(), c.getDonorName(),
                         c.getCenterName(), c.getMlCollected(), c.getDonationDate()))
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResult<com.zayenha.qatra.user.infrastructure.web.dto.response.RestrictedUserResponse> getPermanentlyRestrictedDonors(int page, int size) {
+        return donorRepository.findPermanentlyRestricted(page, size);
     }
 
 }

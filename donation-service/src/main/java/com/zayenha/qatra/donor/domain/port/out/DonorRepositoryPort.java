@@ -1,7 +1,9 @@
 package com.zayenha.qatra.donor.domain.port.out;
 
+import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
+import com.zayenha.qatra.user.infrastructure.web.dto.response.RestrictedUserResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,4 +23,6 @@ public interface DonorRepositoryPort {
     List<DonorProfile> findByEligibleFromDate(java.time.LocalDate date);
 
     List<DonorProfile> findIncompleteProfiles();
+
+    PageResult<RestrictedUserResponse> findPermanentlyRestricted(int page, int size);
 }

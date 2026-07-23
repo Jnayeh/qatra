@@ -1,6 +1,8 @@
 package com.zayenha.qatra.donor.infrastructure.persistence.repository;
 
 import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonorProfileEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,4 +36,8 @@ public interface DonorJpaRepository extends JpaRepository<DonorProfileEntity, Lo
 
     @Query("SELECT d FROM DonorProfileEntity d WHERE d.profileComplete = false AND d.status = 'ACTIVE' AND d.deletedAt IS NULL")
     List<DonorProfileEntity> findIncompleteProfiles();
+
+    @Query(value = "SELECT d FROM DonorProfileEntity d JOIN FETCH d.user WHERE d.permanentlyRestricted = true AND d.deletedAt IS NULL",
+           countQuery = "SELECT COUNT(d) FROM DonorProfileEntity d WHERE d.permanentlyRestricted = true AND d.deletedAt IS NULL")
+    Page<DonorProfileEntity> findPermanentlyRestricted(Pageable pageable);
 }

@@ -126,9 +126,9 @@ class UserControllerTest {
     @Test
     void updateReturnsUpdatedUser() {
         var user = aUser();
-        when(commandUseCases.update(eq(1L), anyString(), anyString(), anyString())).thenReturn(user);
+        when(commandUseCases.update(eq(1L), anyString(), anyString(), anyString(), any(), any())).thenReturn(user);
 
-        var request = new UpdateUserRequest("test@example.com", "1234567890", "Updated");
+        var request = new UpdateUserRequest("test@example.com", "1234567890", "Updated", null, null);
         var response = controller.update(1L, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

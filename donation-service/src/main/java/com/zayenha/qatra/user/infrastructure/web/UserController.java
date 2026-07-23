@@ -23,7 +23,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('SUPER_ADMIN')")
 public class UserController {
 
     private final UserCommandUseCases commandUseCases;
@@ -31,6 +30,7 @@ public class UserController {
     private final UserMapper mapper;
 
     @GetMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<List<UserDetailResponse>>> listAll(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -47,12 +47,14 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<UserDetailResponse>> getDetails(@PathVariable Long id) {
         var user = queryUseCases.findById(id);
         return ResponseEntity.ok(ApiResponse.success(mapper.toDetail(user)));
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<UserDetailResponse>> create(
             @Valid @RequestBody CreateUserRequest request) {
         var user = commandUseCases.create(
@@ -62,14 +64,16 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<UserDetailResponse>> update(
             @PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
         var user = commandUseCases.update(
-                id, request.email(), request.phone(), request.displayName());
+                id, request.email(), request.phone(), request.displayName(), request.firstName(), request.familyName());
         return ResponseEntity.ok(ApiResponse.success(mapper.toDetail(user)));
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> updateStatus(
             @PathVariable Long id, @Valid @RequestBody UpdateUserStatusRequest request) {
         commandUseCases.updateStatus(id, request.status(), AuditUtils.currentUserId());
@@ -77,6 +81,7 @@ public class UserController {
     }
 
     @PostMapping("/{id}/roles")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> assignRole(
             @PathVariable Long id, @Valid @RequestBody AssignRoleRequest request) {
         commandUseCases.assignRole(id, request.role(), AuditUtils.currentUserId());
@@ -84,6 +89,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}/roles")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<String>> revokeRole(
             @PathVariable Long id,
             @RequestParam Role role) {
@@ -92,6 +98,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) {
         commandUseCases.delete(id);
         return ResponseEntity.ok(ApiResponse.success("User deleted"));

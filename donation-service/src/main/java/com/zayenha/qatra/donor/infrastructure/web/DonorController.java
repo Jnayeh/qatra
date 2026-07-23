@@ -2,6 +2,7 @@ package com.zayenha.qatra.donor.infrastructure.web;
 
 import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.web.ApiResponse;
+import com.zayenha.qatra._shared.web.PageHelper;
 import com.zayenha.qatra.donor.application.PdfCertificateService;
 import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.in.DonorQueryUseCases;
@@ -17,6 +18,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -171,6 +174,15 @@ public class DonorController {
         var profile = donorQueryUseCases.getDonorById(id);
         var questionnaire = healthQueryUseCases.getHealthQuestionnaire(profile.getUserId());
         return ResponseEntity.ok(ApiResponse.success(mapper.toHealthResponse(questionnaire)));
+    }
+
+    @GetMapping("/api/v1/admin/donors/restricted")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<List<com.zayenha.qatra.user.infrastructure.web.dto.response.RestrictedUserResponse>>> getRestrictedDonors(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var result = donorQueryUseCases.getPermanentlyRestrictedDonors(PageHelper.toPageIndex(page), size);
+        return ResponseEntity.ok(ApiResponse.success(result.content(), PageHelper.fromDomain(result)));
     }
 
     @PatchMapping("/api/v1/donors/{id}/restriction")

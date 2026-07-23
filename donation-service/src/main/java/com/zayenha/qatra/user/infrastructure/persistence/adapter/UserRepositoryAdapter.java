@@ -121,7 +121,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     private Sort buildSort(String sortBy, String sortDirection) {
-        var allowed = List.of("id", "email", "phone", "displayName", "status", "createdAt");
+        var allowed = List.of("id", "email", "phone", "firstName", "familyName", "displayName", "status", "createdAt");
         var field = allowed.contains(sortBy) ? sortBy : "id";
         var dir = "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
         return Sort.by(dir, field);
