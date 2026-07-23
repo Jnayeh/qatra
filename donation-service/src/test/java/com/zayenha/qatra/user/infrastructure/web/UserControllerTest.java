@@ -80,7 +80,7 @@ class UserControllerTest {
         var user = aUser();
         when(queryUseCases.findById(1L)).thenReturn(user);
         when(mapper.toDetail(user)).thenReturn(
-            new UserDetailResponse(user.getId(), user.getEmail(), user.getPhone(),
+            new UserDetailResponse(user.getId(), user.getEmail(), user.getPhone(),"", "",
                 user.getDisplayName(), user.getStatus(), user.isEmailVerified(),
                 user.getRoles(), user.getCreatedAt(), user.getDeletionRequestedAt(),
                 user.getDeletedAt(), user.getLastActiveAt()));
@@ -110,7 +110,7 @@ class UserControllerTest {
         when(commandUseCases.create(request.email(), request.phone(), request.password(), request.displayName(), request.firstName(), request.familyName()))
                 .thenReturn(user);
         when(mapper.toDetail(user)).thenReturn(
-            new UserDetailResponse(user.getId(), user.getEmail(), user.getPhone(),
+            new UserDetailResponse(user.getId(), user.getEmail(), user.getPhone(), "", "",
                 user.getDisplayName(), user.getStatus(), user.isEmailVerified(),
                 user.getRoles(), user.getCreatedAt(), user.getDeletionRequestedAt(),
                 user.getDeletedAt(), user.getLastActiveAt()));
