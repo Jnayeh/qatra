@@ -1,7 +1,7 @@
 package com.zayenha.qatra.user.application.mapper;
 
 import com.zayenha.qatra.user.domain.model.User;
-import com.zayenha.qatra.user.domain.model.UserStatus;
+import com.zayenha.qatra._shared.UserStatus;
 
 public class UserDomainMapper {
 

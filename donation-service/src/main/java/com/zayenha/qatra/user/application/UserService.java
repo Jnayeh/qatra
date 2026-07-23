@@ -14,7 +14,7 @@ import com.zayenha.qatra.user.domain.exception.UserNotFoundException;
 import com.zayenha.qatra.user.domain.model.Role;
 import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra.user.domain.model.UserRole;
-import com.zayenha.qatra.user.domain.model.UserStatus;
+import com.zayenha.qatra._shared.UserStatus;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import org.springframework.security.crypto.password.PasswordEncoder;

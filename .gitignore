@@ -14,7 +14,7 @@ application-local.properties
 .factorypath
 .project
 .opencode
-inst*md
+##inst*md
 
 .settings
 .springBeans

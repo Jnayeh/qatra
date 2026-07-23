@@ -2,7 +2,7 @@ package com.zayenha.qatra.user.infrastructure.scheduler;
 
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.event.AuditPublisher;
-import com.zayenha.qatra.user.domain.model.UserStatus;
+import com.zayenha.qatra._shared.UserStatus;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

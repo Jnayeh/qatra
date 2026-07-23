@@ -1,5 +1,6 @@
 package com.zayenha.qatra.user.domain.model;
 
+import com.zayenha.qatra._shared.UserStatus;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

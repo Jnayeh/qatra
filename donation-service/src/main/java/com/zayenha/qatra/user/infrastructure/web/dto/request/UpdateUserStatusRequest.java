@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.web.dto.request;
 
-import com.zayenha.qatra.user.domain.model.UserStatus;
+import com.zayenha.qatra._shared.UserStatus;
 import jakarta.validation.constraints.NotNull;
 
 public record UpdateUserStatusRequest(
