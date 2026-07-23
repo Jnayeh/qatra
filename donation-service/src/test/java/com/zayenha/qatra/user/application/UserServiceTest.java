@@ -115,7 +115,7 @@ class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(userRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var result = userService.update(1L, "new@example.com", "0987654321", "Updated Name");
+        var result = userService.update(1L, "new@example.com", "0987654321", "Updated Name", null, null);
 
         assertThat(result.getEmail()).isEqualTo("new@example.com");
         assertThat(result.getPhone()).isEqualTo("0987654321");
@@ -127,7 +127,7 @@ class UserServiceTest {
         when(userRepository.existsOtherByEmailOrPhone(99L, "x@x.com", "000")).thenReturn(false);
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.update(99L, "x@x.com", "000", "X"))
+        assertThatThrownBy(() -> userService.update(99L, "x@x.com", "000", "X", null, null))
                 .isInstanceOf(UserNotFoundException.class);
     }
 

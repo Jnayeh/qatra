@@ -56,7 +56,7 @@ class GDPRServiceTest {
 
     @Test
     void requestDeletionCreatesInProgressRequest() {
-        when(userProxy.getUser(1L)).thenReturn(new UserDetailResponse(1L, "test@test.com", null, "Test", null, false, List.of(Role.DONOR), null, null, null, null));
+        when(userProxy.getUser(1L)).thenReturn(new UserDetailResponse(1L, "test@test.com", null, "Test", null, "Test", null, false, List.of(Role.DONOR), null, null, null, null));
         when(repository.findByUserId(1L)).thenReturn(Optional.empty());
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
