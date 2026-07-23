@@ -7,6 +7,7 @@ import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases.CreateCente
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases.UpdateCenterCommand;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
+import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.exception.ConflictException;
@@ -40,12 +41,14 @@ class CenterServiceTest {
     private CacheService cacheService;
     @Mock
     private AuditPublisher auditPublisher;
+    @Mock
+    private UserRoleRepositoryPort userRoleRepository;
 
     private CenterService centerService;
 
     @BeforeEach
     void setUp() {
-        centerService = new CenterService(centerRepository, slotRepository, eventPublisher, cacheService, auditPublisher);
+        centerService = new CenterService(centerRepository, slotRepository, eventPublisher, cacheService, auditPublisher, userRoleRepository);
     }
 
     private DonationCenter aCenter() {

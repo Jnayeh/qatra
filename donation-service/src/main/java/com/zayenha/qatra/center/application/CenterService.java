@@ -15,6 +15,8 @@ import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
 import com.zayenha.qatra.center.domain.service.CenterDomainValidator;
+import com.zayenha.qatra.user.domain.model.Role;
+import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
     private final ApplicationEventPublisher eventPublisher;
     private final CacheService cacheService;
     private final AuditPublisher auditPublisher;
+    private final UserRoleRepositoryPort userRoleRepository;
 
     private CenterDomainValidator validator() {
         return new CenterDomainValidator(centerRepository);
@@ -44,19 +47,24 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
     @Transactional
     public DonationCenter create(CreateCenterCommand command) {
         validator().validateCreate(command.name());
+        var userId = AuditUtils.currentUserId();
         var center = new DonationCenter(
             command.name(), command.address(), command.city(),
             command.country(), command.postalCode(), command.phone(),
             command.email(), command.latitude(), command.longitude(),
             command.facilityType(), command.operatingHours(),
             command.totalCapacity(), command.maxRegular(), command.slotPeriod(),
-            AuditUtils.currentUserId()
+            userId
         );
         var saved = centerRepository.save(center);
         cacheService.evictByPattern("donationCenters:*");
         auditPublisher.publish("CENTER_CREATED", saved.getId(), "DonationCenter", null, Map.of(
             "name", command.name(), "city", command.city(),
             "facilityType", command.facilityType().name()));
+        if (userId != 0 && userRoleRepository.existsByUserIdAndRole(userId, Role.CENTER_ADMIN)
+                && centerRepository.findAdminByUserId(userId).isEmpty()) {
+            centerRepository.saveAdmin(new CenterAdminProfile(userId, saved.getId()));
+        }
         return saved;
     }
 

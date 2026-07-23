@@ -117,6 +117,7 @@ class AppointmentServiceTest {
         appointment.setStatus(AppointmentStatus.CHECKED_IN);
         when(repository.findById(1L)).thenReturn(Optional.of(appointment));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(donorProxy.findOptionalByDonorId(any())).thenReturn(Optional.empty());
 
         var result = service.complete(1L, DonationOutcome.COMPLETED, 450, "Good");
 
