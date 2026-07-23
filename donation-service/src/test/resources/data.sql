@@ -15,8 +15,8 @@ INSERT INTO users (id, email, phone, hashed_password, display_name, status, emai
   (99, 'admin@test.com', '9900000099', '$2a$10$placeholder', 'Admin', 'ACTIVE', TRUE, CURRENT_TIMESTAMP, 'Admin', 'User'),
   (999999, 'staff@test.com', '9999999999', '$2a$10$placeholder', 'Staff', 'ACTIVE', TRUE, CURRENT_TIMESTAMP, 'Staff', 'User');
 
-INSERT INTO donor_profiles (user_id, blood_type, blood_type_verified, profile_complete, status, latitude, longitude, availability, allow_emergency_notifications, consecutive_emergency_declines, flagged_for_manual_review, permanently_restricted, reliability_score, total_donations, created_at, updated_at)
-SELECT u.id, 'UNKNOWN', FALSE, FALSE, 'ACTIVE', 0.0, 0.0, 'AVAILABLE', TRUE, 0, FALSE, FALSE, 1.0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+INSERT INTO donor_profiles (id, user_id, blood_type, blood_type_verified, profile_complete, status, latitude, longitude, availability, allow_emergency_notifications, consecutive_emergency_declines, flagged_for_manual_review, permanently_restricted, reliability_score, total_donations, created_at, updated_at)
+SELECT u.id, u.id, 'UNKNOWN', FALSE, FALSE, 'ACTIVE', 0.0, 0.0, 'AVAILABLE', TRUE, 0, FALSE, FALSE, 1.0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM users u WHERE u.id BETWEEN 1 AND 12;
 
 ALTER TABLE users ALTER COLUMN id RESTART WITH 1000;
