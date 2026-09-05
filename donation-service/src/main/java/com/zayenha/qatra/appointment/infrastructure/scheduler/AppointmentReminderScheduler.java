@@ -4,6 +4,7 @@ import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentQueryUseCases;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ public class AppointmentReminderScheduler {
     private final AppointmentQueryUseCases queryUseCases;
     private final EventPublisherPort eventPublisher;
 
+    @Observed
     @Scheduled(cron = "${appointment.reminder.cron:0 0 8 * * *}")
     @Transactional(readOnly = true)
     public void sendAppointmentReminders() {

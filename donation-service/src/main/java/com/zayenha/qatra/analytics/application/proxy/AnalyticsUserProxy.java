@@ -14,4 +14,8 @@ public class AnalyticsUserProxy {
     public UserEntity getUserReference(Long id) {
         return userApi.getUserReference(id);
     }
+
+    public long countDonors() {
+        return userApi.countDonors();
+    }
 }

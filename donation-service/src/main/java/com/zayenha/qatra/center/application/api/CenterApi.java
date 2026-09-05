@@ -4,6 +4,7 @@ import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.infrastructure.EntityApi;
 import com.zayenha.qatra.center.application.api.dto.CenterDTO;
 import com.zayenha.qatra.center.application.api.dto.SlotDTO;
+import com.zayenha.qatra.center.domain.model.CenterStatus;
 import com.zayenha.qatra.center.domain.model.DonationCenter;
 import com.zayenha.qatra.center.domain.model.Slot;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
@@ -47,6 +48,10 @@ public class CenterApi implements EntityApi<CenterEntity> {
     }
     public boolean existsById(Long id) {
         return centerRepositoryPort.existsById(id);
+    }
+
+    public long countActiveCenters() {
+        return centerJpaRepository.countByStatus(CenterStatus.ACTIVE);
     }
 
     public Optional<CenterDTO> findCenterByIdWithJoins(Long id) {

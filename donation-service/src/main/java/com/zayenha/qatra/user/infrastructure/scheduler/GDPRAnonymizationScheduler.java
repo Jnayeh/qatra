@@ -6,6 +6,7 @@ import com.zayenha.qatra._shared.domain.UserStatus;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ public class GDPRAnonymizationScheduler {
     private final CacheService cacheService;
     private final AuditPublisher auditPublisher;
 
+    @Observed
     @Scheduled(cron = "${gdpr.anonymization.cron:0 0 2 * * *}")
     @Transactional
     public void anonymizeExpiredDeletions() {

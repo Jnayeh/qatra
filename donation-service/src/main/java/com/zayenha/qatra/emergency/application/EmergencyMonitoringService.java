@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ public class EmergencyMonitoringService {
 
     private static final int ML_PER_UNIT = 450;
 
+    @Observed
     @Scheduled(fixedRateString = "${emergency.monitoring-interval-ms:300000}")
     @Transactional
     public void monitorEmergencies() {

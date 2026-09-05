@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,7 @@ public class SlotGenerationScheduler {
         slotGenerationService.generateSlots(lookaheadDays, defaultSlotPeriodMinutes, timezone);
     }
 
+    @Observed
     @Scheduled(cron = "${slot-generation.cron:0 0 0 */21 * *}", zone = "${slot-generation.timezone:UTC}")
     public void generateSlotsScheduled() {
         log.info("Running scheduled slot generation");

@@ -36,7 +36,7 @@ public class GDPRRepositoryAdapter implements GDPRRepositoryPort {
 
     @Override
     public Optional<GDPRDeletionRequest> findByUserId(Long userId) {
-        return jpaRepository.findByUser_Id(userId).map(this::toDomain);
+        return jpaRepository.findByUser_IdAndStatus(userId, GDPRDeletionStatus.IN_PROGRESS).map(this::toDomain);
     }
 
     @Override

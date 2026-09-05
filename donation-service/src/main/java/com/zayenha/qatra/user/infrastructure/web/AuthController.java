@@ -81,11 +81,15 @@ public class AuthController {
                 sanitizeIp(ipAddress), userAgent, Instant.now().plus(Duration.ofDays(30)));
         sessionRepository.save(session);
         if (UserStatus.PENDING_DELETION.equals(user.getStatus())) {
+            log.info("ACTIVATE");
             userCommandUseCases.updateStatus(user.getId(), UserStatus.ACTIVE, user.getId());
+            user.setEmailVerified(true);
         }
         if (UserStatus.PENDING_DELETION.equals(user.getStatus()) && roleNameStrings.contains(Role.DONOR.name())) {
+            log.info("DONOR SET:");
             applicationEventPublisher.publishEvent(new UserLoggedInEvent(this, user.getId(), user.getEmail()));
         }
+        log.info("User email verified: {}", user.isEmailVerified());
         return ResponseEntity.ok(ApiResponse.success(
                 new LoginResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getDisplayName(), roles, user.isEmailVerified())));
     }

@@ -3,6 +3,7 @@ package com.zayenha.qatra.user.infrastructure.scheduler;
 import com.zayenha.qatra.user.domain.port.out.SessionRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ public class SessionCleanupScheduler {
 
     private final SessionRepositoryPort sessionRepository;
 
+    @Observed
     @Scheduled(cron = "${session.cleanup.cron:0 0 3 * * *}")
     @Transactional
     public void cleanExpiredSessions() {

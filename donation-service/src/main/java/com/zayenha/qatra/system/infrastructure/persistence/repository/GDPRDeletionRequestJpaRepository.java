@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GDPRDeletionRequestJpaRepository extends JpaRepository<GDPRDeletionRequestEntity, Long> {
-    Optional<GDPRDeletionRequestEntity> findByUser_Id(Long userId);
+    Optional<GDPRDeletionRequestEntity> findByUser_IdAndStatus(Long userId, GDPRDeletionStatus status);
     List<GDPRDeletionRequestEntity> findByStatus(GDPRDeletionStatus status);
 }

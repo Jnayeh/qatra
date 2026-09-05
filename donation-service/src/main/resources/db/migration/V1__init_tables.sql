@@ -14,7 +14,7 @@ create sequence match_result_seq start with 1 increment by 1
 create sequence session_seq start with 1 increment by 1
 create sequence slot_seq start with 1 increment by 1
 create sequence user_role_seq start with 1 increment by 1
-create sequence user_seq start with 1 increment by 2
+create sequence user_seq start with 53 increment by 1
 create sequence verification_token_seq start with 1 increment by 1
 
 

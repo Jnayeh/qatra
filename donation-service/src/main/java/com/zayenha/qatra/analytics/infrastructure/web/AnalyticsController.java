@@ -8,6 +8,7 @@ import com.zayenha.qatra.analytics.domain.port.in.AuditLogQueryUseCases;
 import com.zayenha.qatra.analytics.infrastructure.web.dto.response.AuditLogResponse;
 import com.zayenha.qatra.analytics.infrastructure.web.dto.response.MetricsResponse;
 import com.zayenha.qatra.analytics.infrastructure.web.dto.response.CenterMetricsResponse;
+import com.zayenha.qatra.analytics.infrastructure.web.dto.response.ReportsResponse;
 import com.zayenha.qatra.analytics.infrastructure.mapper.AnalyticsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/analytics")
@@ -147,6 +149,23 @@ public class AnalyticsController {
 
         cacheService.put(cacheKey, result, Duration.ofSeconds(600));
         return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    @GetMapping("/reports")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
+    public ResponseEntity<ApiResponse<ReportsResponse>> getReports(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+        long totalDonations = auditLogQueryUseCases.countByAction("APPOINTMENT_COMPLETED");
+        long newDonors = auditLogQueryUseCases.countDonors();
+        long activeCenters = auditLogQueryUseCases.countActiveCenters();
+        long totalResponses = auditLogQueryUseCases.countDonorResponses();
+        long acceptedResponses = auditLogQueryUseCases.countDonorResponsesAccepted();
+        double responseRate = totalResponses > 0 ? (double) acceptedResponses / totalResponses * 100 : 0.0;
+
+        var report = new ReportsResponse(totalDonations, newDonors, activeCenters, responseRate, Map.of());
+        return ResponseEntity.ok(ApiResponse.success(report));
     }
 
     record CacheableMetricsList(List<MetricsResponse> metrics) {}

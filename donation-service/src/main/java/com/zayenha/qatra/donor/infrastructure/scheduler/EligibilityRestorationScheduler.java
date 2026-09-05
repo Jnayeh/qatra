@@ -5,6 +5,7 @@ import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ public class EligibilityRestorationScheduler {
     @Value("${eligibility.restoration.interval-ms:3600000}")
     private long restorationIntervalMs;
 
+    @Observed
     @Scheduled(fixedRateString = "${eligibility.restoration.interval-ms:3600000}")
     @Transactional
     public void restoreEligibility() {

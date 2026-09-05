@@ -5,8 +5,10 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
 import com.zayenha.qatra._shared.domain.Role;
+import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
+import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
 import com.zayenha.qatra.user.infrastructure.web.dto.request.*;
 import com.zayenha.qatra.user.infrastructure.web.dto.response.UserDetailResponse;
 import com.zayenha.qatra.user.infrastructure.mapper.UserMapper;
@@ -26,6 +28,7 @@ public class UserController {
 
     private final UserCommandUseCases commandUseCases;
     private final UserQueryUseCases queryUseCases;
+    private final UserRoleRepositoryPort userRoleRepo;
     private final UserMapper mapper;
 
     @GetMapping
@@ -80,9 +83,13 @@ public class UserController {
     }
 
     @PostMapping("/{id}/roles")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> assignRole(
             @PathVariable Long id, @Valid @RequestBody AssignRoleRequest request) {
+        if (!userRoleRepo.existsByUserIdAndRole(AuditUtils.currentUserId(), Role.SUPER_ADMIN)
+                && Role.CENTER_STAFF.equals(request.role())) {
+            throw new InvalidRoleAssignmentException("Only super admin can assign this role");
+        }
         commandUseCases.assignRole(id, request.role(), AuditUtils.currentUserId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }

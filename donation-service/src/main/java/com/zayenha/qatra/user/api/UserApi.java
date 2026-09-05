@@ -32,6 +32,10 @@ public class UserApi implements EntityApi<UserEntity> {
     public boolean existsByUserIdAndRole(Long id, Role role) {
         return userRoleRepository.existsByUserIdAndRole(id, role);
     }
+
+    public long countDonors() {
+        return userRoleRepository.countByRole(Role.DONOR);
+    }
     public void requestDeletion(Long id) {
         userCommand.requestDeletion(id);
     }

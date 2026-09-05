@@ -5,6 +5,7 @@ import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.event.UserSignUpEvent;
 import com.zayenha.qatra._shared.exception.AuthorizationException;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteUserException;
 import com.zayenha.qatra.user.domain.exception.InvalidRoleAssignmentException;
@@ -202,9 +203,8 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         if (userRepository.existsByEmail(superAdminEmail)) return;
         var user = create(superAdminEmail, superAdminPhone, superAdminPassword, "Super Admin", "Mourad Selim", "Jnayeh");
         userRoleRepository.save(new UserRole(user.getId(), Role.SUPER_ADMIN));
-        userRoleRepository.save(new UserRole(user.getId(), Role.CENTER_ADMIN));
-        userRoleRepository.save(new UserRole(user.getId(), Role.CENTER_STAFF));
         userRoleRepository.save(new UserRole(user.getId(), Role.DONOR));
+        eventPublisher.publishEvent(new UserSignUpEvent(user.getId()));
     }
 
     @Override

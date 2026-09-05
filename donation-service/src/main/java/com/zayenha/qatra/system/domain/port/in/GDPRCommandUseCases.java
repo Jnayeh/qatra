@@ -8,5 +8,5 @@ public interface GDPRCommandUseCases {
 
     GDPRDeletionRequest complete(Long requestId);
 
-    GDPRDeletionRequest cancel(Long requestId);
+    GDPRDeletionRequest cancel(Long requestId, Long actorId);
 }

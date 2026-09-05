@@ -1,5 +1,8 @@
 package com.zayenha.qatra.analytics.application;
 
+import com.zayenha.qatra.analytics.application.proxy.AnalyticsCenterProxy;
+import com.zayenha.qatra.analytics.application.proxy.AnalyticsEmergencyProxy;
+import com.zayenha.qatra.analytics.application.proxy.AnalyticsUserProxy;
 import com.zayenha.qatra.analytics.domain.port.out.AuditLogRepositoryPort;
 import com.zayenha.qatra.analytics.domain.port.out.CenterMetricsRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,12 +25,18 @@ class AuditLogServiceTest {
     private AuditLogRepositoryPort repository;
     @Mock
     private CenterMetricsRepositoryPort centerMetricsRepo;
+    @Mock
+    private AnalyticsUserProxy userProxy;
+    @Mock
+    private AnalyticsCenterProxy centerProxy;
+    @Mock
+    private AnalyticsEmergencyProxy emergencyProxy;
 
     private AuditLogService service;
 
     @BeforeEach
     void setUp() {
-        service = new AuditLogService(repository, centerMetricsRepo);
+        service = new AuditLogService(repository, centerMetricsRepo, userProxy, centerProxy, emergencyProxy);
     }
 
     @Test

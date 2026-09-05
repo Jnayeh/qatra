@@ -7,6 +7,7 @@ import java.util.List;
 public interface UserRoleRepositoryPort {
     List<UserRole> findByUserId(Long userId);
     boolean existsByUserIdAndRole(Long userId, Role role);
+    long countByRole(Role role);
     UserRole save(UserRole userRole);
     void deleteByUserId(Long userId);
     void deleteByUserIdAndRole(Long userId, Role role);

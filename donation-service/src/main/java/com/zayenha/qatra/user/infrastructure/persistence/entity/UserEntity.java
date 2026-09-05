@@ -61,7 +61,7 @@ public class UserEntity {
     @Column(name = "deletion_requested_at")
     private Instant deletionRequestedAt;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<UserRoleEntity> roles;
 
     public UserEntity() {}

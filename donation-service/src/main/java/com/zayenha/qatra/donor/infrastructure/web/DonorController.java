@@ -1,6 +1,7 @@
 package com.zayenha.qatra.donor.infrastructure.web;
 
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
 import com.zayenha.qatra.donor.application.PdfCertificateService;
@@ -59,14 +60,17 @@ public class DonorController {
     @PreAuthorize("hasAnyRole('DONOR')")
     public ResponseEntity<ApiResponse<DonorProfileResponse>> getMyProfile() {
         var userId = AuditUtils.currentUserId();
-        var profile = donorQueryUseCases.getMyProfile(userId);
-        return ResponseEntity.ok(ApiResponse.success(mapper.toProfileResponse(profile)));
+        try {
+            var profile = donorQueryUseCases.getMyProfile(userId);
+            return ResponseEntity.ok(ApiResponse.success(mapper.toProfileResponse(profile)));
+        } catch (NotFoundException e) {
+            return updateProfile();
+        }
     }
 
     @PutMapping("/api/v1/donors/me")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
-    public ResponseEntity<ApiResponse<DonorProfileResponse>> updateProfile(
-            @Valid @RequestBody UpdateDonorRequest request) {
+    public ResponseEntity<ApiResponse<DonorProfileResponse>> updateProfile() {
         var userId = AuditUtils.currentUserId();
         var profile = donorCommandUseCases.updateProfile(userId);
         return ResponseEntity.ok(ApiResponse.success(mapper.toProfileResponse(profile)));

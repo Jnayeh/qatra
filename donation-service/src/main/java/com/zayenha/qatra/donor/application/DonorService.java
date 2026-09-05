@@ -173,7 +173,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
                 "Donor not found by userID: " + userId,
                 DonorErrorCode.DONOR_NOT_FOUND.name()));
         if (profile.getStatus() == DonorStatus.PENDING_DELETION) {
-            var actor = AuditUtils.currentUserId()==0 ? userId : AuditUtils.currentUserId();
+            var actor = AuditUtils.currentUserId(userId);
             profile.setStatus(DonorStatus.ACTIVE);
             profile.setUpdatedAt(Instant.now());
             donorRepository.save(profile);

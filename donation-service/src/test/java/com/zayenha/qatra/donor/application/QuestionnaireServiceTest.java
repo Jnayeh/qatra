@@ -1,5 +1,6 @@
 package com.zayenha.qatra.donor.application;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
 import com.zayenha.qatra.donor.domain.model.HealthQuestionnaire;
@@ -36,12 +37,14 @@ class QuestionnaireServiceTest {
     private EventPublisherPort eventPublisherPort;
     @Mock
     private UserApi userApi;
+    @Mock
+    private CacheService cacheService;
 
     private QuestionnaireService questionnaireService;
 
     @BeforeEach
     void setUp() {
-        questionnaireService = new QuestionnaireService(donorRepository, eventPublisher, auditPublisher, eventPublisherPort, userApi);
+        questionnaireService = new QuestionnaireService(donorRepository, auditPublisher, userApi, cacheService);
     }
 
     private DonorProfile aProfile() {

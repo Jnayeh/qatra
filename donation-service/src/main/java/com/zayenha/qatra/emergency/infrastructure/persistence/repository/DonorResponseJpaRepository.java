@@ -10,6 +10,7 @@ public interface DonorResponseJpaRepository extends JpaRepository<DonorResponseE
     List<DonorResponseEntity> findByEmergency_IdOrderByCreatedAtAsc(Long emergencyId);
     List<DonorResponseEntity> findByDonor_IdOrderByCreatedAtDesc(Long donorId);
     boolean existsByEmergency_IdAndDonor_Id(Long emergencyId, Long donorId);
+    long countByStatus(com.zayenha.qatra.emergency.domain.model.ResponseStatus status);
 
     @Query(value = "SELECT COUNT(*) FROM donor_responses dr " +
            "JOIN emergency_requests er ON dr.emergency_id = er.id " +

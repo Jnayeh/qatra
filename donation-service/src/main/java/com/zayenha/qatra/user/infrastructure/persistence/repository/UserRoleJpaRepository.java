@@ -10,4 +10,5 @@ public interface UserRoleJpaRepository extends JpaRepository<UserRoleEntity, Lon
     boolean existsByUser_IdAndRole(Long userId, Role role);
     void deleteByUser_Id(Long userId);
     void deleteByUser_IdAndRole(Long userId, Role role);
+    long countByRole(Role role);
 }

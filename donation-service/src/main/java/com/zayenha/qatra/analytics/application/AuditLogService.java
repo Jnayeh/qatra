@@ -7,6 +7,9 @@ import com.zayenha.qatra.analytics.domain.port.in.AuditLogQueryUseCases;
 import com.zayenha.qatra.analytics.domain.model.CenterMetrics;
 import com.zayenha.qatra.analytics.domain.port.out.AuditLogRepositoryPort;
 import com.zayenha.qatra.analytics.domain.port.out.CenterMetricsRepositoryPort;
+import com.zayenha.qatra.analytics.application.proxy.AnalyticsCenterProxy;
+import com.zayenha.qatra.analytics.application.proxy.AnalyticsEmergencyProxy;
+import com.zayenha.qatra.analytics.application.proxy.AnalyticsUserProxy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -22,12 +25,16 @@ public class AuditLogService implements AuditLogQueryUseCases {
 
     private final AuditLogRepositoryPort repository;
     private final CenterMetricsRepositoryPort centerMetricsRepository;
+    private final AnalyticsUserProxy userProxy;
+    private final AnalyticsCenterProxy centerProxy;
+    private final AnalyticsEmergencyProxy emergencyProxy;
 
     @Async
     @Transactional
     public void record(Long userId, String action, String entityType, Long entityId,
                        Map<String, Object> oldValue, Map<String, Object> newValue, String ipAddress) {
-        var log = new AuditLog(userId, action, entityType, entityId, oldValue, newValue, ipAddress);
+        var id = userId == 0 ? null : userId;
+        var log = new AuditLog(id, action, entityType, entityId, oldValue, newValue, ipAddress);
         repository.save(log);
     }
 
@@ -57,5 +64,25 @@ public class AuditLogService implements AuditLogQueryUseCases {
 
     public CenterMetrics getCenterMetrics(Long centerId) {
         return centerMetricsRepository.getMetrics(centerId);
+    }
+
+    @Override
+    public long countDonors() {
+        return userProxy.countDonors();
+    }
+
+    @Override
+    public long countActiveCenters() {
+        return centerProxy.countActiveCenters();
+    }
+
+    @Override
+    public long countDonorResponses() {
+        return emergencyProxy.countDonorResponses();
+    }
+
+    @Override
+    public long countDonorResponsesAccepted() {
+        return emergencyProxy.countDonorResponsesAccepted();
     }
 }

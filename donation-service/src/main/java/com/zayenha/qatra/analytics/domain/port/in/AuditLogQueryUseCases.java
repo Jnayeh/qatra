@@ -23,4 +23,12 @@ public interface AuditLogQueryUseCases {
     long countByActionBetween(String action, Instant from, Instant to);
 
     CenterMetrics getCenterMetrics(Long centerId);
+
+    long countDonors();
+
+    long countActiveCenters();
+
+    long countDonorResponses();
+
+    long countDonorResponsesAccepted();
 }

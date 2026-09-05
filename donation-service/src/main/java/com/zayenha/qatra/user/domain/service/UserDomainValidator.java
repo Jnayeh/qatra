@@ -5,7 +5,9 @@ import com.zayenha.qatra.user.domain.exception.EmailAlreadyExistsException;
 import com.zayenha.qatra.user.domain.exception.PhoneAlreadyExistsException;
 import com.zayenha.qatra.user.domain.exception.UserErrorCode;
 import com.zayenha.qatra.user.domain.port.out.UserRepositoryPort;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class UserDomainValidator {
     private final UserRepositoryPort userRepository;
 
@@ -23,6 +25,7 @@ public class UserDomainValidator {
     }
 
     public void validateUpdate(Long userId, String email, String phone) {
+        log.info("user:"+userId);
         if (userRepository.existsOtherByEmailOrPhone(userId,email, phone)) {
                 throw new ConflictException("The email or the phone number belong to another user", UserErrorCode.USER_CONFLICT.name());
         }

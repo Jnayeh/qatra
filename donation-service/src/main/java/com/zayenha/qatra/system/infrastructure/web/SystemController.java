@@ -38,7 +38,7 @@ public class SystemController {
 
     @PostMapping("/gdpr/{id}/cancel")
     public ResponseEntity<ApiResponse<GDPRDeletionResponse>> cancelDeletion(@PathVariable Long id) {
-        var gdpr = gdprCommandUseCases.cancel(id);
+        var gdpr = gdprCommandUseCases.cancel(id, 0L);
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(gdpr)));
     }
 

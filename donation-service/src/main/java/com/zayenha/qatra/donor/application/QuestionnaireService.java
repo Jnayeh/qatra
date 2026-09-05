@@ -1,5 +1,6 @@
 package com.zayenha.qatra.donor.application;
 
+import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.NotFoundException;
@@ -26,10 +27,9 @@ import java.util.Map;
 public class QuestionnaireService implements QuestionnaireCommandUseCases, QuestionnaireQueryUseCases {
 
     private final DonorRepositoryPort donorRepository;
-    private final ApplicationEventPublisher eventPublisher;
     private final AuditPublisher auditPublisher;
-    private final EventPublisherPort eventPublisherPort;
     private final UserApi userApi;
+    private final CacheService cacheService;
 
     @Value("${questionnaire.permanent-restriction-keywords:insulin,chemo,immunosuppressant}")
     private String restrictionKeywords;
@@ -63,6 +63,7 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         }
 
         donorRepository.save(profile);
+        cacheService.evictByPattern("donorProfiles:*");
         var saved = donorRepository.saveQuestionnaire(questionnaire);
 
         auditPublisher.publish("HEALTH_QUESTIONNAIRE_UPDATED", saved.getId(), "HealthQuestionnaire", null,

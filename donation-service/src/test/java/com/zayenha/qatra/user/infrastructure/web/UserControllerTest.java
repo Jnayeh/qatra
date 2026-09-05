@@ -10,6 +10,7 @@ import com.zayenha.qatra.user.domain.model.User;
 import com.zayenha.qatra._shared.domain.UserStatus;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
+import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
 import com.zayenha.qatra.user.infrastructure.mapper.UserMapper;
 import com.zayenha.qatra.user.infrastructure.web.dto.request.*;
 import com.zayenha.qatra.user.infrastructure.web.dto.response.UserDetailResponse;
@@ -38,13 +39,15 @@ class UserControllerTest {
     private UserQueryUseCases queryUseCases;
     @Mock
     private UserMapper mapper;
+    @Mock
+    private UserRoleRepositoryPort userRoleRepo;
 
     private UserController controller;
     private GlobalExceptionHandler exceptionHandler;
 
     @BeforeEach
     void setUp() {
-        controller = new UserController(commandUseCases, queryUseCases, mapper);
+        controller = new UserController(commandUseCases, queryUseCases, userRoleRepo, mapper);
         exceptionHandler = new GlobalExceptionHandler();
     }
 

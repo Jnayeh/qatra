@@ -25,7 +25,7 @@ public class CenterAdminProfileEntity {
     private UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "center_id", nullable = true)
+    @JoinColumn(name = "center_id")
     private CenterEntity center;
 
     @Column(name = "created_at", nullable = false, updatable = false)

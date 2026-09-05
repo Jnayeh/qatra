@@ -4,6 +4,7 @@ import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ public class ProfileNudgeScheduler {
     private final DonorRepositoryPort donorRepository;
     private final EventPublisherPort eventPublisher;
 
+    @Observed
     @Scheduled(cron = "${profile.nudge.cron:0 10 */4  * * *}")
     @Transactional(readOnly = true)
     public void sendProfileCompletionNudges() {

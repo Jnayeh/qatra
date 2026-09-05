@@ -1,5 +1,6 @@
-CREATE USER qatra WITH PASSWORD 'qatra';
-CREATE DATABASE qatra OWNER qatra;
+DO $$ BEGIN
+  CREATE USER qatra_notification WITH PASSWORD 'qatra_notification';
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
-CREATE USER qatra_notification WITH PASSWORD 'qatra_notification';
 CREATE DATABASE qatra_notification OWNER qatra_notification;

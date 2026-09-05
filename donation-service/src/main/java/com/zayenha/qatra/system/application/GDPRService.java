@@ -61,12 +61,12 @@ public class GDPRService implements GDPRCommandUseCases, GDPRQueryUseCases {
     }
 
     @Transactional
-    public GDPRDeletionRequest cancel(Long requestId) {
+    public GDPRDeletionRequest cancel(Long requestId, Long actorId) {
         var request = findOrThrow(requestId);
         var oldStatus = request.getStatus();
         request.cancel();
         var saved = repository.save(request);
-        auditPublisher.publish("GDPR_DELETION_CANCELLED", requestId, "GDPRDeletionRequest",
+        auditPublisher.publish(actorId,"GDPR_DELETION_CANCELLED", requestId, "GDPRDeletionRequest",
             Map.of("status", oldStatus.name()),
             Map.of("status", GDPRDeletionStatus.CANCELED.name()));
         return saved;

@@ -27,6 +27,11 @@ public class UserRoleRepositoryAdapter implements UserRoleRepositoryPort {
     }
 
     @Override
+    public long countByRole(Role role) {
+        return jpaRepository.countByRole(role);
+    }
+
+    @Override
     public UserRole save(UserRole userRole) {
         var entity = toJpa(userRole);
         var saved = jpaRepository.save(entity);

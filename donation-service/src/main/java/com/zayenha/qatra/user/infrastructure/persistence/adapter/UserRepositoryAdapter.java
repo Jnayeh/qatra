@@ -57,7 +57,8 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
     @Override
     public boolean existsOtherByEmailOrPhone(Long id, String email, String phone) {
-        return jpaRepository.existsByIdNotAndEmailOrPhone(id, email, phone);
+        var b = jpaRepository.existsByNotIDAndEmailOrPhone(id, email, phone);
+        return Boolean.TRUE.equals(b);
     }
 
     @Override
