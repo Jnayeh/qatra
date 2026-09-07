@@ -122,12 +122,23 @@ class EmergencyControllerTest {
     void getAllReturnsPaginatedResults() {
         var emergency = anEmergency();
         var pageResult = new PageResult<EmergencyRequest>(List.of(emergency), 0, 20, 1, 1);
-        when(queryUseCases.findAll(any(SearchCriteria.class))).thenReturn(pageResult);
+        when(queryUseCases.findAll(any(SearchCriteria.class), isNull(), isNull())).thenReturn(pageResult);
 
-        var response = controller.getAll(0, 20);
+        var response = controller.getAll(0, 20, null, null);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().data()).hasSize(1);
+    }
+
+    @Test
+    void getAllPassesCenterAndStatusFilters() {
+        var emergency = anEmergency();
+        var pageResult = new PageResult<EmergencyRequest>(List.of(emergency), 0, 20, 1, 1);
+        when(queryUseCases.findAll(any(SearchCriteria.class), eq(5L), eq(EmergencyStatus.OPEN))).thenReturn(pageResult);
+
+        var response = controller.getAll(0, 20, 5L, EmergencyStatus.OPEN);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test

@@ -5,12 +5,14 @@ import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.emergency.domain.model.DonorResponse;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
+import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 
 import java.util.List;
 
 public interface EmergencyQueryUseCases {
     EmergencyRequest findById(Long id);
     PageResult<EmergencyRequest> findAll(SearchCriteria criteria);
+    PageResult<EmergencyRequest> findAll(SearchCriteria criteria, Long centerId, EmergencyStatus status);
     List<EmergencyRequest> findOpenByBloodType(BloodType bloodType);
     List<EmergencyRequest> findOpenWithinRadius(double latitude, double longitude, double radiusKm);
     List<DonorResponse> findResponsesByEmergencyId(Long emergencyId);

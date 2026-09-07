@@ -215,7 +215,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         var saved = centerRepository.save(center);
         cacheService.evictByPattern("donationCenters:*");
         auditPublisher.publish("CENTER_APPROVED", centerId, "DonationCenter",
-            Map.of("status", oldStatus != null ? oldStatus.name() : null),
+            Map.of("status", oldStatus != null ? oldStatus.name() : "null"),
             Map.of("approved", approved, "reason", reason));
         return saved;
     }

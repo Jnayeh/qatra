@@ -207,6 +207,12 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
 
     @Override
     @Transactional(readOnly = true)
+    public PageResult<EmergencyRequest> findAll(SearchCriteria criteria, Long centerId, EmergencyStatus status) {
+        return repository.findAll(criteria, centerId, status);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<EmergencyRequest> findOpenByBloodType(BloodType bloodType) {
         return repository.findByBloodTypeAndStatus(bloodType, EmergencyStatus.OPEN);
     }

@@ -2,6 +2,7 @@ package com.zayenha.qatra.emergency.infrastructure.web;
 
 import com.zayenha.qatra._shared.domain.BloodType;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
@@ -78,9 +79,11 @@ public class EmergencyController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<List<EmergencyResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long centerId,
+            @RequestParam(required = false) EmergencyStatus status) {
         var criteria = new SearchCriteria(null, "id", "asc", page, size);
-        var result = queryUseCases.findAll(criteria);
+        var result = queryUseCases.findAll(criteria, centerId, status);
         var emergencies = result.content().stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok(ApiResponse.success(emergencies, PageHelper.fromDomain(result)));
     }

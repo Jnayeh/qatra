@@ -87,7 +87,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> assignRole(
             @PathVariable Long id, @Valid @RequestBody AssignRoleRequest request) {
         if (!userRoleRepo.existsByUserIdAndRole(AuditUtils.currentUserId(), Role.SUPER_ADMIN)
-                && Role.CENTER_STAFF.equals(request.role())) {
+                && !Role.CENTER_STAFF.equals(request.role())) {
             throw new InvalidRoleAssignmentException("Only super admin can assign this role");
         }
         commandUseCases.assignRole(id, request.role(), AuditUtils.currentUserId());

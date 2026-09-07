@@ -17,6 +17,7 @@ import com.zayenha.qatra.emergency.infrastructure.persistence.repository.Emergen
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.MatchResultJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -74,6 +75,28 @@ public class EmergencyRepositoryAdapter implements EmergencyRepositoryPort {
             page.getContent().stream().map(mapper::toDomain).toList(),
             page.getNumber(), page.getSize(),
             total, page.getTotalPages()
+        );
+    }
+
+    @Override
+    public PageResult<EmergencyRequest> findAll(SearchCriteria criteria, Long centerId, EmergencyStatus status) {
+        var pageable = PageRequest.of(criteria.page(), criteria.size(), Sort.by(Sort.Direction.DESC, "createdAt"));
+        org.springframework.data.jpa.domain.Specification<EmergencyRequestEntity> spec =
+            (root, query, cb) -> {
+                var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+                if (centerId != null) {
+                    predicates.add(cb.equal(root.get("center").get("id"), centerId));
+                }
+                if (status != null) {
+                    predicates.add(cb.equal(root.get("status"), status));
+                }
+                return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+            };
+        var page = emergencyJpaRepository.findAll(spec, pageable);
+        return new PageResult<>(
+            page.getContent().stream().map(mapper::toDomain).toList(),
+            page.getNumber(), page.getSize(),
+            page.getTotalElements(), page.getTotalPages()
         );
     }
 
