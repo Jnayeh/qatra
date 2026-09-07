@@ -1,11 +1,13 @@
 package com.zayenha.qatra.emergency.domain.port.in;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.emergency.domain.model.DonorResponse;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
+import com.zayenha.qatra.emergency.domain.model.MatchResultStats;
+import com.zayenha.qatra.emergency.domain.model.ResponseStats;
 
 import java.util.List;
 
@@ -17,4 +19,6 @@ public interface EmergencyQueryUseCases {
     List<EmergencyRequest> findOpenWithinRadius(double latitude, double longitude, double radiusKm);
     List<DonorResponse> findResponsesByEmergencyId(Long emergencyId);
     List<DonorResponse> findResponsesByDonorId(Long donorId);
+    MatchResultStats getMatchStats(Long emergencyId);
+    ResponseStats getResponseStats(Long emergencyId);
 }

@@ -1,7 +1,7 @@
 package com.zayenha.qatra.donor.application;
 
 import com.zayenha.qatra._shared.cache.CacheService;
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;

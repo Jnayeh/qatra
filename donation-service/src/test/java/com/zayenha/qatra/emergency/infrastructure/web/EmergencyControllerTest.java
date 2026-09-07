@@ -1,6 +1,6 @@
 package com.zayenha.qatra.emergency.infrastructure.web;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.emergency.domain.model.*;
@@ -9,6 +9,8 @@ import com.zayenha.qatra.emergency.domain.port.in.EmergencyQueryUseCases;
 import com.zayenha.qatra.emergency.infrastructure.mapper.EmergencyMapper;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.AcceptResponseRequest;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.response.EmergencyResponse;
+import com.zayenha.qatra.emergency.domain.model.MatchResultStats;
+import com.zayenha.qatra.emergency.domain.model.ResponseStats;
 import com.zayenha.qatra.emergency.infrastructure.web.dto.request.CreateEmergencyRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,6 +70,14 @@ class EmergencyControllerTest {
         return e;
     }
 
+    private EmergencyResponse mapResponse(EmergencyRequest e) {
+        return new EmergencyResponse(
+                e.getId(), e.getCenterId(), e.getBloodType(), e.getUnitsNeeded(), e.getUrgency(),
+                e.getMatchRadius(), e.getEscalationLevel(), e.getContactPhone(), e.getStatus(),
+                e.getCreatedAt(), e.getUpdatedAt(), e.getExpiresAt(), e.getResolvedAt(),
+                e.getResolvedByUserId(), 0, 0, 0, 0, 0);
+    }
+
     @Test
     void createReturnsCreated() {
         var emergency = anEmergency();
@@ -85,29 +95,16 @@ class EmergencyControllerTest {
     void getByIdReturnsEmergency() {
         var emergency = anEmergency();
         when(queryUseCases.findById(1L)).thenReturn(emergency);
-        when(mapper.toResponse(emergency)).thenReturn(
-                new EmergencyResponse(
-                        emergency.getId(),
-                        emergency.getCenterId(),
-                        emergency.getBloodType(),
-                        emergency.getUnitsNeeded(),
-                        emergency.getUrgency(),
-                        emergency.getMatchRadius(),
-                        emergency.getEscalationLevel(),
-                        emergency.getContactPhone(),
-                        emergency.getStatus(),
-                        emergency.getCreatedAt(),
-                        emergency.getUpdatedAt(),
-                        emergency.getExpiresAt(),
-                        emergency.getResolvedAt(),
-                        emergency.getResolvedByUserId()
-                )
-        );
+        when(queryUseCases.getMatchStats(1L)).thenReturn(new MatchResultStats(4, 3));
+        when(queryUseCases.getResponseStats(1L)).thenReturn(new ResponseStats(2, 1, 1));
+        when(mapper.toResponse(emergency)).thenReturn(mapResponse(emergency));
 
         var response = controller.getById(1L);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().data().id()).isEqualTo(1L);
+        assertThat(response.getBody().data().matchedDonorCount()).isEqualTo(4);
+        assertThat(response.getBody().data().responseCount()).isEqualTo(2);
     }
 
     @Test
@@ -137,6 +134,28 @@ class EmergencyControllerTest {
         when(queryUseCases.findAll(any(SearchCriteria.class), eq(5L), eq(EmergencyStatus.OPEN))).thenReturn(pageResult);
 
         var response = controller.getAll(0, 20, 5L, EmergencyStatus.OPEN);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void cancelReturnsOk() {
+        var emergency = anEmergency();
+        when(commandUseCases.cancel(1L)).thenReturn(emergency);
+        when(mapper.toResponse(emergency)).thenReturn(mapResponse(emergency));
+
+        var response = controller.cancel(1L);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void escalateReturnsOk() {
+        var emergency = anEmergency();
+        when(commandUseCases.escalate(1L)).thenReturn(emergency);
+        when(mapper.toResponse(emergency)).thenReturn(mapResponse(emergency));
+
+        var response = controller.escalate(1L);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }

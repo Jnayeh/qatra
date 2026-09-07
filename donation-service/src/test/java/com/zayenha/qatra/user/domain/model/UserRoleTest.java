@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.domain.model;
 
-import com.zayenha.qatra._shared.domain.Role;
+import com.zayenha.qatra._shared.domain.enums.Role;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

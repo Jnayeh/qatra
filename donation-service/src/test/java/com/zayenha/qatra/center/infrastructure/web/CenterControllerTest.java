@@ -1,5 +1,6 @@
 package com.zayenha.qatra.center.infrastructure.web;
 
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra.center.domain.model.*;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases;
 import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;

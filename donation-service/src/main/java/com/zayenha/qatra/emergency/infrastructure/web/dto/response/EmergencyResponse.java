@@ -1,6 +1,6 @@
 package com.zayenha.qatra.emergency.infrastructure.web.dto.response;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 import com.zayenha.qatra.emergency.domain.model.EmergencyUrgency;
 
@@ -20,5 +20,19 @@ public record EmergencyResponse(
     Instant updatedAt,
     Instant expiresAt,
     Instant resolvedAt,
-    Long resolvedByUserId
-) {}
+    Long resolvedByUserId,
+    long matchedDonorCount,
+    long pendingMatchCount,
+    long responseCount,
+    long acceptedCount,
+    long declinedCount
+) {
+
+    public EmergencyResponse withStats(long matchedDonorCount, long pendingMatchCount,
+                                       long responseCount, long acceptedCount, long declinedCount) {
+        return new EmergencyResponse(
+            id, centerId, bloodType, unitsNeeded, urgency, matchRadius, escalationLevel,
+            contactPhone, status, createdAt, updatedAt, expiresAt, resolvedAt, resolvedByUserId,
+            matchedDonorCount, pendingMatchCount, responseCount, acceptedCount, declinedCount);
+    }
+}

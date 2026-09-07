@@ -1,4 +1,4 @@
-package com.zayenha.qatra._shared.domain;
+package com.zayenha.qatra._shared.domain.enums;
 
 public enum WeekNumber {
     FIRST(1, 7),

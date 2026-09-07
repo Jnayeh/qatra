@@ -1,7 +1,7 @@
 package com.zayenha.qatra.center.application.proxy;
 
 import com.zayenha.qatra.user.api.UserApi;
-import com.zayenha.qatra._shared.domain.Role;
+import com.zayenha.qatra._shared.domain.enums.Role;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

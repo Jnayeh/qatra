@@ -1,7 +1,7 @@
 package com.zayenha.qatra.emergency.application;
 
 import com.zayenha.qatra._shared.cache.CacheService;
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.exception.ValidationException;
 import com.zayenha.qatra.emergency.domain.model.*;
@@ -16,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.zayenha.qatra.donor.application.api.dto.DonorProfileDTO;
+import com.zayenha.qatra.center.application.api.dto.CenterDTO;
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,11 +50,14 @@ class EmergencyServiceTest {
     @BeforeEach
     void setUp() {
         service = new EmergencyService(appointmentApi, repository, donorProxy, centerProxy, cacheService, matchingService, auditPublisher);
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "escalationRadiusIncrement", 10);
     }
 
     @Test
     void createReturnsSavedRequest() {
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(centerProxy.findCenterById(1L)).thenReturn(Optional.of(activeCenter(1L)));
+        when(centerProxy.isStaffOrAdminOfCenter(10L, 1L)).thenReturn(true);
 
         var result = service.create(1L, 10L, BloodType.A_POSITIVE, 2,
                 EmergencyUrgency.HIGH, 50, "+123456789");
@@ -62,6 +67,44 @@ class EmergencyServiceTest {
         assertThat(result.getStatus()).isEqualTo(EmergencyStatus.OPEN);
         assertThat(result.getExpiresAt()).isNotNull();
         verify(repository).save(any());
+    }
+
+    @Test
+    void createThrowsWhenCenterNotFound() {
+        when(centerProxy.findCenterById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.create(99L, 10L, BloodType.A_POSITIVE, 2,
+                EmergencyUrgency.HIGH, 50, "+123456789"))
+                .isInstanceOf(com.zayenha.qatra._shared.exception.NotFoundException.class);
+    }
+
+    @Test
+    void createThrowsWhenCenterNotActive() {
+        var center = new CenterDTO();
+        center.setId(1L);
+        center.setStatus(CenterStatus.SUSPENDED);
+        when(centerProxy.findCenterById(1L)).thenReturn(Optional.of(center));
+
+        assertThatThrownBy(() -> service.create(1L, 10L, BloodType.A_POSITIVE, 2,
+                EmergencyUrgency.HIGH, 50, "+123456789"))
+                .isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void createThrowsWhenUserNotCenterMember() {
+        when(centerProxy.findCenterById(1L)).thenReturn(Optional.of(activeCenter(1L)));
+        when(centerProxy.isStaffOrAdminOfCenter(10L, 1L)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.create(1L, 10L, BloodType.A_POSITIVE, 2,
+                EmergencyUrgency.HIGH, 50, "+123456789"))
+                .isInstanceOf(ValidationException.class);
+    }
+
+    private CenterDTO activeCenter(Long id) {
+        var center = new CenterDTO();
+        center.setId(id);
+        center.setStatus(CenterStatus.ACTIVE);
+        return center;
     }
 
     @Test
@@ -112,6 +155,34 @@ class EmergencyServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(request));
 
         assertThatThrownBy(() -> service.cancel(1L))
+                .isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void escalateBumpsLevelAndRadius() {
+        var request = new EmergencyRequest();
+        request.setId(1L);
+        request.setStatus(EmergencyStatus.OPEN);
+        request.setEscalationLevel(2);
+        request.setMatchRadius(30);
+        when(repository.findById(1L)).thenReturn(Optional.of(request));
+        when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        var result = service.escalate(1L);
+
+        assertThat(result.getEscalationLevel()).isEqualTo(3);
+        assertThat(result.getMatchRadius()).isEqualTo(40);
+        verify(matchingService).matchDonors(result);
+    }
+
+    @Test
+    void escalateThrowsWhenNotOpen() {
+        var request = new EmergencyRequest();
+        request.setId(1L);
+        request.setStatus(EmergencyStatus.FULFILLED);
+        when(repository.findById(1L)).thenReturn(Optional.of(request));
+
+        assertThatThrownBy(() -> service.escalate(1L))
                 .isInstanceOf(ValidationException.class);
     }
 

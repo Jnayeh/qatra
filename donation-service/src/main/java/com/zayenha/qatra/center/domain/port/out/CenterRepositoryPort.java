@@ -1,5 +1,6 @@
 package com.zayenha.qatra.center.domain.port.out;
 
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra.center.domain.model.*;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;

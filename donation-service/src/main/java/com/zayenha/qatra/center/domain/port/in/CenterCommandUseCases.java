@@ -1,9 +1,9 @@
 package com.zayenha.qatra.center.domain.port.in;
 
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra.center.domain.model.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 public interface CenterCommandUseCases {
     DonationCenter create(CreateCenterCommand command);

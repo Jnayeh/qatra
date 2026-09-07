@@ -1,7 +1,7 @@
 package com.zayenha.qatra.emergency.infrastructure.persistence.adapter;
 
 import com.zayenha.qatra._shared.cache.CacheService;
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.emergency.application.proxy.EmergencyCenterProxy;
@@ -9,6 +9,8 @@ import com.zayenha.qatra.emergency.domain.model.DonorResponse;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 import com.zayenha.qatra.emergency.domain.model.MatchResult;
+import com.zayenha.qatra.emergency.domain.model.MatchResultStats;
+import com.zayenha.qatra.emergency.domain.model.ResponseStats;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
 import com.zayenha.qatra.emergency.infrastructure.persistence.entity.EmergencyRequestEntity;
 import com.zayenha.qatra.emergency.infrastructure.mapper.EmergencyMapper;
@@ -190,5 +192,20 @@ public class EmergencyRepositoryAdapter implements EmergencyRepositoryPort {
     public List<MatchResult> findMatchResultsByDonorId(Long donorId) {
         return matchResultJpaRepository.findByDonor_Id(donorId)
                 .stream().map(mapper::toMatchResultDomain).toList();
+    }
+
+    @Override
+    public MatchResultStats countMatchStatsByEmergencyId(Long emergencyId) {
+        long total = matchResultJpaRepository.countByEmergency_Id(emergencyId);
+        long pending = matchResultJpaRepository.countPendingByEmergencyId(emergencyId);
+        return new MatchResultStats(total, pending);
+    }
+
+    @Override
+    public ResponseStats countResponseStatsByEmergencyId(Long emergencyId) {
+        long total = responseJpaRepository.countByEmergency_Id(emergencyId);
+        long accepted = responseJpaRepository.countAcceptedByEmergencyId(emergencyId);
+        long declined = responseJpaRepository.countDeclinedByEmergencyId(emergencyId);
+        return new ResponseStats(total, accepted, declined);
     }
 }

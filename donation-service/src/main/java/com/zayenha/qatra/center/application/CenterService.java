@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
 import com.zayenha.qatra._shared.exception.ConflictException;
@@ -16,8 +17,11 @@ import com.zayenha.qatra.center.domain.port.in.CenterQueryUseCases;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
 import com.zayenha.qatra.center.domain.service.CenterDomainValidator;
-import com.zayenha.qatra._shared.domain.Role;
+import com.zayenha.qatra._shared.domain.enums.Role;
+import com.zayenha.qatra.center.infrastructure.persistence.repository.CenterAdminJpaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,16 +32,26 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CenterService implements CenterCommandUseCases, CenterQueryUseCases {
 
     private final CenterRepositoryPort centerRepository;
     private final SlotRepositoryPort slotRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final SlotGenerationService slotGenerationService;
     private final CacheService cacheService;
     private final AuditPublisher auditPublisher;
     private final CenterUserProxy userApi;
+
+    @Value("${slot-generation.lookahead-days:21}")
+    private int lookaheadDays;
+
+    @Value("${slot-generation.default-period-minutes:60}")
+    private int defaultSlotPeriodMinutes;
+
+    @Value("${slot-generation.timezone:UTC}")
+    private String timezone;
 
     private CenterDomainValidator validator() {
         return new CenterDomainValidator(centerRepository);
@@ -212,6 +226,9 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
                 "Center not found: " + centerId, CenterErrorCode.CENTER_NOT_FOUND.name()));
         var oldStatus = center.getStatus();
         center.setStatus(approved ? CenterStatus.ACTIVE : CenterStatus.CLOSED);
+        if (approved){
+            slotGenerationService.generateSlots(lookaheadDays, defaultSlotPeriodMinutes, timezone);
+        }
         var saved = centerRepository.save(center);
         cacheService.evictByPattern("donationCenters:*");
         auditPublisher.publish("CENTER_APPROVED", centerId, "DonationCenter",

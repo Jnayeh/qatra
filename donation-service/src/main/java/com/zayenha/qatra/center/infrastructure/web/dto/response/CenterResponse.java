@@ -1,6 +1,6 @@
 package com.zayenha.qatra.center.infrastructure.web.dto.response;
 
-import com.zayenha.qatra.center.domain.model.CenterStatus;
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra.center.domain.model.FacilityType;
 import com.zayenha.qatra.center.domain.model.OperatingHours;
 

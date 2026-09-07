@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.persistence.entity;
 
-import com.zayenha.qatra._shared.domain.UserStatus;
+import com.zayenha.qatra._shared.domain.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

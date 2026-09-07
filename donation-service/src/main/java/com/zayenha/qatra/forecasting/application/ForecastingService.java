@@ -1,11 +1,10 @@
 package com.zayenha.qatra.forecasting.application;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.emergency.application.api.dto.DemandDataPoint;
 import com.zayenha.qatra.forecasting.application.proxy.EmergencyForecastProxy;
 import com.zayenha.qatra.forecasting.domain.model.DemandForecast;
 import com.zayenha.qatra.forecasting.domain.model.ForecastPeriodType;
-import com.zayenha.qatra._shared.domain.WeekNumber;
 import com.zayenha.qatra.forecasting.domain.port.in.ForecastQueryUseCases;
 import com.zayenha.qatra.forecasting.domain.port.out.DemandForecastRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service

@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.persistence.adapter;
 
-import com.zayenha.qatra._shared.domain.Role;
+import com.zayenha.qatra._shared.domain.enums.Role;
 import com.zayenha.qatra.user.domain.model.UserRole;
 import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;

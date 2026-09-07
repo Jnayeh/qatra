@@ -20,6 +20,8 @@ public class RedisCacheService implements CacheService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
+    private static final Duration DEFAULT_TTL = Duration.ofSeconds(60);
+
     public RedisCacheService(StringRedisTemplate redisTemplate, ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
@@ -49,12 +51,7 @@ public class RedisCacheService implements CacheService {
 
     @Override
     public void put(String key, Object value) {
-        try {
-            var json = objectMapper.writeValueAsString(value);
-            redisTemplate.opsForValue().set(key, json);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize cache value", e);
-        }
+        put(key, value, DEFAULT_TTL);
     }
 
     @Override

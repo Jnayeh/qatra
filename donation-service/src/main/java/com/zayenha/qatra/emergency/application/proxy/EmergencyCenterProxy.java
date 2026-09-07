@@ -26,4 +26,8 @@ public class EmergencyCenterProxy {
     public Optional<CenterDTO> findCenterById(Long id) {
         return centerApi.findCenterById(id);
     }
+
+    public boolean isStaffOrAdminOfCenter(Long userId, Long centerId) {
+        return centerApi.isStaffOrAdminOfCenter(userId, centerId);
+    }
 }

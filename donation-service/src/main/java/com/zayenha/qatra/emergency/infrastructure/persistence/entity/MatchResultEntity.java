@@ -1,6 +1,6 @@
 package com.zayenha.qatra.emergency.infrastructure.persistence.entity;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonorProfileEntity;
 import com.zayenha.qatra.emergency.domain.model.MatchStatus;

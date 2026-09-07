@@ -1,6 +1,6 @@
 package com.zayenha.qatra.forecasting.application.proxy;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.emergency.application.api.EmergencyForecastApi;
 import com.zayenha.qatra.emergency.application.api.dto.DemandDataPoint;
 import lombok.RequiredArgsConstructor;

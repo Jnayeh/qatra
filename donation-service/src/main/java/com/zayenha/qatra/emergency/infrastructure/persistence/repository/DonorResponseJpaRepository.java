@@ -1,8 +1,10 @@
 package com.zayenha.qatra.emergency.infrastructure.persistence.repository;
 
+import com.zayenha.qatra.emergency.domain.model.ResponseStatus;
 import com.zayenha.qatra.emergency.infrastructure.persistence.entity.DonorResponseEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -11,6 +13,16 @@ public interface DonorResponseJpaRepository extends JpaRepository<DonorResponseE
     List<DonorResponseEntity> findByDonor_IdOrderByCreatedAtDesc(Long donorId);
     boolean existsByEmergency_IdAndDonor_Id(Long emergencyId, Long donorId);
     long countByStatus(com.zayenha.qatra.emergency.domain.model.ResponseStatus status);
+
+    long countByEmergency_Id(Long emergencyId);
+
+    @Query(value = "SELECT COUNT(*) FROM donor_responses WHERE emergency_id = :eid AND status = 'ACCEPTED'",
+            nativeQuery = true)
+    long countAcceptedByEmergencyId(@Param("eid") Long emergencyId);
+
+    @Query(value = "SELECT COUNT(*) FROM donor_responses WHERE emergency_id = :eid AND status = 'DECLINED'",
+            nativeQuery = true)
+    long countDeclinedByEmergencyId(@Param("eid") Long emergencyId);
 
     @Query(value = "SELECT COUNT(*) FROM donor_responses dr " +
            "JOIN emergency_requests er ON dr.emergency_id = er.id " +

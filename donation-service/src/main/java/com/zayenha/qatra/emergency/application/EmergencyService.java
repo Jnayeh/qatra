@@ -1,8 +1,8 @@
 package com.zayenha.qatra.emergency.application;
 
 import com.zayenha.qatra._shared.domain.GeoUtils;
-import com.zayenha.qatra._shared.domain.AppointmentType;
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.AppointmentType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.port.out.AppointmentServiceProvider;
@@ -11,6 +11,7 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra.emergency.application.proxy.EmergencyCenterProxy;
 import com.zayenha.qatra.emergency.application.proxy.EmergencyDonorProxy;
 import com.zayenha.qatra.emergency.domain.exception.EmergencyErrorCode;
@@ -45,10 +46,24 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
     private long expirationHours;
     private final AuditPublisher auditPublisher;
 
+    @Value("${emergency.escalation-radius-increment:10}")
+    private int escalationRadiusIncrement;
+
     @Override
     @Transactional
     public EmergencyRequest create(Long centerId, Long createdByStaffId, BloodType bloodType, Integer unitsNeeded,
                                     EmergencyUrgency urgency, Integer matchRadius, String contactPhone) {
+        var center = centerProxy.findCenterById(centerId)
+            .orElseThrow(() -> new NotFoundException("Center not found: " + centerId,
+                    EmergencyErrorCode.CENTER_NOT_ACTIVE.name()));
+        if (center.getStatus() != CenterStatus.ACTIVE) {
+            throw new ValidationException("Only active centers can submit emergency requests",
+                    EmergencyErrorCode.CENTER_NOT_ACTIVE.name());
+        }
+        if (!centerProxy.isStaffOrAdminOfCenter(createdByStaffId, centerId)) {
+            throw new ValidationException("User is not a member of this center",
+                    EmergencyErrorCode.NOT_CENTER_MEMBER.name());
+        }
         var request = new EmergencyRequest(centerId, createdByStaffId, bloodType, unitsNeeded, urgency, contactPhone, matchRadius, Instant.now().plus(expirationHours, ChronoUnit.MINUTES));
         var saved = repository.save(request);
         cacheService.evictByPattern("emergencies:*");
@@ -96,6 +111,26 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
         auditPublisher.publish("EMERGENCY_CANCELLED", saved.getId(), "EmergencyRequest",
             Map.of("status", oldStatus != null ? oldStatus.name() : null),
             Map.of("status", EmergencyStatus.CANCELLED.name()));
+        return saved;
+    }
+
+    @Override
+    @Transactional
+    public EmergencyRequest escalate(Long id) {
+        var request = findOrThrow(id);
+        if (request.getStatus() != EmergencyStatus.OPEN) {
+            throw new ValidationException("Only open emergencies can be escalated",
+                    EmergencyErrorCode.EMERGENCY_ALREADY_FULFILLED.name());
+        }
+        var newLevel = request.getEscalationLevel() != null ? request.getEscalationLevel() + 1 : 1;
+        var newRadius = (request.getMatchRadius() != null ? request.getMatchRadius() : 0) + escalationRadiusIncrement;
+        request.setEscalationLevel(newLevel);
+        request.setMatchRadius(newRadius);
+        var saved = repository.save(request);
+        cacheService.evictByPattern("emergencies:*");
+        auditPublisher.publish("EMERGENCY_ESCALATED", saved.getId(), "EmergencyRequest", null,
+            Map.of("escalationLevel", newLevel, "matchRadius", newRadius));
+        matchingService.matchDonors(saved);
         return saved;
     }
 
@@ -250,6 +285,18 @@ public class EmergencyService implements EmergencyCommandUseCases, EmergencyQuer
                     cacheService.put(key, result);
                     return result;
                 });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MatchResultStats getMatchStats(Long emergencyId) {
+        return repository.countMatchStatsByEmergencyId(emergencyId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseStats getResponseStats(Long emergencyId) {
+        return repository.countResponseStatsByEmergencyId(emergencyId);
     }
 
     private EmergencyRequest validateEmergency(Long emergencyId, Long donorId) {

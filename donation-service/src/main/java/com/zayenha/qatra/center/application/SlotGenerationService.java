@@ -1,6 +1,6 @@
 package com.zayenha.qatra.center.application;
 
-import com.zayenha.qatra.center.domain.model.CenterStatus;
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra.center.domain.model.OperatingHours;
 import com.zayenha.qatra.center.domain.model.Slot;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
@@ -14,6 +14,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +40,7 @@ public class SlotGenerationService {
             var existingSlots = slotRepository.findAllByDateRange(today, end);
             var existingKeys = existingSlots.stream()
                     .map(s -> s.getCenterId() + ":" + s.getDate() + ":" + s.getStartTime())
-                    .toList();
+                    .collect(Collectors.toSet());
 
             for (int i = 0; i <= lookaheadDays; i++) {
                 var date = today.plusDays(i);

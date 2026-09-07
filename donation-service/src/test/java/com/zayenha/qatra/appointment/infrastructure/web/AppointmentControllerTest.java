@@ -1,6 +1,6 @@
 package com.zayenha.qatra.appointment.infrastructure.web;
 
-import com.zayenha.qatra._shared.domain.AppointmentType;
+import com.zayenha.qatra._shared.domain.enums.AppointmentType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.appointment.domain.model.*;

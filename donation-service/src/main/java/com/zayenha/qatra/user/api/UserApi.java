@@ -1,7 +1,7 @@
 package com.zayenha.qatra.user.api;
 
 import com.zayenha.qatra._shared.infrastructure.EntityApi;
-import com.zayenha.qatra._shared.domain.Role;
+import com.zayenha.qatra._shared.domain.enums.Role;
 import com.zayenha.qatra.user.domain.port.in.UserCommandUseCases;
 import com.zayenha.qatra.user.domain.port.in.UserQueryUseCases;
 import com.zayenha.qatra.user.domain.port.out.UserRoleRepositoryPort;

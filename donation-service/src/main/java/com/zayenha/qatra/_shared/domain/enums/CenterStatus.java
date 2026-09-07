@@ -1,4 +1,4 @@
-package com.zayenha.qatra.center.domain.model;
+package com.zayenha.qatra._shared.domain.enums;
 
 public enum CenterStatus {
     PENDING_APPROVAL,

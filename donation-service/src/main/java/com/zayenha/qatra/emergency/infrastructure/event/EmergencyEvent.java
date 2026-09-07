@@ -1,6 +1,6 @@
 package com.zayenha.qatra.emergency.infrastructure.event;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 import com.zayenha.qatra.emergency.domain.model.EmergencyUrgency;
 

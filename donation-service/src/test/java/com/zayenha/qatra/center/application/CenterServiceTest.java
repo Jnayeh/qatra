@@ -1,6 +1,7 @@
 package com.zayenha.qatra.center.application;
 
 import com.zayenha.qatra._shared.cache.CacheService;
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra.center.domain.model.*;
 import com.zayenha.qatra.center.domain.port.in.CenterCommandUseCases.CreateCenterCommand;
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -36,7 +36,7 @@ class CenterServiceTest {
     @Mock
     private SlotRepositoryPort slotRepository;
     @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private SlotGenerationService slotGenerationService;
     @Mock
     private CacheService cacheService;
     @Mock
@@ -48,7 +48,7 @@ class CenterServiceTest {
 
     @BeforeEach
     void setUp() {
-        centerService = new CenterService(centerRepository, slotRepository, eventPublisher, cacheService, auditPublisher, userApi);
+        centerService = new CenterService(centerRepository, slotRepository, slotGenerationService, cacheService, auditPublisher, userApi);
     }
 
     private DonationCenter aCenter() {

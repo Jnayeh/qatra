@@ -1,6 +1,6 @@
 package com.zayenha.qatra.center.infrastructure.persistence.entity;
 
-import com.zayenha.qatra.center.domain.model.CenterStatus;
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra.center.domain.model.FacilityType;
 import com.zayenha.qatra.center.domain.model.OperatingHours;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
@@ -72,13 +72,13 @@ public class CenterEntity {
     private Integer maxRegular;
     private Integer slotPeriod;
 
-    @OneToMany(mappedBy = "center", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "center", fetch = FetchType.LAZY)
     private List<SlotEntity> slots;
 
-    @OneToMany(mappedBy = "center", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "center", fetch = FetchType.LAZY)
     private List<CenterStaffProfileEntity> staff;
 
-    @OneToMany(mappedBy = "center", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "center", fetch = FetchType.LAZY)
     private List<CenterAdminProfileEntity> admins;
 
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -1,6 +1,6 @@
 package com.zayenha.qatra.forecasting.infrastructure.persistence.repository;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.forecasting.infrastructure.persistence.entity.DemandForecastEntity;
 import org.springframework.data.jpa.domain.Specification;
 

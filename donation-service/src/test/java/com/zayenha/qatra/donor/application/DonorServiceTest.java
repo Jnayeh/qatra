@@ -10,7 +10,7 @@ import com.zayenha.qatra.donor.domain.model.NotificationPreferences;
 import com.zayenha.qatra.donor.domain.port.in.DonorCommandUseCases;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonationCertificateJpaRepository;
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.user.api.UserApi;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;

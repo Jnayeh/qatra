@@ -2,7 +2,7 @@ package com.zayenha.qatra.appointment.application;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.zayenha.qatra._shared.cache.CacheService;
-import com.zayenha.qatra._shared.domain.AppointmentType;
+import com.zayenha.qatra._shared.domain.enums.AppointmentType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;

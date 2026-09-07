@@ -1,6 +1,6 @@
 package com.zayenha.qatra.emergency.infrastructure.web;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 import com.zayenha.qatra._shared.event.AuditUtils;
@@ -61,6 +61,13 @@ public class EmergencyController {
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(emergency)));
     }
 
+    @PostMapping("/{id}/escalate")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
+    public ResponseEntity<ApiResponse<EmergencyResponse>> escalate(@PathVariable Long id) {
+        var emergency = commandUseCases.escalate(id);
+        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(emergency)));
+    }
+
     @PostMapping("/{id}/resolve")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN', 'CENTER_STAFF')")
     public ResponseEntity<ApiResponse<EmergencyResponse>> resolve(
@@ -72,7 +79,12 @@ public class EmergencyController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<EmergencyResponse>> getById(@PathVariable Long id) {
         var emergency = queryUseCases.findById(id);
-        return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(emergency)));
+        var base = mapper.toResponse(emergency);
+        var matchStats = queryUseCases.getMatchStats(id);
+        var respStats = queryUseCases.getResponseStats(id);
+        return ResponseEntity.ok(ApiResponse.success(base.withStats(
+            matchStats.total(), matchStats.pending(),
+            respStats.total(), respStats.accepted(), respStats.declined())));
     }
 
     @GetMapping

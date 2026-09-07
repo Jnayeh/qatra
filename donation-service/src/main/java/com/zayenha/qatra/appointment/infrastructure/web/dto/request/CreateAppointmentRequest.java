@@ -2,7 +2,7 @@ package com.zayenha.qatra.appointment.infrastructure.web.dto.request;
 
 import com.zayenha.qatra._shared.exception.BadRequestException;
 import com.zayenha.qatra.appointment.domain.exception.AppointmentErrorCode;
-import com.zayenha.qatra._shared.domain.AppointmentType;
+import com.zayenha.qatra._shared.domain.enums.AppointmentType;
 import jakarta.validation.constraints.NotNull;
 
 public record CreateAppointmentRequest(

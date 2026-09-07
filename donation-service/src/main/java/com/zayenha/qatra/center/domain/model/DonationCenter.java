@@ -1,5 +1,6 @@
 package com.zayenha.qatra.center.domain.model;
 
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import lombok.Getter;
 import lombok.Setter;
 

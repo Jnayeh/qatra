@@ -1,6 +1,6 @@
 package com.zayenha.qatra.user.infrastructure.web.dto.response;
 
-import com.zayenha.qatra._shared.domain.Role;
+import com.zayenha.qatra._shared.domain.enums.Role;
 
 import java.util.List;
 

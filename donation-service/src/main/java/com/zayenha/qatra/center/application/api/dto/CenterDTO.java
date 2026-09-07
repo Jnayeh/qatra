@@ -1,5 +1,6 @@
 package com.zayenha.qatra.center.application.api.dto;
 
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,4 +14,5 @@ public class CenterDTO {
     private Long id;
     private Double latitude;
     private Double longitude;
+    private CenterStatus status;
 }

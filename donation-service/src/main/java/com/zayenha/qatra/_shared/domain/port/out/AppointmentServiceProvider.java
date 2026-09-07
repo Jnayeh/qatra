@@ -1,6 +1,6 @@
 package com.zayenha.qatra._shared.domain.port.out;
 
-import com.zayenha.qatra._shared.domain.AppointmentType;
+import com.zayenha.qatra._shared.domain.enums.AppointmentType;
 
 public interface AppointmentServiceProvider {
     long countCompletedByEmergencyId(Long emergencyId);

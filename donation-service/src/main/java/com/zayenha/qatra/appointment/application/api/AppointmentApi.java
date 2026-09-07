@@ -2,7 +2,7 @@ package com.zayenha.qatra.appointment.application.api;
 
 import com.zayenha.qatra._shared.domain.port.out.AppointmentServiceProvider;
 import com.zayenha.qatra.appointment.domain.model.Appointment;
-import com.zayenha.qatra._shared.domain.AppointmentType;
+import com.zayenha.qatra._shared.domain.enums.AppointmentType;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.zayenha.qatra.emergency.domain.model;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import lombok.Getter;
 import lombok.Setter;
 

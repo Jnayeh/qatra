@@ -1,7 +1,7 @@
 package com.zayenha.qatra.donor.domain.service;
 
 import com.zayenha.qatra.donor.domain.model.DonorProfile;
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;

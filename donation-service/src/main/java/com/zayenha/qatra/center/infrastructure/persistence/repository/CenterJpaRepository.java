@@ -1,6 +1,6 @@
 package com.zayenha.qatra.center.infrastructure.persistence.repository;
 
-import com.zayenha.qatra.center.domain.model.CenterStatus;
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

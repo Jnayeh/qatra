@@ -9,7 +9,7 @@ import com.zayenha.qatra.donor.domain.port.in.QuestionnaireQueryUseCases;
 import com.zayenha.qatra.donor.infrastructure.mapper.DonorMapper;
 import com.zayenha.qatra.donor.infrastructure.web.dto.request.*;
 import com.zayenha.qatra.donor.infrastructure.web.dto.response.*;
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.exception.GlobalExceptionHandler;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import org.junit.jupiter.api.AfterEach;

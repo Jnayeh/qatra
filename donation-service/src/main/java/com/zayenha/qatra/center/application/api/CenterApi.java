@@ -4,9 +4,7 @@ import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.infrastructure.EntityApi;
 import com.zayenha.qatra.center.application.api.dto.CenterDTO;
 import com.zayenha.qatra.center.application.api.dto.SlotDTO;
-import com.zayenha.qatra.center.domain.model.CenterStatus;
-import com.zayenha.qatra.center.domain.model.DonationCenter;
-import com.zayenha.qatra.center.domain.model.Slot;
+import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra.center.domain.port.out.CenterRepositoryPort;
 import com.zayenha.qatra.center.domain.port.out.SlotRepositoryPort;
 import com.zayenha.qatra.center.infrastructure.mapper.SlotMapper;
@@ -44,10 +42,17 @@ public class CenterApi implements EntityApi<CenterEntity> {
 
     public Optional<CenterDTO> findCenterById(Long id) {
         return centerRepositoryPort.findById(id).map(c ->
-            new CenterDTO(c.getId(), c.getLatitude(), c.getLongitude()));
+            new CenterDTO(c.getId(), c.getLatitude(), c.getLongitude(), c.getStatus()));
     }
     public boolean existsById(Long id) {
         return centerRepositoryPort.existsById(id);
+    }
+
+    public boolean isStaffOrAdminOfCenter(Long userId, Long centerId) {
+        return centerRepositoryPort.existsStaffByCenterIdAndUserId(centerId, userId)
+            || centerRepositoryPort.findAdminByUserId(userId)
+                .map(admin -> admin.getCenterId().equals(centerId))
+                .orElse(false);
     }
 
     public long countActiveCenters() {
@@ -56,7 +61,7 @@ public class CenterApi implements EntityApi<CenterEntity> {
 
     public Optional<CenterDTO> findCenterByIdWithJoins(Long id) {
         return centerRepositoryPort.findById(id, true).map(c ->
-            new CenterDTO(c.getId(), c.getLatitude(), c.getLongitude()));
+            new CenterDTO(c.getId(), c.getLatitude(), c.getLongitude(), c.getStatus()));
     }
 
     public SlotDTO findSlotById(Long slotId) {

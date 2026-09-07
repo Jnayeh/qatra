@@ -1,4 +1,4 @@
-package com.zayenha.qatra._shared.domain;
+package com.zayenha.qatra._shared.domain.enums;
 
 import java.util.Set;
 

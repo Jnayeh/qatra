@@ -1,12 +1,14 @@
 package com.zayenha.qatra.emergency.domain.port.out;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.emergency.domain.model.DonorResponse;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 import com.zayenha.qatra.emergency.domain.model.MatchResult;
+import com.zayenha.qatra.emergency.domain.model.MatchResultStats;
+import com.zayenha.qatra.emergency.domain.model.ResponseStats;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,4 +30,6 @@ public interface EmergencyRepositoryPort {
     Optional<MatchResult> findMatchResultByEmergencyIdAndDonorId(Long emergencyId, Long donorId);
     List<MatchResult> findMatchResultsByEmergencyId(Long emergencyId);
     List<MatchResult> findMatchResultsByDonorId(Long donorId);
+    MatchResultStats countMatchStatsByEmergencyId(Long emergencyId);
+    ResponseStats countResponseStatsByEmergencyId(Long emergencyId);
 }

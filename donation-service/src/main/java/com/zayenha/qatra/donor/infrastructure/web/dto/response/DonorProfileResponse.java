@@ -1,6 +1,6 @@
 package com.zayenha.qatra.donor.infrastructure.web.dto.response;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
 import com.zayenha.qatra.donor.domain.model.NotificationPreferences;
 

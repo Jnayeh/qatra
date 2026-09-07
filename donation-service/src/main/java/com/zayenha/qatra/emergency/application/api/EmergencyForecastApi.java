@@ -1,10 +1,10 @@
 package com.zayenha.qatra.emergency.application.api;
 
-import com.zayenha.qatra._shared.domain.BloodType;
+import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.emergency.application.api.dto.DemandDataPoint;
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.EmergencyJpaRepository;
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.EmergencySpec;
-import com.zayenha.qatra._shared.domain.WeekNumber;
+import com.zayenha.qatra._shared.domain.enums.WeekNumber;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
