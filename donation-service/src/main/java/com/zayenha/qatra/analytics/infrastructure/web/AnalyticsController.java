@@ -172,6 +172,9 @@ public class AnalyticsController {
 
     private static Instant parseDate(String date) {
         if (date == null || date.isBlank()) return null;
+        if (date.length() > 10) {
+            return Instant.parse(date);
+        }
         return LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE)
                 .atStartOfDay(ZoneId.systemDefault())
                 .toInstant();

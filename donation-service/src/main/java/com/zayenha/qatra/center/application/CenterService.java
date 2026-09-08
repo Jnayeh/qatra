@@ -7,6 +7,7 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.exception.BadRequestException;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.center.application.proxy.CenterUserProxy;
@@ -57,10 +58,18 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         return new CenterDomainValidator(centerRepository);
     }
 
+    private void validateCapacity(Integer totalCapacity, Integer maxRegular) {
+        if (totalCapacity == null || maxRegular == null || maxRegular > totalCapacity) {
+            throw new BadRequestException(
+                "Max regular per slot cannot exceed total capacity", "INVALID_CAPACITY");
+        }
+    }
+
     @Override
     @Transactional
     public DonationCenter create(CreateCenterCommand command) {
         validator().validateCreate(command.name());
+        validateCapacity(command.totalCapacity(), command.maxRegular());
         var userId = AuditUtils.currentUserId();
         var center = new DonationCenter(
             command.name(), command.address(), command.city(),
@@ -86,6 +95,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
     @Transactional
     public DonationCenter update(Long id, UpdateCenterCommand command) {
         validator().validateUpdate(id, command.name());
+        validateCapacity(command.totalCapacity(), command.maxRegular());
         var center = centerRepository.findById(id).orElseThrow(() -> new NotFoundException(
                 "Center not found: " + id, CenterErrorCode.CENTER_NOT_FOUND.name()));
         var oldName = center.getName();
