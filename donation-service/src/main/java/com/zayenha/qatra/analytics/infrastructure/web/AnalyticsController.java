@@ -32,7 +32,7 @@ import java.util.Map;
 public class AnalyticsController {
 
     private static final List<String> METRIC_ACTIONS = List.of(
-        "APPOINTMENT_CREATED", "APPOINTMENT_COMPLETED",
+        "APPOINTMENT_BOOKED", "APPOINTMENT_COMPLETED",
         "EMERGENCY_CREATED", "EMERGENCY_FULFILLED",
         "DONOR_RESPONSE"
     );

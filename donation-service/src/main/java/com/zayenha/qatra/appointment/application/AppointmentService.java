@@ -78,8 +78,9 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         if (slot.isBlocked() || slot.getBookedCount() >= slot.getMaxBookings()) {
             throw new ConflictException("Slot is full or blocked", AppointmentErrorCode.SLOT_NOT_AVAILABLE.name());
         }
-        var reachedMaxRegular = slot.getRegularBookedCount() >= slot.getMaxRegularBookings() || slot.getRegularBookedCount() >= slot.getBookedCount();
-        if (AppointmentType.REGULAR.equals(type) && reachedMaxRegular) {
+        var reachedMaxRegular = slot.getRegularBookedCount() >= slot.getMaxRegularBookings()
+                        || slot.getRegularBookedCount() >= slot.getBookedCount();
+        if (AppointmentType.REGULAR.equals(type) && slot.getRegularBookedCount()> 0 && reachedMaxRegular) {
             throw new ConflictException("Slot has no capacity for regular bookings", AppointmentErrorCode.SLOT_NOT_AVAILABLE.name());
         }
     }

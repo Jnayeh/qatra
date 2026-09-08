@@ -30,11 +30,11 @@ public class CenterMetricsRepositoryAdapter implements CenterMetricsRepositoryPo
         var monthStart = today.withDayOfMonth(1).atStartOfDay(zone).toInstant();
         var thirtyDaysAgo = now.minus(Duration.ofDays(30));
 
-        long totalAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_CREATED", null, null, centerId));
+        long totalAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_BOOKED", null, null, centerId));
         long completedAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_COMPLETED", null, null, centerId));
-        long todayAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_CREATED", todayStart, now, centerId));
-        long weekAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_CREATED", weekStart, now, centerId));
-        long monthAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_CREATED", monthStart, now, centerId));
+        long todayAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_BOOKED", todayStart, now, centerId));
+        long weekAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_BOOKED", weekStart, now, centerId));
+        long monthAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_BOOKED", monthStart, now, centerId));
 
         long totalEmergencies = auditLogRepo.count(AuditLogSpec.build("EMERGENCY_CREATED", null, null, centerId));
         long fulfilledEmergencies = auditLogRepo.count(AuditLogSpec.build("EMERGENCY_FULFILLED", null, null, centerId));
@@ -49,7 +49,7 @@ public class CenterMetricsRepositoryAdapter implements CenterMetricsRepositoryPo
         long activeEmergencies = emergencyRepo.countActiveByCenterId(centerId);
 
         var appointmentsByDay = mapByDay(
-            auditLogRepo.countByCenterAndActionByDay("APPOINTMENT_CREATED", centerId, thirtyDaysAgo, now));
+            auditLogRepo.countByCenterAndActionByDay("APPOINTMENT_BOOKED", centerId, thirtyDaysAgo, now));
         var emergenciesByDay = mapByDay(
             auditLogRepo.countByCenterAndActionByDay("EMERGENCY_CREATED", centerId, thirtyDaysAgo, now));
 

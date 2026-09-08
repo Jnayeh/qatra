@@ -44,7 +44,7 @@ class AnalyticsControllerTest {
     void getAuditLogsReturnsPaginatedResults() {
         var log = new AuditLog();
         log.setId(1L);
-        log.setAction("APPOINTMENT_CREATED");
+        log.setAction("APPOINTMENT_BOOKED");
         log.setTimestamp(Instant.now());
         var pageResult = new PageResult<AuditLog>(List.of(log), 0, 20, 1, 1);
         when(auditLogQueryUseCases.findFiltered(any(SearchCriteria.class), any(), any(), any(), any())).thenReturn(pageResult);
@@ -77,7 +77,7 @@ class AnalyticsControllerTest {
     void getMetricsUsesCache() {
         var cachedMetrics = List.of(
             new com.zayenha.qatra.analytics.infrastructure.web.dto.response.MetricsResponse(
-                "APPOINTMENT_CREATED", 50L, 5L, 20L, 40L)
+                "APPOINTMENT_BOOKED", 50L, 5L, 20L, 40L)
         );
         when(cacheService.get(eq("metrics:overview"), any(Class.class))).thenReturn(
             Optional.of(new AnalyticsController.CacheableMetricsList(cachedMetrics)));

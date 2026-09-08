@@ -53,6 +53,7 @@ public class SlotGenerationService {
                 var endTime = daySchedule.closes();
 
                 while (start.plusMinutes(slotPeriod).isBefore(endTime) || start.plusMinutes(slotPeriod).equals(endTime)) {
+                    log.debug("Generating slot for center {}: {} to {}", center.getId(), start, endTime);
                     var slotEnd = start.plusMinutes(slotPeriod);
                     var key = center.getId() + ":" + date + ":" + start;
                     if (!existingKeys.contains(key) && !isClosed(hours, date, start, slotEnd)) {

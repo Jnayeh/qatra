@@ -48,7 +48,7 @@ public class MatchingService {
                 .stream().map(MatchResult::getDonorId).toList();
 
         var available = candidates.stream()
-                .filter(d -> !alreadyMatchedIds.contains(d.getUserId()))
+                .filter(d -> !alreadyMatchedIds.contains(d.getId()))
                 .toList();
 
         if (available.isEmpty()) {
@@ -100,7 +100,7 @@ public class MatchingService {
         for (var md : selected) {
             var matchResult = new MatchResult(
                     emergency.getId(), emergency.getCenterId(),
-                    md.donor().getUserId(),
+                    md.donor().getId(),
                     (long) radius,
                     md.donor().getBloodType(),
                     emergency.getEscalationLevel()

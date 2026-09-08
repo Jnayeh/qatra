@@ -43,24 +43,24 @@ class AuditLogServiceTest {
     void recordSavesAuditLog() {
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        service.record(1L, "APPOINTMENT_CREATED", "Appointment", 10L, null, null, null);
+        service.record(1L, "APPOINTMENT_BOOKED", "Appointment", 10L, null, null, null);
 
         verify(repository).save(any());
     }
 
     @Test
     void countByActionReturnsCount() {
-        when(repository.countByAction("APPOINTMENT_CREATED")).thenReturn(5L);
+        when(repository.countByAction("APPOINTMENT_BOOKED")).thenReturn(5L);
 
-        assertThat(service.countByAction("APPOINTMENT_CREATED")).isEqualTo(5L);
+        assertThat(service.countByAction("APPOINTMENT_BOOKED")).isEqualTo(5L);
     }
 
     @Test
     void countByActionBetweenReturnsCountInRange() {
         var from = Instant.parse("2026-01-01T00:00:00Z");
         var to = Instant.parse("2026-02-01T00:00:00Z");
-        when(repository.countByActionBetween("APPOINTMENT_CREATED", from, to)).thenReturn(3L);
+        when(repository.countByActionBetween("APPOINTMENT_BOOKED", from, to)).thenReturn(3L);
 
-        assertThat(service.countByActionBetween("APPOINTMENT_CREATED", from, to)).isEqualTo(3L);
+        assertThat(service.countByActionBetween("APPOINTMENT_BOOKED", from, to)).isEqualTo(3L);
     }
 }
