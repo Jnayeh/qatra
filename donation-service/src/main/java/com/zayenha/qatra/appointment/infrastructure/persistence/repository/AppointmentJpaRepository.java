@@ -3,19 +3,30 @@ package com.zayenha.qatra.appointment.infrastructure.persistence.repository;
 import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
 import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
 import com.zayenha.qatra.appointment.infrastructure.persistence.entity.AppointmentEntity;
+import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AppointmentJpaRepository extends JpaRepository<AppointmentEntity, Long> {
+    @EntityGraph("UserEntity.withRoles")
+    Page<UserEntity> findAll(Specification<UserEntity> spec, Pageable pageable);
+    @EntityGraph("AppointmentEntity.withSlot")
+    Optional<AppointmentEntity> findById(Long id);
+    @EntityGraph("AppointmentEntity.withSlot")
     List<AppointmentEntity> findByDonor_IdOrderByCreatedAtDesc(Long donorId);
     List<AppointmentEntity> findByCenter_IdOrderByCreatedAtDesc(Long centerId);
+    @EntityGraph("AppointmentEntity.withSlot")
     Page<AppointmentEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
     boolean existsByDonor_IdAndStatusIn(Long donorId, List<AppointmentStatus> statuses);
+    @EntityGraph("AppointmentEntity.withSlot")
     List<AppointmentEntity> findByEmergency_Id(Long emergencyId);
 
     @Query("SELECT COUNT(a) FROM AppointmentEntity a WHERE a.emergency.id = :emergencyId AND a.outcome = :outcome AND a.status = :status")

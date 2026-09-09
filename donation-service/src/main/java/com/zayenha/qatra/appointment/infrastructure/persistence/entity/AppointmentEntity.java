@@ -21,6 +21,10 @@ import java.time.Instant;
 @Getter
 @Setter
 @NoArgsConstructor
+@NamedEntityGraph(
+        name = "AppointmentEntity.withSlot",
+        attributeNodes = {@NamedAttributeNode("slot")}
+)
 public class AppointmentEntity {
 
     @Id

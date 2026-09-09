@@ -55,10 +55,10 @@ public abstract class AppointmentMapper {
     @Mapping(target = "centerId", source = "center.id")
     @Mapping(target = "emergencyId", source = "emergency.id")
     @Mapping(target = "completedByStaffId", source = "completedByStaff.id")
+    @Mapping(target = "slotTime", source = "slot.startTime")
+    @Mapping(target = "slotDate", source = "slot.date")
     public abstract Appointment toDomain(AppointmentEntity entity);
 
-    @Mapping(target = "appointment", expression = "java(appointmentJpaRepository.getReferenceById(screening.getAppointmentId()))")
-    @Mapping(target = "donor", expression = "java(donorProxy.getDonorReference(screening.getDonorId()))")
     @Mapping(target = "screenedByStaff", expression = "java(userProxy.getUserReference(screening.getScreenedByStaffId()))")
     public abstract HealthScreeningEntity toScreeningEntity(HealthScreening screening);
 
