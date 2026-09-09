@@ -14,7 +14,7 @@ public class SessionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "session_seq")
-    @SequenceGenerator(name = "session_seq", sequenceName = "session_seq", allocationSize = 1)
+    @SequenceGenerator(name = "session_seq", sequenceName = "session_seq", initialValue = 500)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

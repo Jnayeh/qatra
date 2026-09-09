@@ -24,7 +24,7 @@ public class DonorProfileEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "donor_profile_seq")
-    @SequenceGenerator(name = "donor_profile_seq", sequenceName = "donor_profile_seq", allocationSize = 2, initialValue = 2)
+    @SequenceGenerator(name = "donor_profile_seq", sequenceName = "donor_profile_seq", initialValue = 500)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

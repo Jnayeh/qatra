@@ -18,7 +18,7 @@ public class GDPRDeletionRequestEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gdpr_deletion_request_seq")
-    @SequenceGenerator(name = "gdpr_deletion_request_seq", sequenceName = "gdpr_deletion_request_seq", allocationSize = 1)
+    @SequenceGenerator(name = "gdpr_deletion_request_seq", sequenceName = "gdpr_deletion_request_seq", initialValue = 500)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

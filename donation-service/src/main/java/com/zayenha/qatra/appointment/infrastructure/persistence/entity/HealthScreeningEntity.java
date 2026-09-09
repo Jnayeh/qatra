@@ -18,7 +18,7 @@ public class HealthScreeningEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "health_screening_seq")
-    @SequenceGenerator(name = "health_screening_seq", sequenceName = "health_screening_seq", allocationSize = 1)
+    @SequenceGenerator(name = "health_screening_seq", sequenceName = "health_screening_seq", initialValue = 500)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

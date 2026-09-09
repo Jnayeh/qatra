@@ -27,7 +27,7 @@ public class CenterEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "center_seq")
-    @SequenceGenerator(name = "center_seq", sequenceName = "center_seq", allocationSize = 1)
+    @SequenceGenerator(name = "center_seq", sequenceName = "center_seq", initialValue = 500)
     private Long id;
 
     @Column(nullable = false, unique = true)

@@ -29,7 +29,7 @@ public class AppointmentEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "appointment_seq")
-    @SequenceGenerator(name = "appointment_seq", sequenceName = "appointment_seq", allocationSize = 1)
+    @SequenceGenerator(name = "appointment_seq", sequenceName = "appointment_seq", initialValue = 500)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

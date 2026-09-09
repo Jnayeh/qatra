@@ -20,7 +20,7 @@ public class MatchResultEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "match_result_seq")
-    @SequenceGenerator(name = "match_result_seq", sequenceName = "match_result_seq", allocationSize = 1)
+    @SequenceGenerator(name = "match_result_seq", sequenceName = "match_result_seq", initialValue = 500)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

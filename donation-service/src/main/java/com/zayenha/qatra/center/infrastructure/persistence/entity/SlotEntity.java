@@ -18,7 +18,7 @@ public class SlotEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "slot_seq")
-    @SequenceGenerator(name = "slot_seq", sequenceName = "slot_seq", allocationSize = 1)
+    @SequenceGenerator(name = "slot_seq", sequenceName = "slot_seq", initialValue = 500)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

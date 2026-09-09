@@ -15,7 +15,7 @@ public class VerificationTokenEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "verification_token_seq")
-    @SequenceGenerator(name = "verification_token_seq", sequenceName = "verification_token_seq", allocationSize = 1)
+    @SequenceGenerator(name = "verification_token_seq", sequenceName = "verification_token_seq", initialValue = 500)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

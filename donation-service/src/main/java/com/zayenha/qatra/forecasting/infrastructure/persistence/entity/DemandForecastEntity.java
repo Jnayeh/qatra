@@ -19,7 +19,7 @@ public class DemandForecastEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "demand_forecast_seq")
-    @SequenceGenerator(name = "demand_forecast_seq", sequenceName = "demand_forecast_seq", allocationSize = 1)
+    @SequenceGenerator(name = "demand_forecast_seq", sequenceName = "demand_forecast_seq", initialValue = 500)
     private Long id;
 
     @Enumerated(EnumType.STRING)

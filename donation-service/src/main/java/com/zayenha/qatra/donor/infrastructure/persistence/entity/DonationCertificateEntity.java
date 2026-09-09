@@ -18,7 +18,7 @@ public class DonationCertificateEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "donation_certificate_seq")
-    @SequenceGenerator(name = "donation_certificate_seq", sequenceName = "donation_certificate_seq", allocationSize = 1)
+    @SequenceGenerator(name = "donation_certificate_seq", sequenceName = "donation_certificate_seq", initialValue = 500)
     private Long id;
 
     @Column(name = "donor_id", nullable = false)
