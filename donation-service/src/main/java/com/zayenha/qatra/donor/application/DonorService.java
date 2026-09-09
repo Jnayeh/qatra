@@ -87,7 +87,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        auditPublisher.publish("DONOR_BLOOD_TYPE_ADMIN_UPDATED", saved.getId(), "DonorProfile",
+        auditPublisher.publish("DONOR_BLOOD_TYPE_VERIFIED", saved.getId(), "DonorProfile",
             Map.of("bloodType", oldBloodType),
             Map.of("bloodType", bloodType.name(), "verified", true));
         return saved;

@@ -34,7 +34,7 @@ public class AnalyticsController {
     private static final List<String> METRIC_ACTIONS = List.of(
         "APPOINTMENT_BOOKED", "APPOINTMENT_COMPLETED",
         "EMERGENCY_CREATED", "EMERGENCY_FULFILLED",
-        "DONOR_RESPONSE"
+        "RESPONSE_ACCEPTED", "RESPONSE_DECLINED"
     );
 
     private final AuditLogQueryUseCases auditLogQueryUseCases;
@@ -141,7 +141,8 @@ public class AnalyticsController {
             domain.todayAppointments(), domain.weekAppointments(), domain.monthAppointments(),
             domain.totalEmergencies(), domain.fulfilledEmergencies(),
             domain.todayEmergencies(), domain.weekEmergencies(), domain.monthEmergencies(),
-            domain.totalDonorResponses(), domain.responseRate30d(),
+            domain.totalAccepted(), domain.totalDeclined(), domain.totalDonorResponses(),
+            domain.accepted30d(), domain.declined30d(),
             domain.totalMlCollected(), domain.activeEmergencies(),
             domain.appointmentsByDay(), domain.emergenciesByDay()
         );

@@ -43,8 +43,11 @@ public class CenterMetricsRepositoryAdapter implements CenterMetricsRepositoryPo
         long weekEmergencies = auditLogRepo.count(AuditLogSpec.build("EMERGENCY_CREATED", weekStart, now, centerId));
         long monthEmergencies = auditLogRepo.count(AuditLogSpec.build("EMERGENCY_CREATED", monthStart, now, centerId));
 
-        long totalDonorResponses = auditLogRepo.count(AuditLogSpec.build("DONOR_RESPONSE", null, null, centerId));
-        long responseRate30d = auditLogRepo.count(AuditLogSpec.build("DONOR_RESPONSE", thirtyDaysAgo, now, centerId));
+        long totalAccepted = auditLogRepo.count(AuditLogSpec.build("RESPONSE_ACCEPTED", null, null, centerId));
+        long totalDeclined = auditLogRepo.count(AuditLogSpec.build("RESPONSE_DECLINED", null, null, centerId));
+        long totalDonorResponses = totalAccepted + totalDeclined;
+        long accepted30d = auditLogRepo.count(AuditLogSpec.build("RESPONSE_ACCEPTED", thirtyDaysAgo, now, centerId));
+        long declined30d = auditLogRepo.count(AuditLogSpec.build("RESPONSE_DECLINED", thirtyDaysAgo, now, centerId));
 
         long totalMlCollected = appointmentRepo.sumMlCollectedByCenterId(centerId);
         long activeEmergencies = emergencyRepo.countActiveByCenterId(centerId);
@@ -59,7 +62,8 @@ public class CenterMetricsRepositoryAdapter implements CenterMetricsRepositoryPo
             todayAppointments, weekAppointments, monthAppointments,
             totalEmergencies, fulfilledEmergencies,
             todayEmergencies, weekEmergencies, monthEmergencies,
-            totalDonorResponses, responseRate30d,
+            totalAccepted, totalDeclined, totalDonorResponses,
+            accepted30d, declined30d,
             totalMlCollected, activeEmergencies,
             appointmentsByDay, emergenciesByDay
         );
