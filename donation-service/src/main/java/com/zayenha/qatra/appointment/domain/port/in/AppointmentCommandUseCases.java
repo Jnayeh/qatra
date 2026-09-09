@@ -2,7 +2,7 @@ package com.zayenha.qatra.appointment.domain.port.in;
 
 import com.zayenha.qatra.appointment.domain.model.Appointment;
 import com.zayenha.qatra._shared.domain.enums.AppointmentType;
-import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra._shared.domain.enums.DonationOutcome;
 import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 
 public interface AppointmentCommandUseCases {

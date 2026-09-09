@@ -1,7 +1,7 @@
 package com.zayenha.qatra.appointment.infrastructure.persistence.repository;
 
-import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
-import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra._shared.domain.enums.AppointmentStatus;
+import com.zayenha.qatra._shared.domain.enums.DonationOutcome;
 import com.zayenha.qatra.appointment.infrastructure.persistence.entity.AppointmentEntity;
 import com.zayenha.qatra.user.infrastructure.persistence.entity.UserEntity;
 import org.springframework.data.domain.Page;

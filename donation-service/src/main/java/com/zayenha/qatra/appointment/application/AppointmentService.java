@@ -8,6 +8,7 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.event.DonationCompletedEvent;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra._shared.exception.ValidationException;
@@ -16,8 +17,8 @@ import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
 import com.zayenha.qatra.appointment.application.proxy.AptUserProxy;
 import com.zayenha.qatra.appointment.domain.exception.AppointmentErrorCode;
 import com.zayenha.qatra.appointment.domain.model.Appointment;
-import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
-import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra._shared.domain.enums.AppointmentStatus;
+import com.zayenha.qatra._shared.domain.enums.DonationOutcome;
 import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentQueryUseCases;
@@ -146,12 +147,32 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
             dto.setUpdatedAt(Instant.now());
             donorProxy.saveDonor(dto);
             cacheService.evictByPattern("donorProfiles:*");
+            cacheService.evictByPattern("impactResults:*");
         });
 
         auditPublisher.publish("APPOINTMENT_COMPLETED", saved.getId(), APPOINTMENT_CLASSNAME,
             Map.of(STATUS, oldStatus.name()),
             Map.of(STATUS, AppointmentStatus.COMPLETED.name(), "outcome", outcome.name(),
                 DONOR_ID, saved.getDonorId(), "mlCollected", saved.getMlCollected()));
+
+        if (outcome == DonationOutcome.COMPLETED) {
+            var donorName = donorProxy.findOptionalByDonorId(saved.getDonorId())
+                .map(dto -> userProxy.getUserDisplayName(dto.getUserId()))
+                .orElse("Unknown");
+            var centerName = centerProxy.getCenterReference(saved.getCenterId()).getName();
+            eventPublisher.publishEvent(new DonationCompletedEvent(
+                saved.getId(),
+                saved.getDonorId(),
+                donorName,
+                saved.getCenterId(),
+                centerName,
+                saved.getMlCollected(),
+                saved.getAppointmentType(),
+                saved.getCompletedAt(),
+                null,
+                Instant.now()
+            ));
+        }
         return saved;
     }
 

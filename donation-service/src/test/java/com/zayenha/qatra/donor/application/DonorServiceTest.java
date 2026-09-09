@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -226,11 +227,14 @@ class DonorServiceTest {
         var profile = aProfile();
         profile.setTotalDonations(3);
         when(donorRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+        when(certificateRepository.findByDonorIdOrderByDonationDateDesc(profile.getId())).thenReturn(List.of());
 
         var result = donorService.getImpact(1L);
 
         assertThat(result.totalDonations()).isEqualTo(3);
         assertThat(result.milestones()).contains("First donation completed");
+        assertThat(result.donationsByType()).containsEntry("REGULAR", 0).containsEntry("EMERGENCY", 0);
+        assertThat(result.monthlyDonations()).containsValue(0);
     }
 
 

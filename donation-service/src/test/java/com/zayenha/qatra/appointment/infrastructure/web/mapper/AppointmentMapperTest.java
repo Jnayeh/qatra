@@ -1,8 +1,8 @@
 package com.zayenha.qatra.appointment.infrastructure.web.mapper;
 
 import com.zayenha.qatra.appointment.domain.model.Appointment;
-import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
-import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra._shared.domain.enums.AppointmentStatus;
+import com.zayenha.qatra._shared.domain.enums.DonationOutcome;
 import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 import com.zayenha.qatra.appointment.infrastructure.mapper.AppointmentMapper;
 import com.zayenha.qatra.appointment.infrastructure.mapper.AppointmentMapperImpl;

@@ -5,7 +5,7 @@ import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
 import com.zayenha.qatra.appointment.application.proxy.AptEmergencyProxy;
 import com.zayenha.qatra.appointment.application.proxy.AptUserProxy;
 import com.zayenha.qatra.appointment.domain.model.Appointment;
-import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra._shared.domain.enums.DonationOutcome;
 import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 import com.zayenha.qatra.appointment.infrastructure.persistence.entity.AppointmentEntity;
 import com.zayenha.qatra.appointment.infrastructure.persistence.entity.HealthScreeningEntity;

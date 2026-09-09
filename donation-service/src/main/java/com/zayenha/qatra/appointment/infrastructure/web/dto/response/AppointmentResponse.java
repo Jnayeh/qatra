@@ -1,9 +1,9 @@
 package com.zayenha.qatra.appointment.infrastructure.web.dto.response;
 
 import com.zayenha.qatra._shared.domain.enums.BloodType;
-import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
+import com.zayenha.qatra._shared.domain.enums.AppointmentStatus;
 import com.zayenha.qatra._shared.domain.enums.AppointmentType;
-import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra._shared.domain.enums.DonationOutcome;
 
 import java.time.Instant;
 import java.time.LocalDate;

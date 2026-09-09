@@ -1,5 +1,6 @@
 package com.zayenha.qatra.donor.infrastructure.persistence.entity;
 
+import com.zayenha.qatra._shared.domain.enums.AppointmentType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,6 +41,10 @@ public class DonationCertificateEntity {
 
     @Column(name = "donation_date", nullable = false)
     private LocalDate donationDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "donation_type")
+    private AppointmentType donationType;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

@@ -1,8 +1,10 @@
 package com.zayenha.qatra.appointment.infrastructure.web;
 
+import com.zayenha.qatra._shared.domain.enums.AppointmentStatus;
 import com.zayenha.qatra._shared.domain.enums.AppointmentType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.enums.DonationOutcome;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentQueryUseCases;

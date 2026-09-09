@@ -4,11 +4,10 @@ import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditUtils;
-import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.appointment.application.proxy.AptDonorProxy;
 import com.zayenha.qatra.appointment.domain.model.Appointment;
-import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
-import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra._shared.domain.enums.AppointmentStatus;
+import com.zayenha.qatra._shared.domain.enums.DonationOutcome;
 import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.zayenha.qatra.appointment.infrastructure.persistence.entity.AppointmentEntity;
@@ -16,7 +15,6 @@ import com.zayenha.qatra.appointment.infrastructure.persistence.repository.Appoi
 import com.zayenha.qatra.appointment.infrastructure.mapper.AppointmentMapper;
 import com.zayenha.qatra.appointment.infrastructure.persistence.repository.HealthScreeningJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 

@@ -24,6 +24,7 @@ public class DonationCertificateEventListener {
         certificate.setCenterId(event.centerId());
         certificate.setCenterName(event.centerName());
         certificate.setMlCollected(event.mlCollected());
+        certificate.setDonationType(event.donationType());
         certificate.setDonationDate(event.completedAt().atZone(ZoneId.systemDefault()).toLocalDate());
         certificateRepository.save(certificate);
     }

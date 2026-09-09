@@ -1,6 +1,7 @@
 package com.zayenha.qatra.donor.application;
 
 import com.zayenha.qatra._shared.cache.CacheService;
+import com.zayenha.qatra._shared.domain.enums.AppointmentType;
 import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.event.AuditPublisher;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.YearMonth;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -271,7 +274,28 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         if (profile.getTotalDonations() >= 1) milestones.add("First donation completed");
         if (profile.getTotalDonations() >= 5) milestones.add("Regular donator");
         if (profile.getTotalDonations() >= 10) milestones.add("Life saver");
-        var result = new ImpactResult(profile.getTotalDonations(), milestones);
+
+        var donations = certificateRepository.findByDonorIdOrderByDonationDateDesc(profile.getId());
+
+        var donationsByType = new LinkedHashMap<String, Integer>();
+        for (AppointmentType type : AppointmentType.values()) donationsByType.put(type.name(), 0);
+        donations.forEach(c -> {
+            if (c.getDonationType() != null) {
+                donationsByType.compute(c.getDonationType().name(), (k, v) -> v + 1);
+            }
+        });
+
+        var monthlyDonations = new LinkedHashMap<String, Integer>();
+        var currentMonth = YearMonth.now();
+        for (int i = 5; i >= 0; i--) monthlyDonations.put(currentMonth.minusMonths(i).toString(), 0);
+        donations.forEach(c -> {
+            if (c.getDonationDate() != null) {
+                var monthKey = YearMonth.from(c.getDonationDate()).toString();
+                if (monthlyDonations.containsKey(monthKey)) monthlyDonations.compute(monthKey, (k, v) -> v + 1);
+            }
+        });
+
+        var result = new ImpactResult(profile.getTotalDonations(), milestones, donationsByType, monthlyDonations);
         cacheService.put(key, result);
         return result;
     }

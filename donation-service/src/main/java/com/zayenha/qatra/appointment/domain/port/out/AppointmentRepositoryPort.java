@@ -2,6 +2,7 @@ package com.zayenha.qatra.appointment.domain.port.out;
 
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.enums.AppointmentStatus;
 import com.zayenha.qatra.appointment.domain.model.Appointment;
 import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 
@@ -17,7 +18,7 @@ public interface AppointmentRepositoryPort {
     PageResult<Appointment> findByCenterIdAndDateRange(
         Long centerId, LocalDate fromDate, LocalDate toDate, int page, int size);
     PageResult<Appointment> findAll(SearchCriteria criteria);
-    boolean existsByDonorIdAndStatusIn(Long donorId, List<com.zayenha.qatra.appointment.domain.model.AppointmentStatus> statuses);
+    boolean existsByDonorIdAndStatusIn(Long donorId, List<AppointmentStatus> statuses);
     HealthScreening saveScreening(HealthScreening screening);
     Optional<HealthScreening> findScreeningByAppointmentId(Long appointmentId);
     List<Appointment> findByEmergencyId(Long emergencyId);

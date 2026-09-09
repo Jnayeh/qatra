@@ -1,7 +1,7 @@
 package com.zayenha.qatra.appointment.infrastructure.event;
 
-import com.zayenha.qatra.appointment.domain.model.AppointmentStatus;
-import com.zayenha.qatra.appointment.domain.model.DonationOutcome;
+import com.zayenha.qatra._shared.domain.enums.AppointmentStatus;
+import com.zayenha.qatra._shared.domain.enums.DonationOutcome;
 
 public record AppointmentEvent(
     Long appointmentId,

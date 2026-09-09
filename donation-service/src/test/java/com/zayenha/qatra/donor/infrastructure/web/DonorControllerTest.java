@@ -25,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -237,10 +238,12 @@ class DonorControllerTest {
 
     @Test
     void getImpactReturnsImpactResponse() {
-        var impact = new DonorQueryUseCases.ImpactResult(5, List.of("First donation completed"));
+        var impact = new DonorQueryUseCases.ImpactResult(5, List.of("First donation completed"),
+                Map.of("REGULAR", 4, "EMERGENCY", 1), Map.of());
         when(queryUseCases.getImpact(1L)).thenReturn(impact);
         when(mapper.toImpactResponse(impact)).thenReturn(new ImpactResponse(
-                impact.totalDonations(), impact.milestones()));
+                impact.totalDonations(), impact.milestones(),
+                impact.donationsByType(), impact.monthlyDonations()));
 
         var response = controller.getImpact();
 
@@ -249,6 +252,7 @@ class DonorControllerTest {
         assertThat(response.getBody().success()).isTrue();
         assertThat(response.getBody().data().totalDonations()).isEqualTo(5);
         assertThat(response.getBody().data().milestones()).hasSize(1);
+        assertThat(response.getBody().data().donationsByType()).containsEntry("REGULAR", 4);
     }
 
     @Test
