@@ -1,6 +1,7 @@
 package com.zayenha.qatra.analytics.infrastructure.web;
 
 import com.zayenha.qatra._shared.cache.CacheService;
+import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
@@ -20,7 +21,6 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
@@ -110,11 +110,10 @@ public class AnalyticsController {
         if (cached.isPresent()) return ResponseEntity.ok(ApiResponse.success(cached.get().metrics));
 
         var now = Instant.now();
-        var today = LocalDate.now();
-        var zone = ZoneId.systemDefault();
-        var startOfToday = today.atStartOfDay(zone).toInstant();
-        var startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay(zone).toInstant();
-        var startOfMonth = today.withDayOfMonth(1).atStartOfDay(zone).toInstant();
+        var today = DateUtils.utcToday();
+        var startOfToday = DateUtils.toStartOfDay(today);
+        var startOfWeek = DateUtils.toStartOfDay(today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)));
+        var startOfMonth = DateUtils.toStartOfDay(today.withDayOfMonth(1));
 
         var metrics = METRIC_ACTIONS.stream().map(action -> {
             var total = auditLogQueryUseCases.countByAction(action);
@@ -176,7 +175,7 @@ public class AnalyticsController {
             return Instant.parse(date);
         }
         return LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE)
-                .atStartOfDay(ZoneId.systemDefault())
+                .atStartOfDay(java.time.ZoneOffset.UTC)
                 .toInstant();
     }
 }

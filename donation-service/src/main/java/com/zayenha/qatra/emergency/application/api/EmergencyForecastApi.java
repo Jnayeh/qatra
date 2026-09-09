@@ -1,5 +1,6 @@
 package com.zayenha.qatra.emergency.application.api;
 
+import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.emergency.application.api.dto.DemandDataPoint;
 import com.zayenha.qatra.emergency.infrastructure.persistence.repository.EmergencyJpaRepository;
@@ -10,8 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,10 +24,8 @@ public class EmergencyForecastApi {
 
     @Transactional(readOnly = true)
     public List<DemandDataPoint> getHistoricalDemand(BloodType bloodType, int lookbackMonths) {
-        var now = LocalDate.now();
-        var startDate = now.minusMonths(lookbackMonths)
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant();
+        var now = DateUtils.utcToday();
+        var startDate = DateUtils.toStartOfDay(DateUtils.minusMonths(now, lookbackMonths));
 
         var spec = EmergencySpec.build(bloodType, null, null, null, startDate, Instant.now());
         var emergencies = emergencyJpaRepository.findAll(spec);
@@ -37,7 +34,7 @@ public class EmergencyForecastApi {
 
         for (var e : emergencies) {
             var center = e.getCenter();
-            var date = e.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+            var date = DateUtils.toLocalDate(e.getCreatedAt());
             var weekNum = WeekNumber.fromDay(date.getDayOfMonth()).getValue();
 
             var key = e.getBloodType().name()

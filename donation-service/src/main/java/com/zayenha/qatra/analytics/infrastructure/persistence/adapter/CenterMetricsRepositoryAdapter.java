@@ -9,6 +9,8 @@ import com.zayenha.qatra.emergency.infrastructure.persistence.repository.Emergen
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import com.zayenha.qatra._shared.domain.DateUtils;
+
 import java.time.*;
 import java.util.*;
 
@@ -23,11 +25,10 @@ public class CenterMetricsRepositoryAdapter implements CenterMetricsRepositoryPo
     @Override
     public CenterMetrics getMetrics(Long centerId) {
         var now = Instant.now();
-        var today = LocalDate.now();
-        var zone = ZoneId.systemDefault();
-        var todayStart = today.atStartOfDay(zone).toInstant();
-        var weekStart = today.with(DayOfWeek.MONDAY).atStartOfDay(zone).toInstant();
-        var monthStart = today.withDayOfMonth(1).atStartOfDay(zone).toInstant();
+        var today = DateUtils.utcToday();
+        var todayStart = DateUtils.toStartOfDay(today);
+        var weekStart = DateUtils.toStartOfDay(today.with(DayOfWeek.MONDAY));
+        var monthStart = DateUtils.toStartOfDay(today.withDayOfMonth(1));
         var thirtyDaysAgo = now.minus(Duration.ofDays(30));
 
         long totalAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_BOOKED", null, null, centerId));

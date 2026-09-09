@@ -2,6 +2,7 @@ package com.zayenha.qatra.appointment.application;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.zayenha.qatra._shared.cache.CacheService;
+import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.domain.enums.AppointmentType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
@@ -138,8 +139,8 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         donorProxy.findOptionalByDonorId(saved.getDonorId()).ifPresent(dto -> {
             if (outcome == DonationOutcome.COMPLETED) {
                 dto.setTotalDonations(dto.getTotalDonations() + 1);
-                dto.setLastDonationDate(LocalDate.now());
-                dto.setEligibleFromDate(LocalDate.now().plusDays(56));
+                dto.setLastDonationDate(DateUtils.utcToday());
+                dto.setEligibleFromDate(DateUtils.plusDays(DateUtils.utcToday(), 56));
                 var rate = dto.getReliabilityScore() != null && dto.getReliabilityScore() < 50.0 ? 0.10 : 0.05;
                 dto.setReliabilityScore(Math.min(100.0, (dto.getReliabilityScore() != null ? dto.getReliabilityScore() : 100.0) * (1.0 + rate)));
                 dto.setConsecutiveEmergencyDeclines(0);

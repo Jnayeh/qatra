@@ -2,6 +2,7 @@ package com.zayenha.qatra.center.application;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.zayenha.qatra._shared.cache.CacheService;
+import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.enums.CenterStatus;
@@ -321,8 +322,8 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
                 result = slotRepository.findByCenterIdAndDate(centerId, date);
             }
         } else {
-            var from = LocalDate.now();
-            var to = from.plusWeeks(3);
+            var from = DateUtils.utcToday();
+            var to = DateUtils.plusDays(from, 21);
             if (fetchJoins) {
                 result = slotRepository.findByCenterIdAndDateRangeWithJoins(centerId, from, to);
             } else {

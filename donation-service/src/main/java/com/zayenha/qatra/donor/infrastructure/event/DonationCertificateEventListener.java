@@ -1,13 +1,12 @@
 package com.zayenha.qatra.donor.infrastructure.event;
 
+import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.event.DonationCompletedEvent;
 import com.zayenha.qatra.donor.infrastructure.persistence.entity.DonationCertificateEntity;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonationCertificateJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-
-import java.time.ZoneId;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +24,7 @@ public class DonationCertificateEventListener {
         certificate.setCenterName(event.centerName());
         certificate.setMlCollected(event.mlCollected());
         certificate.setDonationType(event.donationType());
-        certificate.setDonationDate(event.completedAt().atZone(ZoneId.systemDefault()).toLocalDate());
+        certificate.setDonationDate(DateUtils.toLocalDate(event.completedAt()));
         certificateRepository.save(certificate);
     }
 }

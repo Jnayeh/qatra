@@ -1,5 +1,6 @@
 package com.zayenha.qatra.appointment.infrastructure.web;
 
+import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
@@ -21,7 +22,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -131,7 +131,7 @@ public class AppointmentController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        var today = LocalDate.now(ZoneId.systemDefault());
+        var today = DateUtils.utcToday();
         var from = Optional.ofNullable(fromDate).orElse(today);
         var to = Optional.ofNullable(toDate).orElse(today);
         var result = queryUseCases.findByCenterIdAndDateRange(centerId, from, to, PageHelper.toPageIndex(page), size);

@@ -1,5 +1,6 @@
 package com.zayenha.qatra.forecasting.application;
 
+import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra.emergency.application.api.dto.DemandDataPoint;
 import com.zayenha.qatra.forecasting.application.proxy.EmergencyForecastProxy;
@@ -38,7 +39,7 @@ public class ForecastingService implements ForecastQueryUseCases {
 
     @Transactional
     public void generateForecasts() {
-        var nextMonth = LocalDate.now().plusMonths(1);
+        var nextMonth = DateUtils.plusMonths(DateUtils.utcToday(), 1);
         var targetYear = nextMonth.getYear();
         var targetMonth = nextMonth.getMonthValue();
 

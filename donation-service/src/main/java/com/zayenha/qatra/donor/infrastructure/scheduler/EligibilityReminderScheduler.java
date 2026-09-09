@@ -1,5 +1,6 @@
 package com.zayenha.qatra.donor.infrastructure.scheduler;
 
+import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra.donor.domain.port.out.DonorRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -7,8 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDate;
 
 @Component
 @RequiredArgsConstructor
@@ -21,7 +20,7 @@ public class EligibilityReminderScheduler {
     @Observed
     @Scheduled(cron = "${eligibility.reminder.cron:0 0 9 * * *}")
     public void sendEligibilityReminders() {
-        var today = LocalDate.now();
+        var today = DateUtils.utcToday();
         var donors = donorRepository.findByEligibleFromDate(today);
         for (var donor : donors) {
             eventPublisher.publishEligibilityReminder(
