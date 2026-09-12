@@ -1,5 +1,7 @@
 package com.zayenha.qatra.system.domain.port.in;
 
+import com.zayenha.qatra._shared.domain.PageResult;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionRequest;
 import com.zayenha.qatra.system.domain.model.GDPRDeletionStatus;
 
@@ -12,4 +14,6 @@ public interface GDPRQueryUseCases {
     List<GDPRDeletionRequest> findAll();
 
     List<GDPRDeletionRequest> findByStatus(GDPRDeletionStatus status);
+
+    PageResult<GDPRDeletionRequest> findAll(SearchCriteria criteria, GDPRDeletionStatus status);
 }

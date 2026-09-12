@@ -2,6 +2,9 @@ package com.zayenha.qatra.system.application;
 
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
+import com.zayenha.qatra._shared.domain.PageResult;
+import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.GDPRDeletionRequestedEvent;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.system.application.proxy.GDPRUserProxy;
@@ -43,7 +46,7 @@ public class GDPRService implements GDPRCommandUseCases, GDPRQueryUseCases {
         }
         userProxy.requestDeletion(userId);
         var saved = repository.save(new GDPRDeletionRequest(userId, reason));
-        auditPublisher.publish("GDPR_DELETION_REQUESTED", saved.getId(), "GDPRDeletionRequest", null, Map.of("userId", userId, "reason", reason));
+        auditPublisher.publish(LogAction.GDPR_DELETION_REQUESTED, saved.getId(), "GDPRDeletionRequest", null, Map.of("userId", userId, "reason", reason));
         eventPublisher.publishEvent(new GDPRDeletionRequestedEvent(userId, reason, Instant.now()));
         return saved;
     }
@@ -54,7 +57,7 @@ public class GDPRService implements GDPRCommandUseCases, GDPRQueryUseCases {
         var oldStatus = request.getStatus();
         request.complete();
         var saved = repository.save(request);
-        auditPublisher.publish("GDPR_DELETION_COMPLETED", requestId, "GDPRDeletionRequest",
+        auditPublisher.publish(LogAction.GDPR_DELETION_COMPLETED, requestId, "GDPRDeletionRequest",
             Map.of("status", oldStatus.name()),
             Map.of("status", GDPRDeletionStatus.COMPLETED.name()));
         return saved;
@@ -66,7 +69,7 @@ public class GDPRService implements GDPRCommandUseCases, GDPRQueryUseCases {
         var oldStatus = request.getStatus();
         request.cancel();
         var saved = repository.save(request);
-        auditPublisher.publish(actorId,"GDPR_DELETION_CANCELLED", requestId, "GDPRDeletionRequest",
+        auditPublisher.publish(actorId,LogAction.GDPR_DELETION_CANCELLED, requestId, "GDPRDeletionRequest",
             Map.of("status", oldStatus.name()),
             Map.of("status", GDPRDeletionStatus.CANCELED.name()));
         return saved;
@@ -85,6 +88,11 @@ public class GDPRService implements GDPRCommandUseCases, GDPRQueryUseCases {
     @Transactional(readOnly = true)
     public List<GDPRDeletionRequest> findByStatus(GDPRDeletionStatus status) {
         return repository.findByStatus(status);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<GDPRDeletionRequest> findAll(SearchCriteria criteria, GDPRDeletionStatus status) {
+        return repository.findAll(criteria, status);
     }
 
     private GDPRDeletionRequest findOrThrow(Long id) {
