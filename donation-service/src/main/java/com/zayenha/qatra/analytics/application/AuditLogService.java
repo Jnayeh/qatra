@@ -2,6 +2,8 @@ package com.zayenha.qatra.analytics.application;
 
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
+import com.zayenha.qatra._shared.domain.enums.Role;
 import com.zayenha.qatra.analytics.domain.model.AuditLog;
 import com.zayenha.qatra.analytics.domain.port.in.AuditLogQueryUseCases;
 import com.zayenha.qatra.analytics.domain.model.CenterMetrics;
@@ -31,10 +33,10 @@ public class AuditLogService implements AuditLogQueryUseCases {
 
     @Async
     @Transactional
-    public void record(Long userId, String action, String entityType, Long entityId,
+    public void record(Long userId, LogAction action, String entityType, Long entityId,
                        Map<String, Object> oldValue, Map<String, Object> newValue, String ipAddress) {
         var id = userId == 0 ? null : userId;
-        var log = new AuditLog(id, action, entityType, entityId, oldValue, newValue, ipAddress);
+        var log = new AuditLog(id, action.name(), entityType, entityId, oldValue, newValue, ipAddress);
         repository.save(log);
     }
 
@@ -42,11 +44,11 @@ public class AuditLogService implements AuditLogQueryUseCases {
         return repository.findAll(criteria);
     }
 
-    public PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate, Long centerId) {
+    public PageResult<AuditLog> findFiltered(SearchCriteria criteria, LogAction action, Instant fromDate, Instant toDate, Long centerId) {
         return repository.findFiltered(criteria, action, fromDate, toDate, centerId);
     }
 
-    public List<AuditLog> findByAction(String action) {
+    public List<AuditLog> findByAction(LogAction action) {
         return repository.findByAction(action);
     }
 
@@ -54,11 +56,11 @@ public class AuditLogService implements AuditLogQueryUseCases {
         return repository.findByUserId(userId);
     }
 
-    public long countByAction(String action) {
+    public long countByAction(LogAction action) {
         return repository.countByAction(action);
     }
 
-    public long countByActionBetween(String action, Instant from, Instant to) {
+    public long countByActionBetween(LogAction action, Instant from, Instant to) {
         return repository.countByActionBetween(action, from, to);
     }
 

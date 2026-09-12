@@ -3,6 +3,8 @@ package com.zayenha.qatra.analytics.infrastructure.persistence.adapter;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
+import com.zayenha.qatra._shared.domain.enums.Role;
 import com.zayenha.qatra.analytics.domain.model.AuditLog;
 import com.zayenha.qatra.analytics.domain.port.out.AuditLogRepositoryPort;
 import com.zayenha.qatra.analytics.infrastructure.persistence.repository.AuditLogJpaRepository;
@@ -12,7 +14,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
     }
 
     @Override
-    public PageResult<AuditLog> findFiltered(SearchCriteria criteria, String action, Instant fromDate, Instant toDate, Long centerId) {
+    public PageResult<AuditLog> findFiltered(SearchCriteria criteria, LogAction action, Instant fromDate, Instant toDate, Long centerId) {
         var spec = AuditLogSpec.build(action, fromDate, toDate, centerId);
         var pageable = PageRequest.of(criteria.page(), criteria.size(), Sort.by(Sort.Direction.DESC, "timestamp"));
         var page = jpaRepository.findAll(spec, pageable);
@@ -53,8 +54,8 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
     }
 
     @Override
-    public List<AuditLog> findByAction(String action) {
-        return jpaRepository.findByActionOrderByTimestampDesc(action).stream().map(mapper::toDomain).toList();
+    public List<AuditLog> findByAction(LogAction action) {
+        return jpaRepository.findByActionOrderByTimestampDesc(action.name()).stream().map(mapper::toDomain).toList();
     }
 
     @Override
@@ -68,12 +69,12 @@ public class AuditLogRepositoryAdapter implements AuditLogRepositoryPort {
     }
 
     @Override
-    public long countByAction(String action) {
+    public long countByAction(LogAction action) {
         return jpaRepository.count(AuditLogSpec.build(action, null, null, null));
     }
 
     @Override
-    public long countByActionBetween(String action, Instant from, Instant to) {
+    public long countByActionBetween(LogAction action, Instant from, Instant to) {
         return jpaRepository.count(AuditLogSpec.build(action, from, to, null));
     }
 }

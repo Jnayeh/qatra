@@ -1,5 +1,6 @@
 package com.zayenha.qatra.analytics.infrastructure.persistence.repository;
 
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import com.zayenha.qatra.analytics.infrastructure.persistence.entity.AuditLogEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterAdminProfileEntity;
 import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterStaffProfileEntity;
@@ -13,9 +14,9 @@ public final class AuditLogSpec {
     private AuditLogSpec() {
     }
 
-    public static Specification<AuditLogEntity> action(String action) {
+    public static Specification<AuditLogEntity> action(LogAction action) {
         return (root, query, cb) ->
-                action == null ? null : cb.equal(root.get("action"), action);
+                action == null ? null : cb.equal(root.get("action"), action.name());
     }
 
     public static Specification<AuditLogEntity> fromDate(Instant fromDate) {
@@ -49,7 +50,7 @@ public final class AuditLogSpec {
         };
     }
 
-    public static Specification<AuditLogEntity> build(String action, Instant fromDate, Instant toDate, Long centerId) {
+    public static Specification<AuditLogEntity> build(LogAction action, Instant fromDate, Instant toDate, Long centerId) {
         Specification<AuditLogEntity> spec = Specification.allOf();
         if (action != null) spec = spec.and(action(action));
         if (fromDate != null) spec = spec.and(fromDate(fromDate));
