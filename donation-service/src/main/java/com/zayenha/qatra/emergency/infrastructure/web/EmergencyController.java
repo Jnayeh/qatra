@@ -76,6 +76,14 @@ public class EmergencyController {
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(emergency)));
     }
 
+    @GetMapping("/mine")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
+    public ResponseEntity<ApiResponse<List<EmergencyResponse>>> getMyMatchedEmergencies() {
+        var emergencies = queryUseCases.findMatchedByDonor(AuditUtils.currentUserId());
+        return ResponseEntity.ok(ApiResponse.success(
+            emergencies.stream().map(mapper::toResponse).toList()));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<EmergencyResponse>> getById(@PathVariable Long id) {
         var emergency = queryUseCases.findById(id);
@@ -123,8 +131,8 @@ public class EmergencyController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
     public ResponseEntity<ApiResponse<DonorResponseDTO>> acceptResponse(
             @PathVariable Long emergencyId, @Valid @RequestBody AcceptResponseRequest request) {
-        var donorId = AuditUtils.currentUserId();
-        var response = commandUseCases.acceptResponse(emergencyId, donorId, request.slotId());
+        var donorUserId = AuditUtils.currentUserId();
+        var response = commandUseCases.acceptResponse(emergencyId, donorUserId, request.slotId());
         return ResponseEntity.ok(ApiResponse.success(mapper.toResponse(response)));
     }
 

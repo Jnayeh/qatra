@@ -1,9 +1,7 @@
 package com.zayenha.qatra.analytics.infrastructure.web;
 
 import com.zayenha.qatra._shared.web.ApiResponse;
-import com.zayenha.qatra.analytics.domain.port.in.AuditLogQueryUseCases;
 import com.zayenha.qatra.analytics.infrastructure.web.dto.response.SystemConfigResponse;
-import com.zayenha.qatra.analytics.infrastructure.web.dto.response.SystemHealthResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,19 +9,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.sql.DataSource;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin/")
 public class SystemAdminController {
-
-    private final AuditLogQueryUseCases auditLogQueryUseCases;
-    private final DataSource dataSource;
 
     @GetMapping("/config")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
@@ -40,38 +31,5 @@ public class SystemAdminController {
             new SystemConfigResponse("notification.eligibility.channels", "IN_APP,EMAIL", "Channels for eligibility notifications")
         );
         return ResponseEntity.ok(ApiResponse.success(configs));
-    }
-
-    @GetMapping("/health")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
-    public ResponseEntity<ApiResponse<SystemHealthResponse>> getSystemHealth() {
-        var services = new ArrayList<SystemHealthResponse.ServiceStatus>();
-
-        try (var conn = dataSource.getConnection()) {
-            services.add(new SystemHealthResponse.ServiceStatus("PostgreSQL", "UP", "Connected"));
-        } catch (SQLException e) {
-            services.add(new SystemHealthResponse.ServiceStatus("PostgreSQL", "DOWN", e.getMessage()));
-        }
-
-        services.add(new SystemHealthResponse.ServiceStatus("Kafka", "UP", "Broker available"));
-        services.add(new SystemHealthResponse.ServiceStatus("Redis", "UP", "Cache available"));
-
-        var totalErrors = auditLogQueryUseCases.countByAction("ERROR");
-        var byEndpoint = Map.<String, Long>of();
-        var errorRates = new SystemHealthResponse.ErrorRateInfo(totalErrors, byEndpoint);
-
-        var apiUsage = new SystemHealthResponse.ApiUsageInfo(0.0, List.of());
-
-        int dbActive = 0, dbIdle = 0, dbMax = 15;
-        try {
-            var hikari = (com.zaxxer.hikari.HikariDataSource) dataSource;
-            dbActive = hikari.getHikariPoolMXBean().getActiveConnections();
-            dbIdle = hikari.getHikariPoolMXBean().getIdleConnections();
-            dbMax = hikari.getHikariPoolMXBean().getTotalConnections();
-        } catch (Exception ignored) {}
-
-        var dbPool = new SystemHealthResponse.DbPoolInfo(dbActive, dbIdle, dbMax);
-        var health = new SystemHealthResponse(services, errorRates, apiUsage, dbPool);
-        return ResponseEntity.ok(ApiResponse.success(health));
     }
 }

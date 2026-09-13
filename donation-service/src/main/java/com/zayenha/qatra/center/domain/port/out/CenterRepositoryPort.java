@@ -29,4 +29,6 @@ public interface CenterRepositoryPort {
 
     CenterAdminProfile saveAdmin(CenterAdminProfile admin);
     Optional<CenterAdminProfile> findAdminByUserId(Long userId);
+    List<CenterAdminProfile> findAdminsByCenterId(Long centerId);
+    void removeAdminByUserId(Long userId);
 }

@@ -9,6 +9,7 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import com.zayenha.qatra._shared.event.DonationCompletedEvent;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
@@ -69,7 +70,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         var appointment = new Appointment(donorId, slotId, slot.getCenterId(), emergencyId, type, null);
         var saved = repository.save(appointment);
         cacheService.evictByPattern(APPOINTMENTS_BASE);
-        auditPublisher.publish("APPOINTMENT_BOOKED", saved.getId(), APPOINTMENT_CLASSNAME, null,
+        auditPublisher.publish(LogAction.APPOINTMENT_BOOKED, saved.getId(), APPOINTMENT_CLASSNAME, null,
             Map.of(DONOR_ID, donorId, "slotId", slotId,"centerId", slot.getCenterId(), "appointmentType", saved.getAppointmentType()));
         var slotTime = slot.getDate() + " " + slot.getStartTime();
         eventPublisherPort.publishAppointmentReminder(saved.getId(), donorId, slotTime);
@@ -99,7 +100,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         appointment.checkIn();
         var saved = repository.save(appointment);
         cacheService.evictByPattern(APPOINTMENTS_BASE);
-        auditPublisher.publish("APPOINTMENT_CHECKED_IN", saved.getId(), APPOINTMENT_CLASSNAME,
+        auditPublisher.publish(LogAction.APPOINTMENT_CHECKED_IN, saved.getId(), APPOINTMENT_CLASSNAME,
             Map.of(STATUS, oldStatus.name()),
             Map.of(STATUS, AppointmentStatus.CHECKED_IN.name(), DONOR_ID, saved.getDonorId()));
         return saved;
@@ -117,7 +118,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         appointment.startScreening();
         var saved = repository.save(appointment);
         cacheService.evictByPattern(APPOINTMENTS_BASE);
-        auditPublisher.publish("APPOINTMENT_SCREENING_STARTED", saved.getId(), APPOINTMENT_CLASSNAME,
+        auditPublisher.publish(LogAction.APPOINTMENT_SCREENING_STARTED, saved.getId(), APPOINTMENT_CLASSNAME,
             Map.of(STATUS, oldStatus.name()),
             Map.of(STATUS, AppointmentStatus.IN_SCREENING.name(), DONOR_ID, saved.getDonorId()));
         return saved;
@@ -151,7 +152,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
             cacheService.evictByPattern("impactResults:*");
         });
 
-        auditPublisher.publish("APPOINTMENT_COMPLETED", saved.getId(), APPOINTMENT_CLASSNAME,
+        auditPublisher.publish(LogAction.APPOINTMENT_COMPLETED, saved.getId(), APPOINTMENT_CLASSNAME,
             Map.of(STATUS, oldStatus.name()),
             Map.of(STATUS, AppointmentStatus.COMPLETED.name(), "outcome", outcome.name(),
                 DONOR_ID, saved.getDonorId(), "mlCollected", saved.getMlCollected()));
@@ -201,7 +202,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
         releaseSlot(saved);
 
-        auditPublisher.publish("APPOINTMENT_NO_SHOW", saved.getId(), APPOINTMENT_CLASSNAME,
+        auditPublisher.publish(LogAction.APPOINTMENT_NO_SHOW, saved.getId(), APPOINTMENT_CLASSNAME,
             Map.of(STATUS, oldStatus.name()),
             Map.of(STATUS, AppointmentStatus.NO_SHOW.name(), DONOR_ID, saved.getDonorId()));
         return saved;
@@ -222,7 +223,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
         releaseSlot(saved);
 
-        auditPublisher.publish("APPOINTMENT_CANCELLED", saved.getId(), APPOINTMENT_CLASSNAME,
+        auditPublisher.publish(LogAction.APPOINTMENT_CANCELLED, saved.getId(), APPOINTMENT_CLASSNAME,
             Map.of(STATUS, oldStatus.name()),
             Map.of(STATUS, AppointmentStatus.CANCELLED.name(), DONOR_ID, saved.getDonorId()));
         return saved;
@@ -263,7 +264,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         var saved = repository.save(appointment);
         cacheService.evictByPattern(APPOINTMENTS_BASE);
 
-        auditPublisher.publish("APPOINTMENT_RESCHEDULED", saved.getId(), APPOINTMENT_CLASSNAME,
+        auditPublisher.publish(LogAction.APPOINTMENT_RESCHEDULED, saved.getId(), APPOINTMENT_CLASSNAME,
                 Map.of("oldSlotId", oldSlotId, "oldStatus", AppointmentStatus.SCHEDULED.name()),
                 Map.of("newSlotId", newSlotId, STATUS, AppointmentStatus.RESCHEDULED.name(),
                     DONOR_ID, saved.getDonorId()));
@@ -285,7 +286,7 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         cacheService.evictByPattern("screenings:*");
 
         var appointment = findOrThrow(appointmentId);
-        auditPublisher.publish("SCREENING_SAVED", saved.getId(), APPOINTMENT_CLASSNAME, null,
+        auditPublisher.publish(LogAction.SCREENING_SAVED, saved.getId(), APPOINTMENT_CLASSNAME, null,
             Map.of("appointmentId", appointmentId, "eligible", eligible, DONOR_ID,
                    appointment.getDonorId()));
 

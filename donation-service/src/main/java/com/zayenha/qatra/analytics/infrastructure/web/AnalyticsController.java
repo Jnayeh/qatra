@@ -3,13 +3,11 @@ package com.zayenha.qatra.analytics.infrastructure.web;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
 import com.zayenha.qatra.analytics.domain.port.in.AuditLogQueryUseCases;
-import com.zayenha.qatra.analytics.infrastructure.web.dto.response.AuditLogResponse;
-import com.zayenha.qatra.analytics.infrastructure.web.dto.response.MetricsResponse;
-import com.zayenha.qatra.analytics.infrastructure.web.dto.response.CenterMetricsResponse;
-import com.zayenha.qatra.analytics.infrastructure.web.dto.response.ReportsResponse;
+import com.zayenha.qatra.analytics.infrastructure.web.dto.response.*;
 import com.zayenha.qatra.analytics.infrastructure.mapper.AnalyticsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,10 +29,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AnalyticsController {
 
-    private static final List<String> METRIC_ACTIONS = List.of(
-        "APPOINTMENT_BOOKED", "APPOINTMENT_COMPLETED",
-        "EMERGENCY_CREATED", "EMERGENCY_FULFILLED",
-        "RESPONSE_ACCEPTED", "RESPONSE_DECLINED"
+    private static final List<LogAction> METRIC_ACTIONS = List.of(
+        LogAction.APPOINTMENT_BOOKED, LogAction.APPOINTMENT_COMPLETED,
+        LogAction.EMERGENCY_CREATED, LogAction.EMERGENCY_FULFILLED,
+        LogAction.RESPONSE_ACCEPTED, LogAction.RESPONSE_DECLINED
     );
 
     private final AuditLogQueryUseCases auditLogQueryUseCases;
@@ -51,7 +49,8 @@ public class AnalyticsController {
             @RequestParam(required = false) String toDate,
             @RequestParam(required = false) Long centerId) {
         var criteria = new SearchCriteria(null, "timestamp", "desc", page, size);
-        var result = auditLogQueryUseCases.findFiltered(criteria, action, parseDate(fromDate), parseDate(toDate), centerId);
+        LogAction logAction = parseAction(action);
+        var result = auditLogQueryUseCases.findFiltered(criteria, logAction, parseDate(fromDate), parseDate(toDate), centerId);
         return ResponseEntity.ok(ApiResponse.success(
             result.content().stream().map(mapper::toResponse).toList(),
             PageHelper.fromDomain(result)
@@ -66,7 +65,8 @@ public class AnalyticsController {
             @RequestParam(required = false) String toDate,
             @RequestParam(required = false) Long centerId) {
         var criteria = new SearchCriteria(null, "timestamp", "desc", 0, 10000);
-        var result = auditLogQueryUseCases.findFiltered(criteria, action, parseDate(fromDate), parseDate(toDate), centerId);
+        LogAction logAction = parseAction(action);
+        var result = auditLogQueryUseCases.findFiltered(criteria, logAction, parseDate(fromDate), parseDate(toDate), centerId);
 
         var csv = new StringWriter();
         csv.append("ID,User ID,Action,Entity Type,Entity ID,IP Address,Timestamp\n");
@@ -89,7 +89,8 @@ public class AnalyticsController {
     @GetMapping("/audit-logs/by-action/{action}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
     public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getByAction(@PathVariable String action) {
-        var logs = auditLogQueryUseCases.findByAction(action);
+        LogAction logAction = parseAction(action);
+        var logs = auditLogQueryUseCases.findByAction(logAction);
         return ResponseEntity.ok(ApiResponse.success(
             logs.stream().map(mapper::toResponse).toList()));
     }
@@ -120,7 +121,7 @@ public class AnalyticsController {
             var todayCount = auditLogQueryUseCases.countByActionBetween(action, startOfToday, now);
             var weekCount = auditLogQueryUseCases.countByActionBetween(action, startOfWeek, now);
             var monthCount = auditLogQueryUseCases.countByActionBetween(action, startOfMonth, now);
-            return new MetricsResponse(action, total, todayCount, weekCount, monthCount);
+            return new MetricsResponse(action.name(), total, todayCount, weekCount, monthCount);
         }).toList();
 
         cacheService.put(cacheKey, new CacheableMetricsList(metrics), Duration.ofSeconds(60));
@@ -157,7 +158,7 @@ public class AnalyticsController {
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to) {
-        long totalDonations = auditLogQueryUseCases.countByAction("APPOINTMENT_COMPLETED");
+        long totalDonations = auditLogQueryUseCases.countByAction(LogAction.APPOINTMENT_COMPLETED);
         long newDonors = auditLogQueryUseCases.countDonors();
         long activeCenters = auditLogQueryUseCases.countActiveCenters();
         long totalResponses = auditLogQueryUseCases.countDonorResponses();
@@ -169,6 +170,11 @@ public class AnalyticsController {
     }
 
     record CacheableMetricsList(List<MetricsResponse> metrics) {}
+
+    private static LogAction parseAction(String action) {
+        if (action == null || action.isBlank()) return null;
+        return LogAction.valueOf(action);
+    }
 
     private static Instant parseDate(String date) {
         if (date == null || date.isBlank()) return null;

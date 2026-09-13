@@ -1,5 +1,6 @@
 package com.zayenha.qatra.analytics.infrastructure.persistence.adapter;
 
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import com.zayenha.qatra.analytics.domain.model.CenterMetrics;
 import com.zayenha.qatra.analytics.domain.port.out.CenterMetricsRepositoryPort;
 import com.zayenha.qatra.analytics.infrastructure.persistence.repository.AuditLogJpaRepository;
@@ -31,31 +32,31 @@ public class CenterMetricsRepositoryAdapter implements CenterMetricsRepositoryPo
         var monthStart = DateUtils.toStartOfDay(today.withDayOfMonth(1));
         var thirtyDaysAgo = now.minus(Duration.ofDays(30));
 
-        long totalAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_BOOKED", null, null, centerId));
-        long completedAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_COMPLETED", null, null, centerId));
-        long todayAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_BOOKED", todayStart, now, centerId));
-        long weekAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_BOOKED", weekStart, now, centerId));
-        long monthAppointments = auditLogRepo.count(AuditLogSpec.build("APPOINTMENT_BOOKED", monthStart, now, centerId));
+        long totalAppointments = auditLogRepo.count(AuditLogSpec.build(LogAction.APPOINTMENT_BOOKED, null, null, centerId));
+        long completedAppointments = auditLogRepo.count(AuditLogSpec.build(LogAction.APPOINTMENT_COMPLETED, null, null, centerId));
+        long todayAppointments = auditLogRepo.count(AuditLogSpec.build(LogAction.APPOINTMENT_BOOKED, todayStart, now, centerId));
+        long weekAppointments = auditLogRepo.count(AuditLogSpec.build(LogAction.APPOINTMENT_BOOKED, weekStart, now, centerId));
+        long monthAppointments = auditLogRepo.count(AuditLogSpec.build(LogAction.APPOINTMENT_BOOKED, monthStart, now, centerId));
 
-        long totalEmergencies = auditLogRepo.count(AuditLogSpec.build("EMERGENCY_CREATED", null, null, centerId));
-        long fulfilledEmergencies = auditLogRepo.count(AuditLogSpec.build("EMERGENCY_FULFILLED", null, null, centerId));
-        long todayEmergencies = auditLogRepo.count(AuditLogSpec.build("EMERGENCY_CREATED", todayStart, now, centerId));
-        long weekEmergencies = auditLogRepo.count(AuditLogSpec.build("EMERGENCY_CREATED", weekStart, now, centerId));
-        long monthEmergencies = auditLogRepo.count(AuditLogSpec.build("EMERGENCY_CREATED", monthStart, now, centerId));
+        long totalEmergencies = auditLogRepo.count(AuditLogSpec.build(LogAction.EMERGENCY_CREATED, null, null, centerId));
+        long fulfilledEmergencies = auditLogRepo.count(AuditLogSpec.build(LogAction.EMERGENCY_FULFILLED, null, null, centerId));
+        long todayEmergencies = auditLogRepo.count(AuditLogSpec.build(LogAction.EMERGENCY_CREATED, todayStart, now, centerId));
+        long weekEmergencies = auditLogRepo.count(AuditLogSpec.build(LogAction.EMERGENCY_CREATED, weekStart, now, centerId));
+        long monthEmergencies = auditLogRepo.count(AuditLogSpec.build(LogAction.EMERGENCY_CREATED, monthStart, now, centerId));
 
-        long totalAccepted = auditLogRepo.count(AuditLogSpec.build("RESPONSE_ACCEPTED", null, null, centerId));
-        long totalDeclined = auditLogRepo.count(AuditLogSpec.build("RESPONSE_DECLINED", null, null, centerId));
+        long totalAccepted = auditLogRepo.count(AuditLogSpec.build(LogAction.RESPONSE_ACCEPTED, null, null, centerId));
+        long totalDeclined = auditLogRepo.count(AuditLogSpec.build(LogAction.RESPONSE_DECLINED, null, null, centerId));
         long totalDonorResponses = totalAccepted + totalDeclined;
-        long accepted30d = auditLogRepo.count(AuditLogSpec.build("RESPONSE_ACCEPTED", thirtyDaysAgo, now, centerId));
-        long declined30d = auditLogRepo.count(AuditLogSpec.build("RESPONSE_DECLINED", thirtyDaysAgo, now, centerId));
+        long accepted30d = auditLogRepo.count(AuditLogSpec.build(LogAction.RESPONSE_ACCEPTED, thirtyDaysAgo, now, centerId));
+        long declined30d = auditLogRepo.count(AuditLogSpec.build(LogAction.RESPONSE_DECLINED, thirtyDaysAgo, now, centerId));
 
         long totalMlCollected = appointmentRepo.sumMlCollectedByCenterId(centerId);
         long activeEmergencies = emergencyRepo.countActiveByCenterId(centerId);
 
         var appointmentsByDay = mapByDay(
-            auditLogRepo.countByCenterAndActionByDay("APPOINTMENT_BOOKED", centerId, thirtyDaysAgo, now));
+            auditLogRepo.countByCenterAndActionByDay(LogAction.APPOINTMENT_BOOKED.name(), centerId, thirtyDaysAgo, now));
         var emergenciesByDay = mapByDay(
-            auditLogRepo.countByCenterAndActionByDay("EMERGENCY_CREATED", centerId, thirtyDaysAgo, now));
+            auditLogRepo.countByCenterAndActionByDay(LogAction.EMERGENCY_CREATED.name(), centerId, thirtyDaysAgo, now));
 
         return new CenterMetrics(
             totalAppointments, completedAppointments,

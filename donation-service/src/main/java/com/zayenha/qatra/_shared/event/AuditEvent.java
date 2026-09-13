@@ -1,10 +1,12 @@
 package com.zayenha.qatra._shared.event;
 
+import com.zayenha.qatra._shared.domain.enums.LogAction;
+
 import java.util.Map;
 
 public record AuditEvent(
         Long userId,
-        String action,
+        LogAction action,
         String entityType,
         Long entityId,
         Map<String, Object> oldValue,

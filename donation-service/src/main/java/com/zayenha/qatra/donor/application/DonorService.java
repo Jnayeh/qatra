@@ -6,6 +6,7 @@ import com.zayenha.qatra._shared.domain.enums.BloodType;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.donor.domain.exception.DonorErrorCode;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
@@ -54,7 +55,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
         cacheService.evictByPattern("impactResults:*");
-        auditPublisher.publish(userId,"DONOR_PROFILE_UPDATED", saved.getId(), "DonorProfile", null, Map.of("userId", userId));
+        auditPublisher.publish(userId,LogAction.DONOR_PROFILE_UPDATED, saved.getId(), "DonorProfile", null, Map.of("userId", userId));
         return saved;
     }
 
@@ -87,7 +88,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        auditPublisher.publish("DONOR_BLOOD_TYPE_VERIFIED", saved.getId(), "DonorProfile",
+        auditPublisher.publish(LogAction.DONOR_BLOOD_TYPE_VERIFIED, saved.getId(), "DonorProfile",
             Map.of("bloodType", oldBloodType),
             Map.of("bloodType", bloodType.name(), "verified", true));
         return saved;
@@ -113,7 +114,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         var saved = donorRepository.save(profile);
 
         cacheService.evictByPattern("donorProfiles:*");
-        auditPublisher.publish("DONOR_LOCATION_UPDATED", saved.getId(), "DonorProfile",
+        auditPublisher.publish(LogAction.DONOR_LOCATION_UPDATED, saved.getId(), "DonorProfile",
             Map.of("latitude", oldLat, "longitude", oldLon),
             Map.of("latitude", command.latitude(), "longitude", command.longitude(), "city", command.city()));
         return saved;
@@ -130,7 +131,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        auditPublisher.publish("DONOR_AVAILABILITY_UPDATED", saved.getId(), "DonorProfile",
+        auditPublisher.publish(LogAction.DONOR_AVAILABILITY_UPDATED, saved.getId(), "DonorProfile",
             Map.of("availability", oldStatus),
             Map.of("availability", status.name()));
         return saved;
@@ -146,7 +147,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        auditPublisher.publish("DONOR_NOTIFICATION_PREFS_UPDATED", saved.getId(), "DonorProfile", null,
+        auditPublisher.publish(LogAction.DONOR_NOTIFICATION_PREFS_UPDATED, saved.getId(), "DonorProfile", null,
             Map.of("userId", userId, "frequency",
                    prefs != null && prefs.frequency() != null ? prefs.frequency().name() : "null"));
         return saved;
@@ -165,7 +166,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
         cacheService.evictByPattern("impactResults:*");
-        auditPublisher.publish("DONOR_DELETION_REQUESTED", profile.getId(), "DonorProfile", null, Map.of("userId", userId));
+        auditPublisher.publish(LogAction.DONOR_DELETION_REQUESTED, profile.getId(), "DonorProfile", null, Map.of("userId", userId));
     }
 
     @Override
@@ -181,7 +182,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
             profile.setUpdatedAt(Instant.now());
             donorRepository.save(profile);
             cacheService.evictByPattern("donorProfiles:*");
-            auditPublisher.publish(actor, "DONOR_REACTIVATED", profile.getId(), "DonorProfile", null, Map.of("userId", userId, "previousStatus", "PENDING_DELETION"));
+            auditPublisher.publish(actor, LogAction.DONOR_REACTIVATED, profile.getId(), "DonorProfile", null, Map.of("userId", userId, "previousStatus", "PENDING_DELETION"));
         }
     }
 
@@ -198,7 +199,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        auditPublisher.publish("DONOR_RESTRICTION_UPDATED", saved.getId(), "DonorProfile",
+        auditPublisher.publish(LogAction.DONOR_RESTRICTION_UPDATED, saved.getId(), "DonorProfile",
             Map.of("restricted", oldRestricted),
             Map.of("restricted", permanentlyRestricted, "reason", reason));
         return saved;
@@ -216,7 +217,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setUpdatedAt(Instant.now());
         var saved = donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        auditPublisher.publish("DONOR_FLAG_UPDATED", saved.getId(), "DonorProfile",
+        auditPublisher.publish(LogAction.DONOR_FLAG_UPDATED, saved.getId(), "DonorProfile",
             Map.of("flagged", oldFlagged),
             Map.of("flagged", flagged));
         return saved;
@@ -232,7 +233,7 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         profile.setUpdatedAt(Instant.now());
         donorRepository.save(profile);
         cacheService.evictByPattern("donorProfiles:*");
-        auditPublisher.publish("DONOR_PROFILE_ACTIVATED", profile.getId(), "DonorProfile", null, Map.of("userId", userId));
+        auditPublisher.publish(LogAction.DONOR_PROFILE_ACTIVATED, profile.getId(), "DonorProfile", null, Map.of("userId", userId));
     }
 
     @Override
@@ -260,6 +261,12 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
                         DonorErrorCode.DONOR_NOT_FOUND.name()));
         cacheService.put(key, result);
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<DonorProfile> findByUserId(Long userId) {
+        return donorRepository.findByUserId(userId);
     }
 
     @Override

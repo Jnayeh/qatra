@@ -8,6 +8,7 @@ import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.domain.enums.CenterStatus;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import com.zayenha.qatra._shared.exception.BadRequestException;
 import com.zayenha.qatra._shared.exception.ConflictException;
 import com.zayenha.qatra._shared.exception.NotFoundException;
@@ -33,6 +34,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -82,7 +84,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         );
         var saved = centerRepository.save(center);
         cacheService.evictByPattern("donationCenters:*");
-        auditPublisher.publish("CENTER_CREATED", saved.getId(), "DonationCenter", null, Map.of(
+        auditPublisher.publish(LogAction.CENTER_CREATED, saved.getId(), "DonationCenter", null, Map.of(
             "name", command.name(), "city", command.city(),
             "facilityType", command.facilityType().name()));
         if (userId != 0 && userApi.existsByUserIdAndRole(userId, Role.CENTER_ADMIN)
@@ -117,7 +119,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         center.setUpdatedAt(java.time.Instant.now());
         var saved = centerRepository.save(center);
         cacheService.evictByPattern("donationCenters:*");
-        auditPublisher.publish("CENTER_UPDATED", saved.getId(), "DonationCenter",
+        auditPublisher.publish(LogAction.CENTER_UPDATED, saved.getId(), "DonationCenter",
             Map.of("name", oldName),
             Map.of("name", command.name(), "city", command.city(),
                    "facilityType", command.facilityType().name()));
@@ -133,7 +135,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         center.setStatus(status);
         centerRepository.save(center);
         cacheService.evictByPattern("donationCenters:*");
-        auditPublisher.publish("CENTER_STATUS_UPDATED", id, "DonationCenter",
+        auditPublisher.publish(LogAction.CENTER_STATUS_UPDATED, id, "DonationCenter",
             Map.of("status", oldStatus != null ? oldStatus.name() : null),
             Map.of("status", status.name()));
     }
@@ -148,7 +150,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         cacheService.evictByPattern("donationCenters:*");
         cacheService.evictByPattern("slots:*");
         cacheService.evictByPattern("centerStaff:*");
-        auditPublisher.publish("CENTER_DELETED", id, "DonationCenter", null, Map.of("deleted", true));
+        auditPublisher.publish(LogAction.CENTER_DELETED, id, "DonationCenter", null, Map.of("deleted", true));
     }
 
     @Override
@@ -165,7 +167,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         slot.setBlocked(isBlocked);
         var saved = slotRepository.update(slot);
         cacheService.evictByPattern("slots:*");
-        auditPublisher.publish("SLOT_BLOCKED", slotId, "DonationCenter",
+        auditPublisher.publish(LogAction.SLOT_BLOCKED, slotId, "DonationCenter",
             Map.of("blocked", wasBlocked),
             Map.of("blocked", isBlocked, "centerId", centerId));
         return saved;
@@ -197,7 +199,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
             slot.setBlocked(true);
             slotRepository.update(slot);
         }
-        auditPublisher.publish("CLOSURE_ADDED", centerId, "DonationCenter", null,
+        auditPublisher.publish(LogAction.CLOSURE_ADDED, centerId, "DonationCenter", null,
             Map.of("date", command.date().toString(), "reason", command.reason()));
         return new ClosureResult(overlapping.size(), command.date(), command.reason());
     }
@@ -214,7 +216,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         var staff = new CenterStaffProfile(userId, centerId);
         var saved = centerRepository.saveStaff(staff);
         cacheService.evictByPattern("centerStaff:*");
-        auditPublisher.publish("STAFF_ADDED", saved.getId(), "DonationCenter", null,
+        auditPublisher.publish(LogAction.STAFF_ADDED, saved.getId(), "DonationCenter", null,
             Map.of("centerId", centerId, "userId", userId));
         return saved;
     }
@@ -226,7 +228,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
                 .orElseThrow(() -> new NotFoundException("Staff not found at this center", "STAFF_NOT_FOUND"));
         centerRepository.deleteStaff(staff);
         cacheService.evictByPattern("centerStaff:*");
-        auditPublisher.publish("STAFF_REMOVED", null, "DonationCenter",
+        auditPublisher.publish(LogAction.STAFF_REMOVED, null, "DonationCenter",
             Map.of("centerId", centerId, "userId", userId), null);
     }
 
@@ -242,7 +244,7 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
         }
         var saved = centerRepository.save(center);
         cacheService.evictByPattern("donationCenters:*");
-        auditPublisher.publish("CENTER_APPROVED", centerId, "DonationCenter",
+        auditPublisher.publish(LogAction.CENTER_APPROVED, centerId, "DonationCenter",
             Map.of("status", oldStatus != null ? oldStatus.name() : "null"),
             Map.of("approved", approved, "reason", reason));
         return saved;
@@ -357,9 +359,58 @@ public class CenterService implements CenterCommandUseCases, CenterQueryUseCases
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<CenterStaffProfile> findStaffByUserId(Long userId) {
+        return centerRepository.findStaffByUserId(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public CenterAdminProfile getAdminByUserId(Long userId) {
         return centerRepository.findAdminByUserId(userId)
                 .orElseThrow(() -> new NotFoundException("Admin profile not found for user: " + userId, "ADMIN_NOT_FOUND"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<CenterAdminProfile> findAdminByUserId(Long userId) {
+        return centerRepository.findAdminByUserId(userId);
+    }
+
+    @Override
+    @Transactional
+    public CenterAdminProfile assignAdmin(Long centerId, Long userId) {
+        if (!centerRepository.existsById(centerId)) {
+            throw new NotFoundException("Center not found: " + centerId, CenterErrorCode.CENTER_NOT_FOUND.name());
+        }
+        if (!userApi.existsByUserIdAndRole(userId, Role.CENTER_ADMIN)) {
+            throw new BadRequestException("User does not have the CENTER_ADMIN role", "USER_NOT_CENTER_ADMIN");
+        }
+        if (centerRepository.findAdminByUserId(userId).isPresent()) {
+            throw new ConflictException("User is already an admin of a center", "ADMIN_ALREADY_ASSIGNED");
+        }
+        var admin = centerRepository.saveAdmin(new CenterAdminProfile(userId, centerId));
+        auditPublisher.publish(LogAction.STAFF_ADDED, admin.getId(), "CenterAdmin", null,
+            Map.of("centerId", centerId, "userId", userId));
+        return admin;
+    }
+
+    @Override
+    @Transactional
+    public void removeAdmin(Long centerId, Long userId) {
+        var admin = centerRepository.findAdminByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Admin profile not found for user: " + userId, "ADMIN_NOT_FOUND"));
+        if (!centerId.equals(admin.getCenterId())) {
+            throw new BadRequestException("Admin does not belong to this center", "ADMIN_NOT_BELONG");
+        }
+        centerRepository.removeAdminByUserId(userId);
+        auditPublisher.publish(LogAction.STAFF_REMOVED, userId, "CenterAdmin", null,
+            Map.of("centerId", centerId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CenterAdminProfile> getAdmins(Long centerId) {
+        return centerRepository.findAdminsByCenterId(centerId);
     }
 
 }

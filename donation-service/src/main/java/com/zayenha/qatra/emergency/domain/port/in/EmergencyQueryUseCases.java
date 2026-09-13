@@ -17,6 +17,7 @@ public interface EmergencyQueryUseCases {
     PageResult<EmergencyRequest> findAll(SearchCriteria criteria, Long centerId, EmergencyStatus status);
     List<EmergencyRequest> findOpenByBloodType(BloodType bloodType);
     List<EmergencyRequest> findOpenWithinRadius(double latitude, double longitude, double radiusKm);
+    List<EmergencyRequest> findMatchedByDonor(Long userId);
     List<DonorResponse> findResponsesByEmergencyId(Long emergencyId);
     List<DonorResponse> findResponsesByDonorId(Long donorId);
     MatchResultStats getMatchStats(Long emergencyId);

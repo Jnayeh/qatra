@@ -18,4 +18,7 @@ public interface CenterQueryUseCases {
     List<CenterStaffProfile> getStaff(Long centerId);
     CenterStaffProfile getStaffByUserId(Long userId);
     CenterAdminProfile getAdminByUserId(Long userId);
+    Optional<CenterStaffProfile> findStaffByUserId(Long userId);
+    Optional<CenterAdminProfile> findAdminByUserId(Long userId);
+    List<CenterAdminProfile> getAdmins(Long centerId);
 }

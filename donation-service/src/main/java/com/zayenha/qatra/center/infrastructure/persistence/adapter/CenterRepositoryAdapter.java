@@ -160,6 +160,16 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
         return adminJpaRepository.findByUser_Id(userId).map(mapper::toAdminDomain);
     }
 
+    @Override
+    public List<CenterAdminProfile> findAdminsByCenterId(Long centerId) {
+        return adminJpaRepository.findByCenter_Id(centerId).stream().map(mapper::toAdminDomain).toList();
+    }
+
+    @Override
+    public void removeAdminByUserId(Long userId) {
+        adminJpaRepository.findByUser_Id(userId).ifPresent(adminJpaRepository::delete);
+    }
+
     private Specification<CenterEntity> buildSpecification(String search) {
         return (root, query, cb) -> {
             if (search == null || search.isBlank()) return cb.conjunction();

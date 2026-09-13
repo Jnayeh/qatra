@@ -9,6 +9,7 @@ import java.util.*;
 public interface DonorQueryUseCases {
     DonorProfile getMyProfile(Long userId);
     DonorProfile getDonorById(Long donorId);
+    Optional<DonorProfile> findByUserId(Long userId);
     ImpactResult getImpact(Long userId);
 
     record ImpactResult(int totalDonations, List<String> milestones,

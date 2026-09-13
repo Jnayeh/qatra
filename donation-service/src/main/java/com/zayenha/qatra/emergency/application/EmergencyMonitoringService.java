@@ -3,6 +3,7 @@ package com.zayenha.qatra.emergency.application;
 import com.zayenha.qatra._shared.domain.port.out.AppointmentServiceProvider;
 import com.zayenha.qatra._shared.event.AuditEvent;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import com.zayenha.qatra.emergency.domain.model.EmergencyRequest;
 import com.zayenha.qatra.emergency.domain.model.EmergencyStatus;
 import com.zayenha.qatra.emergency.domain.port.out.EmergencyRepositoryPort;
@@ -68,7 +69,7 @@ public class EmergencyMonitoringService {
         emergencyRepository.save(emergency);
         log.info("Emergency {} expired", emergency.getId());
         eventPublisher.publishEvent(new AuditEvent(
-            AuditUtils.currentUserId(), "EMERGENCY_EXPIRED", "EmergencyRequest",
+            AuditUtils.currentUserId(), LogAction.EMERGENCY_EXPIRED, "EmergencyRequest",
             emergency.getId(),
             Map.of("status", EmergencyStatus.OPEN.name()),
             Map.of("status", EmergencyStatus.EXPIRED.name()),
@@ -82,7 +83,7 @@ public class EmergencyMonitoringService {
             emergencyRepository.save(emergency);
             log.info("Emergency {} auto-fulfilled ({} units collected)", emergency.getId(), unitsCollected);
             eventPublisher.publishEvent(new AuditEvent(
-                AuditUtils.currentUserId(), "EMERGENCY_FULFILLED", "EmergencyRequest",
+                AuditUtils.currentUserId(), LogAction.EMERGENCY_FULFILLED, "EmergencyRequest",
                 emergency.getId(),
                 Map.of("status", EmergencyStatus.OPEN.name()),
                 Map.of("status", EmergencyStatus.FULFILLED.name(), "unitsCollected", unitsCollected),
@@ -100,7 +101,7 @@ public class EmergencyMonitoringService {
         log.info("Emergency {} escalated to level {} with radius {} km",
                 emergency.getId(), newLevel, newRadius);
         eventPublisher.publishEvent(new AuditEvent(
-            AuditUtils.currentUserId(), "EMERGENCY_ESCALATED", "EmergencyRequest",
+            AuditUtils.currentUserId(), LogAction.EMERGENCY_ESCALATED, "EmergencyRequest",
             emergency.getId(),
             null,
             Map.of("escalationLevel", newLevel, "matchRadius", newRadius),

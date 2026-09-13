@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -45,7 +46,7 @@ public class MatchingService {
                 .toList();
 
         var alreadyMatchedIds = emergencyRepository.findMatchResultsByEmergencyId(emergency.getId())
-                .stream().map(MatchResult::getDonorId).toList();
+                .stream().map(MatchResult::getDonorId).collect(Collectors.toSet());
 
         var available = candidates.stream()
                 .filter(d -> !alreadyMatchedIds.contains(d.getId()))
@@ -108,12 +109,12 @@ public class MatchingService {
             emergencyRepository.saveMatchResult(matchResult);
         }
 
-        eventPublisherPort.publishEmergencyCreated(emergency.getId(), matchedUserIds);
-
         if (radius > emergency.getMatchRadius()) {
             emergency.setMatchRadius(radius);
             emergencyRepository.save(emergency);
         }
+
+        eventPublisherPort.publishEmergencyCreated(emergency.getId(), matchedUserIds);
 
         log.info("Emergency {} matched with {} donors at radius {} km",
                 emergency.getId(), selected.size(), radius);

@@ -14,6 +14,8 @@ public interface CenterCommandUseCases {
     ClosureResult addClosure(Long centerId, ClosureCommand command);
     CenterStaffProfile addStaff(Long centerId, Long userId);
     void removeStaff(Long centerId, Long userId);
+    CenterAdminProfile assignAdmin(Long centerId, Long userId);
+    void removeAdmin(Long centerId, Long userId);
     DonationCenter approve(Long centerId, boolean approved, String reason);
 
     record CreateCenterCommand(

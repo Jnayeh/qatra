@@ -23,6 +23,10 @@ public class EmergencyDonorProxy {
         return donorApi.findByUserId(userId);
     }
 
+    public Optional<DonorProfileDTO> findOptionalByUserId(Long userId) {
+        return donorApi.findOptionalByUserId(userId);
+    }
+
     public List<DonorProfileDTO> findEligibleForEmergency() {
         return donorApi.findEligibleForEmergency();
     }

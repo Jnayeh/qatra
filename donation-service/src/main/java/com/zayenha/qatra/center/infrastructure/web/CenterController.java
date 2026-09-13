@@ -133,6 +133,28 @@ public class CenterController {
         return ResponseEntity.ok(ApiResponse.success("Staff removed"));
     }
 
+    @GetMapping("/{id}/admins")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CENTER_ADMIN')")
+    public ResponseEntity<ApiResponse<List<CenterAdminDTO>>> getAdmins(@PathVariable Long id) {
+        var admins = queryUseCases.getAdmins(id);
+        return ResponseEntity.ok(ApiResponse.success(admins.stream().map(mapper::toAdminDTO).toList()));
+    }
+
+    @PostMapping("/{id}/admins")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<CenterAdminDTO>> assignAdmin(@PathVariable Long id,
+            @Valid @RequestBody AddStaffRequest request) {
+        var admin = commandUseCases.assignAdmin(id, request.userId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(mapper.toAdminDTO(admin)));
+    }
+
+    @DeleteMapping("/{id}/admins/{userId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> removeAdmin(@PathVariable Long id, @PathVariable Long userId) {
+        commandUseCases.removeAdmin(id, userId);
+        return ResponseEntity.ok(ApiResponse.success("Admin removed"));
+    }
+
     @GetMapping("/public")
     public ResponseEntity<ApiResponse<List<CenterResponse>>> getPublic(
             @RequestParam(required = false) Double lat,

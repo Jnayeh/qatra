@@ -5,6 +5,7 @@ import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.event.AuditPublisher;
 import com.zayenha.qatra._shared.event.AuditUtils;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import com.zayenha.qatra._shared.event.UserSignUpEvent;
 import com.zayenha.qatra._shared.exception.AuthorizationException;
 import com.zayenha.qatra.user.domain.exception.CannotDeleteUserException;
@@ -68,7 +69,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user = userRepository.save(user);
         cacheService.evictByPattern("users:*");
         cacheService.evictByPattern("userExists:*");
-        auditPublisher.publish("USER_UPDATED", AuditUtils.currentUserId(), "User",
+        auditPublisher.publish(LogAction.USER_UPDATED, AuditUtils.currentUserId(), "User",
                 null,
                 Map.of("email", email, "phone", phone));
         return user;
@@ -90,7 +91,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user = userRepository.save(user);
         cacheService.evictByPattern("users:*");
         cacheService.evictByPattern("userExists:*");
-        auditPublisher.publish("USER_UPDATED", id, "User",
+        auditPublisher.publish(LogAction.USER_UPDATED, id, "User",
             Map.of("email", oldEmail),
             Map.of("email", email, "phone", phone));
         return user;
@@ -105,7 +106,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user.updateStatus(status);
         userRepository.save(user);
         cacheService.evictByPattern("users:*");
-        auditPublisher.publish(actorID, "USER_STATUS_CHANGED", id, "User",
+        auditPublisher.publish(actorID, LogAction.USER_STATUS_CHANGED, id, "User",
             Map.of("status", oldStatus.name()),
             Map.of("status", status.name()));
     }
@@ -118,7 +119,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user.changePassword(newEncodedPassword);
         userRepository.save(user);
         cacheService.evictByPattern("users:*");
-        auditPublisher.publish(userId, "USER_PASSWORD_CHANGED", userId, "User", null, null);
+        auditPublisher.publish(userId, LogAction.USER_PASSWORD_CHANGED, userId, "User", null, null);
     }
 
     @Override
@@ -129,7 +130,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user.markDeletionRequested();
         userRepository.save(user);
         cacheService.evictByPattern("users:*");
-        auditPublisher.publish("USER_DELETION_REQUESTED", userId, "User",
+        auditPublisher.publish(LogAction.USER_DELETION_REQUESTED, userId, "User",
             null, Map.of("status", UserStatus.PENDING_DELETION.name()));
     }
 
@@ -146,7 +147,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
 
         userRoleRepository.save(new UserRole(userId, role));
         cacheService.evictByPattern(USER_ROLES);
-        auditPublisher.publish(userId, "ROLE_ASSIGNED", userId, "User", null, Map.of("role", role.name(), "userId", userId));
+        auditPublisher.publish(userId, LogAction.ROLE_ASSIGNED, userId, "User", null, Map.of("role", role.name(), "userId", userId));
     }
 
     @Override
@@ -160,7 +161,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         }
         userRoleRepository.deleteByUserIdAndRole(userId, role);
         cacheService.evictByPattern(USER_ROLES);
-        auditPublisher.publish("ROLE_REVOKED", userId, "User", Map.of("role", role.name()), null);
+        auditPublisher.publish(LogAction.ROLE_REVOKED, userId, "User", Map.of("role", role.name()), null);
     }
 
     @Override
@@ -175,7 +176,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         user.updateStatus(UserStatus.ACTIVE);
         userRepository.save(user);
         cacheService.evictByPattern("users:*");
-        auditPublisher.publish(userId, "USER_EMAIL_VERIFIED", userId, "User",
+        auditPublisher.publish(userId, LogAction.USER_EMAIL_VERIFIED, userId, "User",
             Map.of("status", user.getStatus().name()),
             Map.of("emailVerified", true));
     }
@@ -194,7 +195,7 @@ public class UserService implements UserCommandUseCases, UserQueryUseCases {
         cacheService.evictByPattern("users:*");
         cacheService.evictByPattern("userExists:*");
         cacheService.evictByPattern(USER_ROLES);
-        auditPublisher.publish("USER_DELETED", id, "User", Map.of("email", user.getEmail()), null);
+        auditPublisher.publish(LogAction.USER_DELETED, id, "User", Map.of("email", user.getEmail()), null);
     }
 
     @Override

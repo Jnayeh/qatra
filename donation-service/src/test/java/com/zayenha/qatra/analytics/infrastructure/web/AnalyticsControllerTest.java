@@ -3,6 +3,7 @@ package com.zayenha.qatra.analytics.infrastructure.web;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import com.zayenha.qatra.analytics.domain.model.AuditLog;
 import com.zayenha.qatra.analytics.domain.port.in.AuditLogQueryUseCases;
 import com.zayenha.qatra.analytics.infrastructure.mapper.AnalyticsMapper;
@@ -58,8 +59,8 @@ class AnalyticsControllerTest {
     @Test
     void getMetricsReturnsEnrichedCounts() {
         when(cacheService.get(anyString(), any(Class.class))).thenReturn(Optional.empty());
-        when(auditLogQueryUseCases.countByAction(anyString())).thenReturn(10L);
-        when(auditLogQueryUseCases.countByActionBetween(anyString(), any(), any())).thenReturn(3L);
+        when(auditLogQueryUseCases.countByAction(any(LogAction.class))).thenReturn(10L);
+        when(auditLogQueryUseCases.countByActionBetween(any(LogAction.class), any(), any())).thenReturn(3L);
 
         var response = controller.getMetrics();
 

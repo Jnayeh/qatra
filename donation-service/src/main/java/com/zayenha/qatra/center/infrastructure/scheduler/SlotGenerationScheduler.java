@@ -25,10 +25,35 @@ public class SlotGenerationScheduler {
     @Value("${slot-generation.timezone:UTC}")
     private String timezone;
 
+    @Value("${slot-generation.startup-max-retries:30}")
+    private int startupMaxRetries;
+
+    @Value("${slot-generation.startup-retry-delay-ms:3000}")
+    private long startupRetryDelayMs;
+
     @PostConstruct
     public void init() {
         log.info("Running startup slot generation");
-        slotGenerationService.generateSlots(lookaheadDays, defaultSlotPeriodMinutes, timezone);
+        for (int attempt = 1; attempt <= startupMaxRetries; attempt++) {
+            try {
+                slotGenerationService.generateSlots(lookaheadDays, defaultSlotPeriodMinutes, timezone);
+                log.info("Startup slot generation succeeded on attempt {}", attempt);
+                return;
+            } catch (Exception e) {
+                log.warn("Startup slot generation failed on attempt {}/{}: {}", attempt, startupMaxRetries, e.getMessage());
+                if (attempt == startupMaxRetries) {
+                    log.error("Startup slot generation failed after {} attempts. Continuing startup without slot generation.", startupMaxRetries);
+                    return;
+                }
+                try {
+                    Thread.sleep(startupRetryDelayMs);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    log.error("Startup slot generation retry interrupted. Continuing startup without slot generation.");
+                    return;
+                }
+            }
+        }
     }
 
     @Observed

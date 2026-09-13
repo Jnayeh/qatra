@@ -1,6 +1,9 @@
 package com.zayenha.qatra.system.infrastructure.web;
 
+import com.zayenha.qatra._shared.domain.SearchCriteria;
 import com.zayenha.qatra._shared.web.ApiResponse;
+import com.zayenha.qatra._shared.web.PageHelper;
+import com.zayenha.qatra.system.domain.model.GDPRDeletionStatus;
 import com.zayenha.qatra.system.domain.port.in.GDPRCommandUseCases;
 import com.zayenha.qatra.system.domain.port.in.GDPRQueryUseCases;
 import com.zayenha.qatra.system.infrastructure.web.dto.request.GDPRRequestDeletionRequest;
@@ -43,10 +46,17 @@ public class SystemController {
     }
 
     @GetMapping("/gdpr")
-    public ResponseEntity<ApiResponse<List<GDPRDeletionResponse>>> getAllDeletionRequests() {
-        var requests = gdprQueryUseCases.findAll();
-        return ResponseEntity.ok(ApiResponse.success(
-            requests.stream().map(mapper::toResponse).toList()));
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<List<GDPRDeletionResponse>>> getDeletionRequests(
+            @RequestParam(required = false) GDPRDeletionStatus status,
+            @RequestParam(defaultValue = "requestedAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var criteria = new SearchCriteria(null, sortBy, sortDirection, PageHelper.toPageIndex(page), size);
+        var result = gdprQueryUseCases.findAll(criteria, status);
+        var data = result.content().stream().map(mapper::toResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(data, PageHelper.fromDomain(result)));
     }
 
     @GetMapping("/gdpr/{id}")

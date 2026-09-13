@@ -3,6 +3,7 @@ package com.zayenha.qatra.donor.application;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.port.out.EventPublisherPort;
 import com.zayenha.qatra._shared.event.AuditPublisher;
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import com.zayenha.qatra._shared.exception.NotFoundException;
 import com.zayenha.qatra.donor.domain.exception.DonorErrorCode;
 import com.zayenha.qatra.donor.domain.model.AvailabilityStatus;
@@ -66,7 +67,7 @@ public class QuestionnaireService implements QuestionnaireCommandUseCases, Quest
         cacheService.evictByPattern("donorProfiles:*");
         var saved = donorRepository.saveQuestionnaire(questionnaire);
 
-        auditPublisher.publish("HEALTH_QUESTIONNAIRE_UPDATED", saved.getId(), "HealthQuestionnaire", null,
+        auditPublisher.publish(LogAction.HEALTH_QUESTIONNAIRE_UPDATED, saved.getId(), "HealthQuestionnaire", null,
             Map.of("userId", userId, "donorId", profile.getId(),
                    "hasChronicIllness", command.hasChronicIllness(),
                    "onMedication", command.onMedication()));

@@ -1,5 +1,6 @@
 package com.zayenha.qatra._shared.event;
 
+import com.zayenha.qatra._shared.domain.enums.LogAction;
 import jakarta.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,12 +16,12 @@ public class AuditPublisher {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    public void publish(String action, Long entityId, String entityType,
+    public void publish(LogAction action, Long entityId, String entityType,
                         Map<String, Object> oldValue, Map<String, Object> newValue) {
         publish(AuditUtils.currentUserId(), action, entityId, entityType, oldValue, newValue);
     }
 
-    public void publish(Long actorId, String action, Long entityId, String entityType,
+    public void publish(Long actorId, LogAction action, Long entityId, String entityType,
                         Map<String, Object> oldValue, Map<String, Object> newValue) {
         try {
             eventPublisher.publishEvent(new AuditEvent(
