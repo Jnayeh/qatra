@@ -225,16 +225,29 @@ class DonorServiceTest {
     @Test
     void getImpactReturnsImpactResult() {
         var profile = aProfile();
-        profile.setTotalDonations(3);
         when(donorRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
-        when(certificateRepository.findByDonorIdOrderByDonationDateDesc(profile.getId())).thenReturn(List.of());
+
+        var cert1 = certificate(profile.getId(), java.time.LocalDate.now());
+        var cert2 = certificate(profile.getId(), java.time.LocalDate.now().minusMonths(1));
+        var cert3 = certificate(profile.getId(), java.time.LocalDate.now().minusMonths(2));
+        when(certificateRepository.findByDonorIdOrderByDonationDateDesc(profile.getId()))
+                .thenReturn(List.of(cert1, cert2, cert3));
 
         var result = donorService.getImpact(1L);
 
         assertThat(result.totalDonations()).isEqualTo(3);
         assertThat(result.milestones()).contains("First donation completed");
-        assertThat(result.donationsByType()).containsEntry("REGULAR", 0).containsEntry("EMERGENCY", 0);
-        assertThat(result.monthlyDonations()).containsValue(0);
+        assertThat(result.donationsByType()).containsEntry("REGULAR", 3).containsEntry("EMERGENCY", 0);
+        assertThat(result.monthlyDonations().values()).anyMatch(v -> v > 0);
+    }
+
+    private com.zayenha.qatra.donor.infrastructure.persistence.entity.DonationCertificateEntity certificate(Long donorId, java.time.LocalDate date) {
+        var cert = new com.zayenha.qatra.donor.infrastructure.persistence.entity.DonationCertificateEntity();
+        cert.setDonorId(donorId);
+        cert.setAppointmentId(1L);
+        cert.setDonationDate(date);
+        cert.setDonationType(com.zayenha.qatra._shared.domain.enums.AppointmentType.REGULAR);
+        return cert;
     }
 
 

@@ -2,6 +2,7 @@ package com.zayenha.qatra.appointment.domain.port.in;
 
 import com.zayenha.qatra._shared.domain.PageResult;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.enums.AppointmentStatus;
 import com.zayenha.qatra.appointment.domain.model.Appointment;
 import com.zayenha.qatra.appointment.domain.model.HealthScreening;
 
@@ -10,7 +11,7 @@ import java.util.List;
 
 public interface AppointmentQueryUseCases {
     Appointment findById(Long id);
-    List<Appointment> findByDonorId(Long donorId);
+    PageResult<Appointment> findByDonorId(Long donorId, AppointmentStatus status, int page, int size);
     List<Appointment> findByCenterIdAndDate(Long centerId, LocalDate date);
     PageResult<Appointment> findByCenterIdAndDateRange(
         Long centerId, LocalDate fromDate, LocalDate toDate, int page, int size);

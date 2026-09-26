@@ -176,9 +176,7 @@ public class CenterRepositoryAdapter implements CenterRepositoryPort {
             var pattern = "%" + search.toLowerCase() + "%";
             var predicates = new ArrayList<Predicate>();
             predicates.add(cb.like(cb.lower(root.get("name")), pattern));
-            predicates.add(cb.like(cb.lower(root.get("address")), pattern));
             predicates.add(cb.like(cb.lower(root.get("city")), pattern));
-            predicates.add(cb.like(cb.lower(root.get("country")), pattern));
             return cb.or(predicates.toArray(new Predicate[0]));
         };
     }

@@ -20,6 +20,7 @@ import com.zayenha.qatra.donor.domain.service.DonorDomainValidator;
 import com.zayenha.qatra.donor.infrastructure.persistence.repository.DonationCertificateJpaRepository;
 import com.zayenha.qatra.user.api.UserApi;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -277,12 +278,13 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
         if (cached.isPresent()) return cached.get();
         var profile = donorRepository.findByUserId(userId).orElseThrow(() -> new NotFoundException(
                 "Donor not found by userID: " + userId, DonorErrorCode.DONOR_NOT_FOUND.name()));
-        var milestones = new java.util.ArrayList<String>();
-        if (profile.getTotalDonations() >= 1) milestones.add("First donation completed");
-        if (profile.getTotalDonations() >= 5) milestones.add("Regular donator");
-        if (profile.getTotalDonations() >= 10) milestones.add("Life saver");
 
         var donations = certificateRepository.findByDonorIdOrderByDonationDateDesc(profile.getId());
+        var totalDonations = donations.size();
+        var milestones = new java.util.ArrayList<String>();
+        if (totalDonations >= 1) milestones.add("First donation completed");
+        if (totalDonations >= 5) milestones.add("Regular donator");
+        if (totalDonations >= 10) milestones.add("Life saver");
 
         var donationsByType = new LinkedHashMap<String, Integer>();
         for (AppointmentType type : AppointmentType.values()) donationsByType.put(type.name(), 0);
@@ -302,21 +304,25 @@ public class DonorService implements DonorCommandUseCases, DonorQueryUseCases {
             }
         });
 
-        var result = new ImpactResult(profile.getTotalDonations(), milestones, donationsByType, monthlyDonations);
+        var result = new ImpactResult(totalDonations, milestones, donationsByType, monthlyDonations);
         cacheService.put(key, result);
         return result;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CertificateProjection> getCertificates(Long userId) {
+    public PageResult<CertificateProjection> getCertificates(Long userId, int page, int size) {
         var profile = donorRepository.findByUserId(userId).orElseThrow(() -> new NotFoundException(
                 "Donor not found by userID: " + userId, DonorErrorCode.DONOR_NOT_FOUND.name()));
-        return certificateRepository.findByDonorIdOrderByDonationDateDesc(profile.getId()).stream()
-                .map(c -> new CertificateProjection(
-                        c.getId(), c.getAppointmentId(), c.getDonorName(),
-                        c.getCenterName(), c.getMlCollected(), c.getDonationDate()))
-                .toList();
+        var pageable = PageRequest.of(page, size);
+        var result = certificateRepository.findByDonorIdOrderByDonationDateDesc(profile.getId(), pageable);
+        return new PageResult<>(
+                result.getContent().stream()
+                        .map(c -> new CertificateProjection(
+                                c.getId(), c.getAppointmentId(), c.getDonorName(),
+                                c.getCenterName(), c.getMlCollected(), c.getDonationDate()))
+                        .toList(),
+                result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages());
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.zayenha.qatra.appointment.infrastructure.web;
 
 import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.domain.SearchCriteria;
+import com.zayenha.qatra._shared.domain.enums.AppointmentStatus;
+import com.zayenha.qatra._shared.exception.BadRequestException;
 import com.zayenha.qatra._shared.web.ApiResponse;
 import com.zayenha.qatra._shared.web.PageHelper;
 import com.zayenha.qatra.appointment.domain.port.in.AppointmentCommandUseCases;
@@ -107,10 +109,24 @@ public class AppointmentController {
 
     @GetMapping("/by-donor/{donorId}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR', 'CENTER_ADMIN')")
-    public ResponseEntity<ApiResponse<List<AppointmentResponse>>> getByDonor(@PathVariable Long donorId) {
-        var appointments = queryUseCases.findByDonorId(donorId);
+    public ResponseEntity<ApiResponse<List<AppointmentResponse>>> getByDonor(
+            @PathVariable Long donorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String status) {
+        var result = queryUseCases.findByDonorId(donorId, parseStatus(status), page, size);
         return ResponseEntity.ok(ApiResponse.success(
-            appointments.stream().map(mapper::toResponse).toList()));
+            result.content().stream().map(mapper::toResponse).toList(),
+            PageHelper.fromDomain(result)));
+    }
+
+    private AppointmentStatus parseStatus(String status) {
+        if (status == null || status.isBlank()) return null;
+        try {
+            return AppointmentStatus.valueOf(status.trim());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid appointment status: " + status, "INVALID_STATUS");
+        }
     }
 
     @GetMapping("/by-center/{centerId}")

@@ -133,15 +133,18 @@ public class DonorController {
 
     @GetMapping("/api/v1/donors/me/certificates")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'DONOR')")
-    public ResponseEntity<ApiResponse<java.util.List<CertificateResponse>>> getCertificates() {
+    public ResponseEntity<ApiResponse<List<CertificateResponse>>> getCertificates(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         var userId = AuditUtils.currentUserId();
-        var certs = donorQueryUseCases.getCertificates(userId).stream()
+        var result = donorQueryUseCases.getCertificates(userId, page, size);
+        var certs = result.content().stream()
                 .map(c -> new CertificateResponse(
                         c.id(), c.appointmentId(), c.donorName(), c.centerName(),
                         c.mlCollected(), c.donationDate(),
                         "/api/v1/donors/me/certificates/" + c.id() + "/download"))
                 .toList();
-        return ResponseEntity.ok(ApiResponse.success(certs));
+        return ResponseEntity.ok(ApiResponse.success(certs, PageHelper.fromDomain(result)));
     }
 
     @GetMapping("/api/v1/donors/me/certificates/{id}/download")

@@ -22,6 +22,10 @@ public interface AppointmentJpaRepository extends JpaRepository<AppointmentEntit
     Optional<AppointmentEntity> findById(Long id);
     @EntityGraph("AppointmentEntity.withSlot")
     List<AppointmentEntity> findByDonor_IdOrderByCreatedAtDesc(Long donorId);
+    @EntityGraph("AppointmentEntity.withSlot")
+    Page<AppointmentEntity> findByDonor_IdOrderByCreatedAtDesc(Long donorId, Pageable pageable);
+    @EntityGraph("AppointmentEntity.withSlot")
+    Page<AppointmentEntity> findByDonor_IdAndStatusInOrderByCreatedAtDesc(Long donorId, List<AppointmentStatus> statuses, Pageable pageable);
     List<AppointmentEntity> findByCenter_IdOrderByCreatedAtDesc(Long centerId);
     @EntityGraph("AppointmentEntity.withSlot")
     Page<AppointmentEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);

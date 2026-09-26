@@ -65,8 +65,16 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     }
 
     @Override
-    public List<Appointment> findByDonorId(Long donorId) {
-        return jpaRepository.findByDonor_IdOrderByCreatedAtDesc(donorId).stream().map(mapper::toDomain).toList();
+    public PageResult<Appointment> findByDonorId(Long donorId, AppointmentStatus status, int page, int size) {
+        var pageable = PageRequest.of(page, size);
+        var result = status == null
+                ? jpaRepository.findByDonor_IdOrderByCreatedAtDesc(donorId, pageable)
+                : jpaRepository.findByDonor_IdAndStatusInOrderByCreatedAtDesc(donorId, List.of(status), pageable);
+        return new PageResult<>(
+            result.getContent().stream().map(mapper::toDomain).toList(),
+            result.getNumber(), result.getSize(),
+            result.getTotalElements(), result.getTotalPages()
+        );
     }
 
     @Override

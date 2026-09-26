@@ -1,6 +1,5 @@
 package com.zayenha.qatra.appointment.application;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.zayenha.qatra._shared.cache.CacheService;
 import com.zayenha.qatra._shared.domain.DateUtils;
 import com.zayenha.qatra._shared.domain.enums.AppointmentType;
@@ -314,14 +313,8 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
 
     @Override
     @Transactional(readOnly = true)
-    public List<Appointment> findByDonorId(Long donorId) {
-        var key = "appointments:donor:" + donorId;
-        return cacheService.get(key, new TypeReference<List<Appointment>>() {})
-                .orElseGet(() -> {
-                    var result = repository.findByDonorId(donorId);
-                    cacheService.put(key, result);
-                    return result;
-                });
+    public PageResult<Appointment> findByDonorId(Long donorId, AppointmentStatus status, int page, int size) {
+        return repository.findByDonorId(donorId, status, page, size);
     }
 
     @Override

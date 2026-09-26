@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -166,9 +167,10 @@ class AppointmentControllerTest {
     @Test
     void getByDonorReturnsAppointments() {
         var appointment = anAppointment();
-        when(queryUseCases.findByDonorId(1L)).thenReturn(List.of(appointment));
+        var pageResult = new PageResult<Appointment>(List.of(appointment), 0, 20, 1, 1);
+        when(queryUseCases.findByDonorId(eq(1L), isNull(), eq(0), eq(20))).thenReturn(pageResult);
 
-        var response = controller.getByDonor(1L);
+        var response = controller.getByDonor(1L, 0, 20, null);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().data()).hasSize(1);

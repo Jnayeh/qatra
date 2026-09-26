@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface AppointmentRepositoryPort {
     Appointment save(Appointment appointment);
     Optional<Appointment> findById(Long id);
-    List<Appointment> findByDonorId(Long donorId);
+    PageResult<Appointment> findByDonorId(Long donorId, AppointmentStatus status, int page, int size);
     List<Appointment> findByCenterIdAndDate(Long centerId, LocalDate date);
     PageResult<Appointment> findByCenterIdAndDateRange(
         Long centerId, LocalDate fromDate, LocalDate toDate, int page, int size);

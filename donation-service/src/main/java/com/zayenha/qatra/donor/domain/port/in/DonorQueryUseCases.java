@@ -16,7 +16,7 @@ public interface DonorQueryUseCases {
                         Map<String, Integer> donationsByType,
                         Map<String, Integer> monthlyDonations) {}
 
-    List<CertificateProjection> getCertificates(Long userId);
+    PageResult<CertificateProjection> getCertificates(Long userId, int page, int size);
 
     record CertificateProjection(Long id, Long appointmentId, String donorName, String centerName, Integer mlCollected, java.time.LocalDate donationDate) {}
 
