@@ -37,6 +37,13 @@ public class Appointment {
     private DonationOutcome outcome;
     private LocalDate slotDate;
     private LocalTime slotTime;
+    private String donorFirstName;
+    private String donorLastName;
+    private String donorDisplayName;
+    private String donorPhone;
+    private String donorEmail;
+    private String donorCity;
+    private String slotName;
 
     public Appointment() {}
 
@@ -51,6 +58,11 @@ public class Appointment {
         this.status = AppointmentStatus.SCHEDULED;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
+    }
+
+    public void assignQrCode() {
+        this.qrCode = "A" + id + "D" + donorId + "S" + slotId + "C" + centerId
+                + (emergencyId != null ? "E" + emergencyId : "");
     }
 
     public void checkIn() {

@@ -67,6 +67,8 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         centerProxy.updateSlot(slot);
 
         var appointment = new Appointment(donorId, slotId, slot.getCenterId(), emergencyId, type, null);
+        // save() assigns the generated id and the qr code (derived from it)
+        // before the appointment is written, so a single INSERT is enough
         var saved = repository.save(appointment);
         cacheService.evictByPattern(APPOINTMENTS_BASE);
         auditPublisher.publish(LogAction.APPOINTMENT_BOOKED, saved.getId(), APPOINTMENT_CLASSNAME, null,
@@ -274,7 +276,14 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
     @Transactional
     public HealthScreening saveScreening(Long appointmentId, double weight, String bloodPressure,
                                           double hemoglobin, double temperature, boolean eligible, String notes) {
-        var screening = new HealthScreening(appointmentId, null);
+        var appointment = findOrThrow(appointmentId);
+        if (appointment.getStatus() != AppointmentStatus.CHECKED_IN) {
+            throw new ValidationException("Only checked-in appointments can be screened",
+                    AppointmentErrorCode.INVALID_APPOINTMENT_STATUS.name());
+        }
+        var oldStatus = appointment.getStatus();
+        var screening = new HealthScreening(appointmentId, appointment.getDonorId());
+        screening.setScreenedByStaffId(AuditUtils.currentUserId());
         screening.setWeight(weight);
         screening.setBloodPressure(bloodPressure);
         screening.setHemoglobin(hemoglobin);
@@ -284,17 +293,23 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
         var saved = repository.saveScreening(screening);
         cacheService.evictByPattern("screenings:*");
 
-        var appointment = findOrThrow(appointmentId);
-        auditPublisher.publish(LogAction.SCREENING_SAVED, saved.getId(), APPOINTMENT_CLASSNAME, null,
-            Map.of("appointmentId", appointmentId, "eligible", eligible, DONOR_ID,
-                   appointment.getDonorId()));
-
-        if (!eligible) {
+        // A passed screening moves the appointment into screening (Screened queue);
+        // a failed one cancels it and frees the booked slot.
+        if (eligible) {
+            appointment.startScreening();
+        } else {
             appointment.cancel("Failed health screening");
-            repository.save(appointment);
-            releaseSlot(appointment);
-            cacheService.evictByPattern(APPOINTMENTS_BASE);
         }
+        repository.save(appointment);
+        if (!eligible) {
+            releaseSlot(appointment);
+        }
+        cacheService.evictByPattern(APPOINTMENTS_BASE);
+
+        auditPublisher.publish(LogAction.SCREENING_SAVED, saved.getId(), APPOINTMENT_CLASSNAME,
+            Map.of(STATUS, oldStatus.name()),
+            Map.of(STATUS, appointment.getStatus().name(), "appointmentId", appointmentId,
+                   "eligible", eligible, DONOR_ID, appointment.getDonorId()));
         return saved;
     }
 

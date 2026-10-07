@@ -31,5 +31,12 @@ public record AppointmentResponse(
         String cancellationReason,
         String notes,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        String donorFirstName,
+        String donorLastName,
+        String donorDisplayName,
+        String donorPhone,
+        String donorEmail,
+        String donorCity,
+        String slotName
 ) {}

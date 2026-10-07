@@ -62,7 +62,8 @@ class AppointmentControllerTest {
     private AppointmentResponse aResponse() {
         return new AppointmentResponse(1L, 1L, 100L, 1000L, null, null,
                 null, null, AppointmentType.REGULAR, AppointmentStatus.SCHEDULED, null, null,
-            null, null, null, null, null, null, null, null, Instant.now(), Instant.now());
+            null, null, null, null, null, null, null, null, Instant.now(), Instant.now(),
+            null, null, null, null, null, null, null);
     }
 
     private HealthScreeningResponse aScreeningResponse() {
@@ -91,7 +92,8 @@ class AppointmentControllerTest {
         when(commandUseCases.checkIn(1L)).thenReturn(appointment);
         when(mapper.toResponse(appointment)).thenReturn(new AppointmentResponse(1L, 1L, 100L, 1000L, null, null,
                 null, null, AppointmentType.REGULAR, AppointmentStatus.CHECKED_IN, null, null,
-            null, null, null, null, null, null, null, null, Instant.now(), Instant.now()));
+            null, null, null, null, null, null, null, null, Instant.now(), Instant.now(),
+            null, null, null, null, null, null, null));
 
         var response = controller.checkIn(1L);
 
@@ -108,7 +110,8 @@ class AppointmentControllerTest {
         when(commandUseCases.complete(eq(1L), eq(DonationOutcome.COMPLETED), eq(450), eq("Good"))).thenReturn(appointment);
         when(mapper.toResponse(appointment)).thenReturn(new AppointmentResponse(1L, 1L, 100L, 1000L, null, null,
                 null, null, AppointmentType.REGULAR, AppointmentStatus.COMPLETED, null, DonationOutcome.COMPLETED,
-            null, null, null, null, null, null, null, null, Instant.now(), Instant.now()));
+            null, null, null, null, null, null, null, null, Instant.now(), Instant.now(),
+            null, null, null, null, null, null, null));
 
         var request = new CompleteAppointmentRequest("FULL_DONATION", 450, "Good");
         var response = controller.complete(1L, request);
@@ -124,7 +127,8 @@ class AppointmentControllerTest {
         when(commandUseCases.cancel(1L)).thenReturn(appointment);
         when(mapper.toResponse(appointment)).thenReturn(new AppointmentResponse(1L, 1L, 100L, 1000L, null, null,
                 null, null, AppointmentType.REGULAR, AppointmentStatus.CANCELLED, null, null,
-            null, null, null, null, null, null, null, null, Instant.now(), Instant.now()));
+            null, null, null, null, null, null, null, null, Instant.now(), Instant.now(),
+            null, null, null, null, null, null, null));
 
         var response = controller.cancel(1L);
 

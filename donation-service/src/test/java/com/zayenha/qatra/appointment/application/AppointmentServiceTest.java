@@ -15,6 +15,7 @@ import com.zayenha.qatra.appointment.application.proxy.AptUserProxy;
 import com.zayenha.qatra.appointment.domain.model.*;
 import com.zayenha.qatra.appointment.domain.port.out.AppointmentRepositoryPort;
 import com.zayenha.qatra.center.application.api.dto.SlotDTO;
+import com.zayenha.qatra.center.infrastructure.persistence.entity.CenterEntity;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -120,6 +121,9 @@ class AppointmentServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(appointment));
         when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(donorProxy.findOptionalByDonorId(any())).thenReturn(Optional.empty());
+        var center = new CenterEntity();
+        center.setName("Test Center");
+        when(centerProxy.getCenterReference(100L)).thenReturn(center);
 
         var result = service.complete(1L, DonationOutcome.COMPLETED, 450, "Good");
 
@@ -204,7 +208,9 @@ class AppointmentServiceTest {
         var appointment = new Appointment();
         appointment.setId(1L);
         appointment.setDonorId(10L);
+        appointment.setStatus(AppointmentStatus.CHECKED_IN);
         when(repository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
         var screening = new HealthScreening();
         screening.setId(1L);
         screening.setAppointmentId(1L);
@@ -215,6 +221,48 @@ class AppointmentServiceTest {
 
         assertThat(result.getAppointmentId()).isEqualTo(1L);
         assertThat(result.getEligible()).isTrue();
+        assertThat(appointment.getStatus()).isEqualTo(AppointmentStatus.IN_SCREENING);
+        assertThat(appointment.getStartedAt()).isNotNull();
         verify(repository).saveScreening(any());
+        verify(repository).save(appointment);
+    }
+
+    @Test
+    void saveScreeningCancelsWhenIneligible() {
+        var appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDonorId(10L);
+        appointment.setSlotId(100L);
+        appointment.setStatus(AppointmentStatus.CHECKED_IN);
+        when(repository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
+        var slot = new SlotDTO(100L, 1000L, LocalDate.now(), LocalTime.of(9, 0), LocalTime.of(10, 0), 1, 0, 10, 5, false);
+        when(centerProxy.findSlotById(100L)).thenReturn(slot);
+        var screening = new HealthScreening();
+        screening.setId(2L);
+        screening.setAppointmentId(1L);
+        screening.setEligible(false);
+        when(repository.saveScreening(any())).thenReturn(screening);
+
+        service.saveScreening(1L, 70.0, "120/80", 14.5, 36.6, false, "Too low hemoglobin");
+
+        assertThat(appointment.getStatus()).isEqualTo(AppointmentStatus.CANCELLED);
+        assertThat(appointment.getCancellationReason()).isEqualTo("Failed health screening");
+        assertThat(slot.getBookedCount()).isZero();
+        verify(centerProxy).updateSlot(slot);
+    }
+
+    @Test
+    void saveScreeningThrowsWhenNotCheckedIn() {
+        var appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDonorId(10L);
+        appointment.setStatus(AppointmentStatus.IN_SCREENING);
+        when(repository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        assertThatThrownBy(() -> service.saveScreening(1L, 70.0, "120/80", 14.5, 36.6, true, "Fit"))
+                .isInstanceOf(ValidationException.class);
+        verify(repository, never()).saveScreening(any());
+        verify(repository, never()).save(any());
     }
 }

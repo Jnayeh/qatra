@@ -25,6 +25,13 @@ import java.time.Instant;
         name = "AppointmentEntity.withSlot",
         attributeNodes = {@NamedAttributeNode("slot")}
 )
+@NamedEntityGraph(
+        name = "AppointmentEntity.withSlotAndDonor",
+        attributeNodes = {@NamedAttributeNode("slot"), @NamedAttributeNode(value = "donor", subgraph = "donor.withUser")},
+        subgraphs = {
+                @NamedSubgraph(name = "donor.withUser", attributeNodes = @NamedAttributeNode("user"))
+        }
+)
 public class AppointmentEntity {
 
     @Id

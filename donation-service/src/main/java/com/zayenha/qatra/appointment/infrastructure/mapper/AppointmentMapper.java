@@ -35,6 +35,21 @@ public abstract class AppointmentMapper {
     @Autowired
     protected AppointmentJpaRepository appointmentJpaRepository;
 
+    @Mapping(target = "donorFirstName", source = "donor.user.firstName")
+    @Mapping(target = "donorLastName", source = "donor.user.familyName")
+    @Mapping(target = "donorDisplayName", source = "donor.user.displayName")
+    @Mapping(target = "donorPhone", source = "donor.user.phone")
+    @Mapping(target = "donorEmail", source = "donor.user.email")
+    @Mapping(target = "donorCity", source = "donor.city")
+    @Mapping(target = "slotName", expression = "java(entity.getSlot() != null ? (entity.getSlot().getStartTime() + \" - \" + entity.getSlot().getEndTime()) : null)")
+    public abstract AppointmentResponse toResponseEntity(AppointmentEntity entity);
+    @Mapping(target = "donorId", source = "donorId")
+    @Mapping(target = "slotId", source = "slotId")
+    @Mapping(target = "centerId", source = "centerId")
+    @Mapping(target = "emergencyId", source = "emergencyId")
+    @Mapping(target = "completedByStaffId", source = "completedByStaffId")
+    @Mapping(target = "slotTime", source = "slotTime")
+    @Mapping(target = "slotDate", source = "slotDate")
     public abstract AppointmentResponse toResponse(Appointment appointment);
 
     public abstract HealthScreeningResponse toScreeningResponse(HealthScreening screening);
@@ -50,14 +65,9 @@ public abstract class AppointmentMapper {
     @Mapping(target = "completedByStaff", expression = "java(appointment.getCompletedByStaffId() != null ? userProxy.getUserReference(appointment.getCompletedByStaffId()) : null)")
     public abstract AppointmentEntity toEntity(Appointment appointment);
 
-    @Mapping(target = "donorId", source = "donor.id")
-    @Mapping(target = "slotId", source = "slot.id")
-    @Mapping(target = "centerId", source = "center.id")
-    @Mapping(target = "emergencyId", source = "emergency.id")
-    @Mapping(target = "completedByStaffId", source = "completedByStaff.id")
-    @Mapping(target = "slotTime", source = "slot.startTime")
-    @Mapping(target = "slotDate", source = "slot.date")
     public abstract Appointment toDomain(AppointmentEntity entity);
+
+
 
     @Mapping(target = "screenedByStaff", expression = "java(userProxy.getUserReference(screening.getScreenedByStaffId()))")
     public abstract HealthScreeningEntity toScreeningEntity(HealthScreening screening);

@@ -41,7 +41,16 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
             return mapper.toDomain(jpaRepository.save(existing));
         }
         appointment.setUserId(AuditUtils.currentUserId());
-        return mapper.toDomain(jpaRepository.save(mapper.toEntity(appointment)));
+        var entity = mapper.toEntity(appointment);
+        // For a new entity this only persists it: Hibernate draws the id from
+        // appointment_seq immediately, while the INSERT is deferred until flush.
+        // That lets us set the qr code (which embeds the id) on the managed entity
+        // so it is written by the same single INSERT.
+        jpaRepository.save(entity);
+        appointment.setId(entity.getId());
+        appointment.assignQrCode();
+        entity.setQrCode(appointment.getQrCode());
+        return mapper.toDomain(entity);
     }
 
     private void merge(AppointmentEntity existing, Appointment source) {
