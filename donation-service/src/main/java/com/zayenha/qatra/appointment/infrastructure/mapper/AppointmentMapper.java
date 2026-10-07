@@ -36,6 +36,7 @@ public abstract class AppointmentMapper {
     protected AppointmentJpaRepository appointmentJpaRepository;
 
     @Mapping(target = "donorId", source = "donor.id")
+    @Mapping(target = "bloodType", source = "donor.bloodType")
     @Mapping(target = "slotId", source = "slot.id")
     @Mapping(target = "centerId", source = "center.id")
     @Mapping(target = "emergencyId", source = "emergency.id")
@@ -80,6 +81,7 @@ public abstract class AppointmentMapper {
     @Mapping(target = "donorPhone", source = "donor.user.phone")
     @Mapping(target = "donorEmail", source = "donor.user.email")
     @Mapping(target = "donorCity", source = "donor.city")
+    @Mapping(target = "bloodType", source = "donor.bloodType")
     public abstract Appointment toDomain(AppointmentEntity entity);
 
     @Mapping(target = "screenedByStaff", expression = "java(userProxy.getUserReference(screening.getScreenedByStaffId()))")
