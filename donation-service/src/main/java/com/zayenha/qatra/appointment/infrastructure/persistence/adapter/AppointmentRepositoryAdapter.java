@@ -96,11 +96,10 @@ public class AppointmentRepositoryAdapter implements AppointmentRepositoryPort {
     public PageResult<Appointment> findByCenterIdAndDateRange(Long centerId, LocalDate fromDate, LocalDate toDate, int page, int size) {
         var pageable = PageRequest.of(page, size);
         var result = jpaRepository.findByCenterIdAndSlotDateBetween(centerId, fromDate, toDate, pageable);
-        var total = cachedCount("count:appointments:by-center:" + centerId+"from:"+fromDate.toString()+"_to:"+toDate.toString());
         return new PageResult<>(
             result.getContent().stream().map(mapper::toDomain).toList(),
             result.getNumber(), result.getSize(),
-            total, result.getTotalPages()
+            result.getTotalElements(), result.getTotalPages()
         );
     }
 

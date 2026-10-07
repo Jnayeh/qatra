@@ -133,10 +133,20 @@ public class AppointmentService implements AppointmentCommandUseCases, Appointme
             throw new ValidationException("Appointment already completed",
                     AppointmentErrorCode.APPOINTMENT_ALREADY_COMPLETED.name());
         }
+        if (outcome == DonationOutcome.COMPLETED && (mlCollected == null || mlCollected < 1)) {
+            throw new ValidationException("ML collected must be at least 1 ml for a completed donation",
+                    AppointmentErrorCode.INVALID_ML_COLLECTED.name());
+        }
         var oldStatus = appointment.getStatus();
-        appointment.complete(outcome, notes, mlCollected, AuditUtils.currentUserId());
+        // A cancelled outcome means no donation was taken, so nothing was collected.
+        var donationMl = outcome == DonationOutcome.CANCELLED ? 0 : mlCollected;
+        appointment.complete(outcome, notes, donationMl, AuditUtils.currentUserId());
         var saved = repository.save(appointment);
         cacheService.evictByPattern(APPOINTMENTS_BASE);
+
+        if (outcome == DonationOutcome.CANCELLED) {
+            releaseSlot(saved);
+        }
 
         donorProxy.findOptionalByDonorId(saved.getDonorId()).ifPresent(dto -> {
             if (outcome == DonationOutcome.COMPLETED) {

@@ -133,6 +133,50 @@ class AppointmentServiceTest {
     }
 
     @Test
+    void completeRequiresMlWhenOutcomeCompleted() {
+        var appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDonorId(1L);
+        appointment.setCenterId(100L);
+        appointment.setStatus(AppointmentStatus.IN_SCREENING);
+        when(repository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        assertThatThrownBy(() -> service.complete(1L, DonationOutcome.COMPLETED, null, null))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("at least 1 ml");
+        assertThatThrownBy(() -> service.complete(1L, DonationOutcome.COMPLETED, 0, null))
+                .isInstanceOf(ValidationException.class);
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void completeWithCancelledOutcomeNeedsNoMlAndReleasesSlot() {
+        var appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setDonorId(1L);
+        appointment.setCenterId(100L);
+        appointment.setSlotId(100L);
+        appointment.setAppointmentType(AppointmentType.REGULAR);
+        appointment.setStatus(AppointmentStatus.IN_SCREENING);
+        when(repository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
+        var slot = new SlotDTO(100L, 1000L, LocalDate.now(), LocalTime.of(9, 0), LocalTime.of(10, 0), 1, 0, 10, 5, false);
+        when(centerProxy.findSlotById(100L)).thenReturn(slot);
+
+        var result = service.complete(1L, DonationOutcome.CANCELLED, null, "Donor declined after screening");
+
+        assertThat(result.getStatus()).isEqualTo(AppointmentStatus.COMPLETED);
+        assertThat(result.getOutcome()).isEqualTo(DonationOutcome.CANCELLED);
+        assertThat(result.getMlCollected()).isZero();
+        assertThat(slot.getBookedCount()).isZero();
+        assertThat(slot.getRegularBookedCount()).isZero();
+        verify(centerProxy).updateSlot(slot);
+        // No donation happened, so no donation event may be published.
+        verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
     void cancelChangesStatus() {
         var appointment = new Appointment();
         appointment.setId(1L);

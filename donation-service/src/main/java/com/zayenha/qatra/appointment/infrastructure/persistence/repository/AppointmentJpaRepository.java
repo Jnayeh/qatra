@@ -19,31 +19,32 @@ import java.util.Optional;
 public interface AppointmentJpaRepository extends JpaRepository<AppointmentEntity, Long> {
     @EntityGraph("UserEntity.withRoles")
     Page<UserEntity> findAll(Specification<UserEntity> spec, Pageable pageable);
-    @EntityGraph("AppointmentEntity.withSlot")
+    @EntityGraph("AppointmentEntity.withSlotAndDonor")
     Optional<AppointmentEntity> findById(Long id);
-    @EntityGraph("AppointmentEntity.withSlot")
+    @EntityGraph("AppointmentEntity.withSlotAndDonor")
     List<AppointmentEntity> findByDonor_IdOrderByCreatedAtDesc(Long donorId);
-    @EntityGraph("AppointmentEntity.withSlot")
+    @EntityGraph("AppointmentEntity.withSlotAndDonor")
     Page<AppointmentEntity> findByDonor_IdOrderByCreatedAtDesc(Long donorId, Pageable pageable);
-    @EntityGraph("AppointmentEntity.withSlot")
+    @EntityGraph("AppointmentEntity.withSlotAndDonor")
     Page<AppointmentEntity> findByDonor_IdAndStatusInOrderByCreatedAtDesc(Long donorId, List<AppointmentStatus> statuses, Pageable pageable);
+    @EntityGraph("AppointmentEntity.withSlotAndDonor")
     List<AppointmentEntity> findByCenter_IdOrderByCreatedAtDesc(Long centerId);
-    @EntityGraph("AppointmentEntity.withSlot")
+    @EntityGraph("AppointmentEntity.withSlotAndDonor")
     Page<AppointmentEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
     boolean existsByDonor_IdAndStatusIn(Long donorId, List<AppointmentStatus> statuses);
-    @EntityGraph("AppointmentEntity.withSlot")
+    @EntityGraph("AppointmentEntity.withSlotAndDonor")
     List<AppointmentEntity> findByEmergency_Id(Long emergencyId);
 
     @Query("SELECT COUNT(a) FROM AppointmentEntity a WHERE a.emergency.id = :emergencyId AND a.outcome = :outcome AND a.status = :status")
     long countCompletedByEmergencyId(Long emergencyId, DonationOutcome outcome, AppointmentStatus status);
 
-    @Query("SELECT a FROM AppointmentEntity a JOIN FETCH a.slot s WHERE a.status = 'SCHEDULED' AND s.date = :targetDate")
+    @Query("SELECT a FROM AppointmentEntity a JOIN FETCH a.slot s JOIN FETCH a.donor d JOIN FETCH d.user WHERE a.status = 'SCHEDULED' AND s.date = :targetDate")
     List<AppointmentEntity> findScheduledAppointmentsBySlotDate(@Param("targetDate") java.time.LocalDate targetDate);
 
-    @Query("SELECT a FROM AppointmentEntity a JOIN FETCH a.slot s WHERE a.center.id = :centerId AND s.date = :targetDate ORDER BY s.startTime ASC")
+    @Query("SELECT a FROM AppointmentEntity a JOIN FETCH a.slot s JOIN FETCH a.donor d JOIN FETCH d.user WHERE a.center.id = :centerId AND s.date = :targetDate ORDER BY s.startTime ASC")
     List<AppointmentEntity> findByCenterIdAndSlotDate(@Param("centerId") Long centerId, @Param("targetDate") java.time.LocalDate targetDate);
 
-    @Query(value = "SELECT a FROM AppointmentEntity a JOIN FETCH a.slot s JOIN FETCH a.donor d WHERE a.center.id = :centerId AND s.date BETWEEN :fromDate AND :toDate ORDER BY s.date ASC, s.startTime ASC",
+    @Query(value = "SELECT a FROM AppointmentEntity a JOIN FETCH a.slot s JOIN FETCH a.donor d JOIN FETCH d.user WHERE a.center.id = :centerId AND s.date BETWEEN :fromDate AND :toDate ORDER BY s.date ASC, s.startTime ASC",
             countQuery = "SELECT COUNT(a) FROM AppointmentEntity a JOIN a.slot s WHERE a.center.id = :centerId AND s.date BETWEEN :fromDate AND :toDate")
     Page<AppointmentEntity> findByCenterIdAndSlotDateBetween(@Param("centerId") Long centerId, @Param("fromDate") java.time.LocalDate fromDate, @Param("toDate") java.time.LocalDate toDate, Pageable pageable);
 
